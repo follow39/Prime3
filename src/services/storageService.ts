@@ -16,6 +16,8 @@ export interface IStorageService {
     updateCardDescriptionById(id: number, description: string): Promise<void>
     deleteAllCards(): Promise<void>
     deleteCardsByDate(date: string): Promise<void>
+    getMostRecentDateWithCards(excludeDate?: string): Promise<string | null>
+    copyUndoneCardsFromDateToToday(fromDate: string, todayDate: string): Promise<number>
 };
 class StorageService implements IStorageService {
     versionUpgrades = CardUpgradeStatements;
@@ -103,6 +105,64 @@ class StorageService implements IStorageService {
     async deleteCardsByDate(date: string): Promise<void> {
         const sql = `DELETE FROM cards WHERE creation_date = ?`;
         await this.db.run(sql, [date]);
+    }
+    async getMostRecentDateWithCards(excludeDate?: string): Promise<string | null> {
+        try {
+            let sql = `SELECT DISTINCT creation_date FROM cards`;
+            const params: any[] = [];
+
+            if (excludeDate) {
+                sql += ` WHERE creation_date != ?`;
+                params.push(excludeDate);
+            }
+
+            sql += ` ORDER BY creation_date DESC LIMIT 1`;
+
+            const result = await this.db.query(sql, params);
+
+            if (result.values && result.values.length > 0) {
+                return result.values[0].creation_date;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting most recent date with cards:', error);
+            throw error;
+        }
+    }
+
+    async copyUndoneCardsFromDateToToday(fromDate: string, todayDate: string): Promise<number> {
+        try {
+            // Get cards from the specified date
+            const previousCards = await this.getCardsByDate(fromDate);
+
+            if (previousCards.length === 0) {
+                return 0;
+            }
+
+            // Copy only undone cards (status != Done which is 2)
+            let copiedCount = 0;
+            for (const card of previousCards) {
+                // Only copy if card is not done (status == 1 is Open)
+                if (card.status !== 2) { // CardStatus.Done = 2
+                    const newCard: Card = {
+                        id: 0, // Will be auto-generated
+                        title: card.title,
+                        description: card.description,
+                        status: 1, // Reset to Open
+                        creation_date: todayDate,
+                        active: 1
+                    };
+                    await this.addCard(newCard);
+                    copiedCount++;
+                }
+            }
+
+            return copiedCount;
+        } catch (error) {
+            console.error('Error copying undone cards:', error);
+            throw error;
+        }
     }
 }
 export default StorageService;

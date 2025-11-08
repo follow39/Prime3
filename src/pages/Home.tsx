@@ -102,7 +102,26 @@ const Home: React.FC = () => {
 
       // Get today's date and fetch only today's cards
       const todayDate = getTodayDate();
-      const cards = await storageServ.getCardsByDate(todayDate);
+      let cards = await storageServ.getCardsByDate(todayDate);
+
+      // If no cards for today, find the most recent date with cards and copy undone tasks
+      if (cards.length === 0) {
+        const mostRecentDate = await storageServ.getMostRecentDateWithCards(todayDate);
+
+        if (mostRecentDate) {
+          const copiedCount = await storageServ.copyUndoneCardsFromDateToToday(mostRecentDate, todayDate);
+
+          if (copiedCount > 0) {
+            // Reload cards after copying
+            cards = await storageServ.getCardsByDate(todayDate);
+            Toast.show({
+              text: `Copied ${copiedCount} undone task${copiedCount > 1 ? 's' : ''} from ${mostRecentDate}`,
+              duration: 'short'
+            });
+          }
+        }
+      }
+
       setCards(cards);
     } catch (error) {
       const msg = `Error reading cards: ${error}`;
@@ -237,51 +256,68 @@ const Home: React.FC = () => {
 
         {/* <IonButton onClick={createCard}>create card</IonButton> */}
 
-        <IonList>
-          {cards
-            .sort((a, b) => {
-              // Sort by status: Open cards first, then Done cards
-              if (a.status === CardStatus.Open && b.status === CardStatus.Done) return -1;
-              if (a.status === CardStatus.Done && b.status === CardStatus.Open) return 1;
-              return 0;
-            })
-            .map(card => (
-              <IonCard
-                key={card.id}
-                button={true}
-                onClick={() => cardClicked(card)}
-                style={{
-                  opacity: card.status === CardStatus.Done ? 0.35 : 1
-                }}
-              >
-                <IonCardHeader>
-                  <IonCardTitle
+        {cards.length === 0 ? (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '70vh'
+            }}
+          >
+            <IonButton size="large" onClick={planTheDay}>
+              Plan the day
+            </IonButton>
+          </div>
+        ) : (
+          <IonList>
+            {cards
+              .sort((a, b) => {
+                // Sort by status: Open cards first, then Done cards
+                if (a.status === CardStatus.Open && b.status === CardStatus.Done) return -1;
+                if (a.status === CardStatus.Done && b.status === CardStatus.Open) return 1;
+                return 0;
+              })
+              .map(card => (
+                <IonCard
+                  key={card.id}
+                  button={true}
+                  onClick={() => cardClicked(card)}
+                  style={{
+                    opacity: card.status === CardStatus.Done ? 0.35 : 1
+                  }}
+                >
+                  <IonCardHeader>
+                    <IonCardTitle
+                      style={{
+                        textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
+                      }}
+                    >
+                      {card.title}
+                    </IonCardTitle>
+                  </IonCardHeader>
+
+                  <IonCardContent
                     style={{
                       textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
                     }}
                   >
-                    {card.title}
-                  </IonCardTitle>
-                </IonCardHeader>
-
-                <IonCardContent
-                  style={{
-                    textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
-                  }}
-                >
-                  {card.description}
-                </IonCardContent>
-              </IonCard>
-            ))}
-        </IonList>
+                    {card.description}
+                  </IonCardContent>
+                </IonCard>
+              ))}
+          </IonList>
+        )}
       </IonContent>
 
-      <IonFooter>
-        <IonToolbar>
-          <IonButton expand="block" onClick={planTheDay}>Plan the day</IonButton>
-          <IonButton expand="block" onClick={deleteAllCards}>delete</IonButton>
-        </IonToolbar>
-      </IonFooter>
+      {cards.length > 0 && (
+        <IonFooter>
+          <IonToolbar>
+            <IonButton expand="block" onClick={planTheDay}>Plan the day</IonButton>
+            <IonButton expand="block" onClick={deleteAllCards}>delete</IonButton>
+          </IonToolbar>
+        </IonFooter>
+      )}
     </IonPage>
   );
 };
