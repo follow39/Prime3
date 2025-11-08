@@ -3,9 +3,9 @@ import { IonContent, useIonRouter, IonFab, IonRow, IonFabButton, IonIcon, IonBut
 import './Home.css';
 import TimeLeft from '../services/timeLeftService';
 import StorageService from '../services/storageService';
+import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Card, CardStatus } from '../models/Card';
-import { SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { Toast } from '@capacitor/toast';
 import { add } from 'ionicons/icons';
 
@@ -18,46 +18,40 @@ const Home: React.FC = () => {
     router.push('/card', 'root');
   };
 
-  const ref = useRef(false);
   const dbNameRef = useRef('');
-  const isInitComplete = useRef(false);
   const [cards, setCards] = useState<Card[]>([]);
-  const [db, setDb] = useState<SQLiteDBConnection | null>(null);
+  const [headerTimeLeft, setHeaderTimeLeft] = useState<string>("");
+  const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
-  const openDatabase = () => {
+  const handleAddCard = async (newCard: Card) => {
     try {
-      const dbCardsName = storageServ.getDatabaseName();
-      dbNameRef.current = dbCardsName;
-      const version = storageServ.getDatabaseVersion();
+      if (!dbNameRef.current) {
+        dbNameRef.current = storageServ.getDatabaseName();
+      }
 
-      sqliteServ.openDatabase(dbCardsName, version, false).then((database) => {
-        setDb(database);
-        ref.current = true;
-      });
+      // Verify connection exists
+      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
+      if (!isConn) {
+        throw new Error('Database connection not available');
+      }
+
+      // Add card using storage service
+      const lastId = await storageServ.addCard(newCard);
+      newCard.id = lastId;
+
+      await storageServ.updateCardDescriptionById(newCard.id, newCard.description);
+
+      // Refresh cards list
+      await readCards();
     } catch (error) {
-      const msg = `Error open database:: ${error}`;
+      const msg = `Error adding card: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
         duration: 'long'
       });
-    }
-  }
-
-  const handleAddCard = async (newCard: Card) => {
-    if (db) {
-      // Send the newCard to the addCard storage service method
-      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
-      const lastId = await storageServ.addCard(newCard);
-      newCard.id = lastId;
-
-      await storageServ.updateCardDescriptionById(newCard.id, newCard.description);
-      await storageServ.updateCardEndTimeById(newCard.id, newCard.end_time);
-
-      // Update the cards state to include the newly added card
-      setCards(prevCards => [...prevCards, newCard]);
     }
   };
 
@@ -66,7 +60,6 @@ const Home: React.FC = () => {
       id: 0, title: "Some task",
       description: "Here's a small text description for the card content. Nothing more, nothing less.",
       status: CardStatus.Open,
-      end_time: "21:10:00",
       creation_date: "",
       active: 1
     };
@@ -74,54 +67,140 @@ const Home: React.FC = () => {
   };
 
   const readCards = async () => {
-    const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
-    const cards = await storageServ.getCards();
+    try {
+      if (!dbNameRef.current) {
+        dbNameRef.current = storageServ.getDatabaseName();
+      }
 
-    setCards(cards);
-  };
+      // Verify connection exists
+      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
+      if (!isConn) {
+        console.warn('Database connection not available');
+        return;
+      }
 
-  const cardTimeLeft = (card: Card) => {
-    if (card.end_time === null || card.end_time === "") {
-      return null;
-    } else {
-      return TimeLeft(card.end_time);
+      const cards = await storageServ.getCards();
+      setCards(cards);
+    } catch (error) {
+      const msg = `Error reading cards: ${error}`;
+      console.error(msg);
+      Toast.show({
+        text: `${msg}`,
+        duration: 'long'
+      });
     }
   };
 
+
   const deleteAllCards = async () => {
-    const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
-    await storageServ.deleteAllCards();
-    await readCards();
+    try {
+      if (!dbNameRef.current) {
+        dbNameRef.current = storageServ.getDatabaseName();
+      }
+
+      // Verify connection exists
+      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
+      if (!isConn) {
+        console.warn('Database connection not available');
+        return;
+      }
+
+      await storageServ.deleteAllCards();
+      await readCards();
+    } catch (error) {
+      const msg = `Error deleting cards: ${error}`;
+      console.error(msg);
+      Toast.show({
+        text: `${msg}`,
+        duration: 'long'
+      });
+    }
   };
 
-  openDatabase();
-  readCards();
+  // Load earliest end time from preferences
+  useEffect(() => {
+    const loadEarliestEndTime = async () => {
+      const time = await PreferencesService.getEarliestEndTime();
+      setEarliestEndTime(time);
+    };
+    loadEarliestEndTime();
+  }, []);
+
+  // Update header time left periodically
+  useEffect(() => {
+    const updateHeaderTime = () => {
+      const timeLeftResult = TimeLeft(earliestEndTime);
+      // Show full HH:MM:SS format in header
+      setHeaderTimeLeft(timeLeftResult);
+    };
+
+    // Only update if we have a valid earliestEndTime
+    if (earliestEndTime) {
+      // Update immediately
+      updateHeaderTime();
+
+      // Update every second for real-time countdown
+      const interval = setInterval(updateHeaderTime, 1000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [earliestEndTime]);
+
+  useEffect(() => {
+    // Initialize database name reference
+    dbNameRef.current = storageServ.getDatabaseName();
+
+    // Check if initialization is already complete
+    if (storageServ.isInitCompleted.value) {
+      readCards().catch((error) => {
+        console.error('Error reading cards:', error);
+      });
+    } else {
+      // Wait for app initialization to complete
+      // The database is initialized by AppInitializer via StorageService
+      const subscription = storageServ.isInitCompleted.subscribe(async (isInit) => {
+        if (isInit) {
+          try {
+            // StorageService already has the database connection opened
+            // Just read the cards directly
+            await readCards();
+          } catch (error) {
+            console.error('Error reading cards after initialization:', error);
+          }
+        }
+      });
+
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [storageServ]);
 
   return (
     <IonPage>
       <IonHeader collapse="fade">
         <IonToolbar>
-          <IonTitle color="danger">{TimeLeft()}</IonTitle>
+          <IonTitle color="danger">{headerTimeLeft}</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen className="ion-padding">
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large" color="danger">{TimeLeft()}</IonTitle>
+            <IonTitle size="large" color="danger">{headerTimeLeft}</IonTitle>
           </IonToolbar>
         </IonHeader>
 
-        {/* <IonButton onClick={openDatabase}>open db</IonButton> */}
         <IonButton onClick={createCard}>create card</IonButton>
-        {/* <IonButton onClick={readCards}>read cards</IonButton> */}
 
         <IonList>
           {cards.map(card => (
             <IonCard button={true} onClick={cardClicked}>
               <IonCardHeader>
                 <IonCardTitle>{card.title}</IonCardTitle>
-                <IonCardSubtitle color="danger">{cardTimeLeft(card)}</IonCardSubtitle>
               </IonCardHeader>
 
               <IonCardContent>{card.description}</IonCardContent>

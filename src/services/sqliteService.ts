@@ -22,12 +22,7 @@ class SQLiteService implements ISQLiteService {
         return this.platform;
     }
     async initWebStore(): Promise<void> {
-        try {
-            await this.sqliteConnection.initWebStore();
-        } catch (error: any) {
-            const msg = error.message ? error.message : error;
-            throw new Error(`sqliteService.initWebStore: ${msg}`);
-        }
+        // Not needed for native platforms
         return;
     }
     async addUpgradeStatement(options: capSQLiteUpgradeOptions): Promise<void> {
@@ -48,16 +43,37 @@ class SQLiteService implements ISQLiteService {
             let db: SQLiteDBConnection;
             const retCC = (await this.sqliteConnection.checkConnectionsConsistency()).result;
             let isConn = (await this.sqliteConnection.isConnection(dbName, readOnly)).result;
+            
             if (retCC && isConn) {
+                // Connection exists and is consistent, retrieve it
                 db = await this.sqliteConnection.retrieveConnection(dbName, readOnly);
+                // Verify the connection is actually open
+                const isOpen = await db.isDBOpen();
+                if (!isOpen.result) {
+                    // Connection exists but is closed, open it
+                    await db.open();
+                }
             } else {
+                // Connection doesn't exist or is inconsistent, create new one
+                // If connection exists but is inconsistent, close it first
+                if (isConn) {
+                    try {
+                        await this.sqliteConnection.closeConnection(dbName, readOnly);
+                    } catch (closeError) {
+                        // Ignore errors when closing inconsistent connection
+                    }
+                }
                 db = await this.sqliteConnection
                     .createConnection(dbName, encrypted, mode, loadToVersion, readOnly);
+                await db.open();
             }
-            const jeepSQlEL = document.querySelector("jeep-sqlite")
 
-            await db.open();
-            const res = await db.isDBOpen();
+            // Verify database is open
+            const isOpen = await db.isDBOpen();
+            if (!isOpen.result) {
+                throw new Error(`Database ${dbName} failed to open`);
+            }
+
             return db;
 
         } catch (error: any) {

@@ -3,7 +3,6 @@ export interface Card {
     title: string
     description: string
     status: number
-    end_time: string
     creation_date: string
     active: number
 }

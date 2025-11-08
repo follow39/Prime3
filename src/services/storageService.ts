@@ -14,7 +14,6 @@ export interface IStorageService {
     getDatabaseName(): string
     getDatabaseVersion(): number
     updateCardDescriptionById(id: number, description: string): Promise<void>
-    updateCardEndTimeById(id: number, description: string): Promise<void>
     deleteAllCards(): Promise<void>
 };
 class StorageService implements IStorageService {
@@ -45,6 +44,12 @@ class StorageService implements IStorageService {
                 upgrade: this.versionUpgrades
             });
             this.db = await this.sqliteServ.openDatabase(this.database, this.loadToVersion, false);
+            
+            // Verify database is properly opened
+            if (!this.db) {
+                throw new Error('Database connection is null');
+            }
+            
             const isData = await this.db.query("select * from sqlite_sequence");
             if (isData.values!.length === 0) {
                 // create database initial cards if any
@@ -72,12 +77,8 @@ class StorageService implements IStorageService {
         }
     }
     async updateCardDescriptionById(id: number, description: string): Promise<void> {
-        const sql = `UPDATE cards SET description="${description}" WHERE id="${id}"`;
-        await this.db.run(sql);
-    }
-    async updateCardEndTimeById(id: number, endTime: string): Promise<void> {
-        const sql = `UPDATE cards SET end_time="${endTime}" WHERE id="${id}"`;
-        await this.db.run(sql);
+        const sql = `UPDATE cards SET description=? WHERE id=?`;
+        await this.db.run(sql, [description, id]);
     }
     // async updateCardById(id: number, active: number): Promise<void> {
     //     const sql = `UPDATE cards SET active=${active} WHERE id=${id}`;
