@@ -133,11 +133,6 @@ const Planning: React.FC = () => {
       // Save today as the last planning date
       await PreferencesService.setLastPlanningDate(todayDate);
 
-      Toast.show({
-        text: `Successfully created ${objectivesToCreate.length} objective(s)`,
-        duration: 'short'
-      });
-
       // Navigate back to home
       router.push('/home', 'back');
     } catch (error) {

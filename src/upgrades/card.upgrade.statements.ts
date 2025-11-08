@@ -2,7 +2,7 @@ export const CardUpgradeStatements = [
     {
     toVersion: 1,
     statements: [
-        `CREATE TABLE IF NOT EXISTS cards (
+        `CREATE TABLE IF NOT EXISTS objectives (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,

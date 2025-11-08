@@ -268,10 +268,9 @@ const Home: React.FC = () => {
         <IonHeader collapse="condense">
           <IonToolbar>
             <IonTitle size="large" color="danger">{headerTimeLeft}</IonTitle>
+            {/* <IonButton expand="block" onClick={deleteAllObjectives}>delete</IonButton> */}
           </IonToolbar>
         </IonHeader>
-
-        {/* <IonButton onClick={createObjective}>create objective</IonButton> */}
 
         <IonList>
           {objectives
@@ -351,8 +350,8 @@ const Home: React.FC = () => {
 
         return (
           <IonFooter>
-            <IonToolbar>
-              {!shouldHideButton && (
+            {!shouldHideButton && (
+              <IonToolbar>
                 <IonButton
                   expand="block"
                   onClick={planTheDay}
@@ -360,9 +359,8 @@ const Home: React.FC = () => {
                 >
                   {buttonText}
                 </IonButton>
-              )}
-              <IonButton expand="block" onClick={deleteAllObjectives}>delete</IonButton>
-            </IonToolbar>
+              </IonToolbar>
+            )}
           </IonFooter>
         );
       })()}

@@ -3,6 +3,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Objective as ObjectiveModel, ObjectiveStatus } from '../models/Objective';
 import { StorageServiceContext } from '../App';
+import TimeLeft from '../services/timeLeftService';
+import PreferencesService from '../services/preferencesService';
 
 const Objective: React.FC = () => {
     const location = useLocation<{ objective: ObjectiveModel }>();
@@ -13,6 +15,8 @@ const Objective: React.FC = () => {
     const [title, setTitle] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [headerTimeLeft, setHeaderTimeLeft] = useState<string>('');
+    const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
 
     useEffect(() => {
         if (location.state?.objective) {
@@ -22,6 +26,31 @@ const Objective: React.FC = () => {
             setDescription(objectiveData.description || '');
         }
     }, [location.state]);
+
+    // Load earliest end time from preferences
+    useEffect(() => {
+        const loadEarliestEndTime = async () => {
+            const time = await PreferencesService.getEarliestEndTime();
+            setEarliestEndTime(time);
+        };
+        loadEarliestEndTime();
+    }, []);
+
+    // Update header time left periodically
+    useEffect(() => {
+        const updateHeaderTime = () => {
+            const timeLeftResult = TimeLeft(earliestEndTime);
+            setHeaderTimeLeft(timeLeftResult);
+        };
+
+        if (earliestEndTime) {
+            updateHeaderTime();
+            const interval = setInterval(updateHeaderTime, 1000);
+            return () => {
+                clearInterval(interval);
+            };
+        }
+    }, [earliestEndTime]);
 
     const handleSave = async () => {
         if (!title.trim()) {
@@ -89,7 +118,7 @@ const Objective: React.FC = () => {
                         <IonButtons slot='start'>
                             <IonBackButton defaultHref='/home' />
                         </IonButtons>
-                        <IonTitle>Objective</IonTitle>
+                        <IonTitle color="danger">{headerTimeLeft}</IonTitle>
                     </IonToolbar>
                 </IonHeader>
                 <IonContent className="ion-padding">
@@ -106,7 +135,7 @@ const Objective: React.FC = () => {
                     <IonButtons slot='start'>
                         <IonBackButton defaultHref='/home' />
                     </IonButtons>
-                    <IonTitle>Objective Details</IonTitle>
+                    <IonTitle color="danger">{headerTimeLeft}</IonTitle>
                     <IonButtons slot='end'>
                         {!isEditing && (
                             <IonButton onClick={handleEdit}>

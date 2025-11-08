@@ -67,15 +67,15 @@ class StorageService implements IStorageService {
         }
     }
     async getObjectives(): Promise<Objective[]> {
-        return (await this.db.query('SELECT * FROM cards;')).values as Objective[];
+        return (await this.db.query('SELECT * FROM objectives;')).values as Objective[];
     }
     async getObjectivesByDate(date: string): Promise<Objective[]> {
-        const sql = `SELECT * FROM cards WHERE creation_date = ?;`;
+        const sql = `SELECT * FROM objectives WHERE creation_date = ?;`;
         const result = await this.db.query(sql, [date]);
         return result.values as Objective[];
     }
     async addObjective(objective: Objective): Promise<number> {
-        const sql = `INSERT INTO cards (title, description, status, creation_date, active) VALUES (?, ?, ?, ?, ?);`;
+        const sql = `INSERT INTO objectives (title, description, status, creation_date, active) VALUES (?, ?, ?, ?, ?);`;
         const res = await this.db.run(sql, [
             objective.title,
             objective.description || '',
@@ -91,24 +91,24 @@ class StorageService implements IStorageService {
         }
     }
     async updateObjective(objective: Objective): Promise<void> {
-        const sql = `UPDATE cards SET title=?, description=?, status=? WHERE id=?`;
+        const sql = `UPDATE objectives SET title=?, description=?, status=? WHERE id=?`;
         await this.db.run(sql, [objective.title, objective.description || '', objective.status, objective.id]);
     }
     async updateObjectiveDescriptionById(id: number, description: string): Promise<void> {
-        const sql = `UPDATE cards SET description=? WHERE id=?`;
+        const sql = `UPDATE objectives SET description=? WHERE id=?`;
         await this.db.run(sql, [description, id]);
     }
     async deleteAllObjectives(): Promise<void> {
-        const sql = `DELETE FROM cards`;
+        const sql = `DELETE FROM objectives`;
         await this.db.run(sql);
     }
     async deleteObjectivesByDate(date: string): Promise<void> {
-        const sql = `DELETE FROM cards WHERE creation_date = ?`;
+        const sql = `DELETE FROM objectives WHERE creation_date = ?`;
         await this.db.run(sql, [date]);
     }
     async getMostRecentDateWithObjectives(excludeDate?: string): Promise<string | null> {
         try {
-            let sql = `SELECT DISTINCT creation_date FROM cards`;
+            let sql = `SELECT DISTINCT creation_date FROM objectives`;
             const params: any[] = [];
 
             if (excludeDate) {
