@@ -10,8 +10,7 @@ export interface IStorageService {
     getCards(): Promise<Card[]>
     getCardsByDate(date: string): Promise<Card[]>
     addCard(card: Card): Promise<number>
-    // updateCardById(id: string, active: number): Promise<void>
-    // deleteCardById(id: string): Promise<void>
+    updateCard(card: Card): Promise<void>
     getDatabaseName(): string
     getDatabaseVersion(): number
     updateCardDescriptionById(id: number, description: string): Promise<void>
@@ -89,18 +88,14 @@ class StorageService implements IStorageService {
             throw new Error(`storageService.addCard: lastId not returned`);
         }
     }
+    async updateCard(card: Card): Promise<void> {
+        const sql = `UPDATE cards SET title=?, description=?, status=? WHERE id=?`;
+        await this.db.run(sql, [card.title, card.description || '', card.status, card.id]);
+    }
     async updateCardDescriptionById(id: number, description: string): Promise<void> {
         const sql = `UPDATE cards SET description=? WHERE id=?`;
         await this.db.run(sql, [description, id]);
     }
-    // async updateCardById(id: number, active: number): Promise<void> {
-    //     const sql = `UPDATE cards SET active=${active} WHERE id=${id}`;
-    //     await this.db.run(sql);
-    // }
-    // async deleteCardById(id: number): Promise<void> {
-    //     const sql = `DELETE FROM cards WHERE id=${id}`;
-    //     await this.db.run(sql);
-    // }
     async deleteAllCards(): Promise<void> {
         const sql = `DELETE FROM cards`;
         await this.db.run(sql);

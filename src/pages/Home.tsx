@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
 import { IonContent, useIonRouter, useIonViewDidEnter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter } from '@ionic/react';
 import './Home.css';
 import TimeLeft from '../services/timeLeftService';
@@ -13,6 +14,14 @@ import { add } from 'ionicons/icons';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
+  const history = useHistory();
+
+  const cardClicked = (card: Card) => {
+    history.push({
+      pathname: '/card',
+      state: { card }
+    });
+  };
 
   const planTheDay = () => {
     router.push('/planning', 'forward');
@@ -229,15 +238,41 @@ const Home: React.FC = () => {
         {/* <IonButton onClick={createCard}>create card</IonButton> */}
 
         <IonList>
-          {cards.map(card => (
-            <IonCard key={card.id}>
-              <IonCardHeader>
-                <IonCardTitle>{card.title}</IonCardTitle>
-              </IonCardHeader>
+          {cards
+            .sort((a, b) => {
+              // Sort by status: Open cards first, then Done cards
+              if (a.status === CardStatus.Open && b.status === CardStatus.Done) return -1;
+              if (a.status === CardStatus.Done && b.status === CardStatus.Open) return 1;
+              return 0;
+            })
+            .map(card => (
+              <IonCard
+                key={card.id}
+                button={true}
+                onClick={() => cardClicked(card)}
+                style={{
+                  opacity: card.status === CardStatus.Done ? 0.35 : 1
+                }}
+              >
+                <IonCardHeader>
+                  <IonCardTitle
+                    style={{
+                      textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
+                    }}
+                  >
+                    {card.title}
+                  </IonCardTitle>
+                </IonCardHeader>
 
-              <IonCardContent>{card.description}</IonCardContent>
-            </IonCard>
-          ))}
+                <IonCardContent
+                  style={{
+                    textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
+                  }}
+                >
+                  {card.description}
+                </IonCardContent>
+              </IonCard>
+            ))}
         </IonList>
       </IonContent>
 
