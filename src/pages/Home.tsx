@@ -6,7 +6,7 @@ import TimeLeft from '../services/timeLeftService';
 import StorageService from '../services/storageService';
 import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Card, CardStatus } from '../models/Card';
+import { Objective, ObjectiveStatus } from '../models/Objective';
 import { Toast } from '@capacitor/toast';
 import { add } from 'ionicons/icons';
 
@@ -16,10 +16,10 @@ const Home: React.FC = () => {
   const router = useIonRouter();
   const history = useHistory();
 
-  const cardClicked = (card: Card) => {
+  const objectiveClicked = (objective: Objective) => {
     history.push({
-      pathname: '/card',
-      state: { card }
+      pathname: '/objective',
+      state: { objective }
     });
   };
 
@@ -28,9 +28,11 @@ const Home: React.FC = () => {
   };
 
   const dbNameRef = useRef('');
-  const [cards, setCards] = useState<Card[]>([]);
+  const [objectives, setObjectives] = useState<Objective[]>([]);
   const [headerTimeLeft, setHeaderTimeLeft] = useState<string>("");
   const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
+  const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
+  const [lastPlanningDate, setLastPlanningDate] = useState<string | null>(null);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -43,7 +45,7 @@ const Home: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleAddCard = async (newCard: Card) => {
+  const handleAddObjective = async (newObjective: Objective) => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -56,18 +58,18 @@ const Home: React.FC = () => {
       }
 
       // Set creation_date to today if not already set
-      if (!newCard.creation_date) {
-        newCard.creation_date = getTodayDate();
+      if (!newObjective.creation_date) {
+        newObjective.creation_date = getTodayDate();
       }
 
-      // Add card using storage service (now includes creation_date)
-      const lastId = await storageServ.addCard(newCard);
-      newCard.id = lastId;
+      // Add objective using storage service (now includes creation_date)
+      const lastId = await storageServ.addObjective(newObjective);
+      newObjective.id = lastId;
 
-      // Refresh cards list
-      await readCards();
+      // Refresh objectives list
+      await readObjectives();
     } catch (error) {
-      const msg = `Error adding card: ${error}`;
+      const msg = `Error adding objective: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -76,18 +78,18 @@ const Home: React.FC = () => {
     }
   };
 
-  const createCard = async () => {
-    const card: Card = {
+  const createObjective = async () => {
+    const objective: Objective = {
       id: 0, title: "Some task",
-      description: "Here's a small text description for the card content. Nothing more, nothing less.",
-      status: CardStatus.Open,
+      description: "Here's a small text description for the objective content. Nothing more, nothing less.",
+      status: ObjectiveStatus.Open,
       creation_date: getTodayDate(),
       active: 1
     };
-    await handleAddCard(card);
+    await handleAddObjective(objective);
   };
 
-  const readCards = async () => {
+  const readObjectives = async () => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -100,20 +102,20 @@ const Home: React.FC = () => {
         return;
       }
 
-      // Get today's date and fetch only today's cards
+      // Get today's date and fetch only today's objectives
       const todayDate = getTodayDate();
-      let cards = await storageServ.getCardsByDate(todayDate);
+      let objectives = await storageServ.getObjectivesByDate(todayDate);
 
-      // If no cards for today, find the most recent date with cards and copy undone tasks
-      if (cards.length === 0) {
-        const mostRecentDate = await storageServ.getMostRecentDateWithCards(todayDate);
+      // If no objectives for today, find the most recent date with objectives and copy undone tasks
+      if (objectives.length === 0) {
+        const mostRecentDate = await storageServ.getMostRecentDateWithObjectives(todayDate);
 
         if (mostRecentDate) {
-          const copiedCount = await storageServ.copyUndoneCardsFromDateToToday(mostRecentDate, todayDate);
+          const copiedCount = await storageServ.copyUndoneObjectivesFromDateToToday(mostRecentDate, todayDate);
 
           if (copiedCount > 0) {
-            // Reload cards after copying
-            cards = await storageServ.getCardsByDate(todayDate);
+            // Reload objectives after copying
+            objectives = await storageServ.getObjectivesByDate(todayDate);
             Toast.show({
               text: `Copied ${copiedCount} undone task${copiedCount > 1 ? 's' : ''} from ${mostRecentDate}`,
               duration: 'short'
@@ -122,9 +124,9 @@ const Home: React.FC = () => {
         }
       }
 
-      setCards(cards);
+      setObjectives(objectives);
     } catch (error) {
-      const msg = `Error reading cards: ${error}`;
+      const msg = `Error reading objectives: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -134,7 +136,7 @@ const Home: React.FC = () => {
   };
 
 
-  const deleteAllCards = async () => {
+  const deleteAllObjectives = async () => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -147,12 +149,12 @@ const Home: React.FC = () => {
         return;
       }
 
-      // Delete only today's cards
+      // Delete only today's objectives
       const todayDate = getTodayDate();
-      await storageServ.deleteCardsByDate(todayDate);
-      await readCards();
+      await storageServ.deleteObjectivesByDate(todayDate);
+      await readObjectives();
     } catch (error) {
-      const msg = `Error deleting cards: ${error}`;
+      const msg = `Error deleting objectives: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -176,6 +178,14 @@ const Home: React.FC = () => {
       const timeLeftResult = TimeLeft(earliestEndTime);
       // Show full HH:MM:SS format in header
       setHeaderTimeLeft(timeLeftResult);
+
+      // Check if time is up (negative time or "00:00:00")
+      const now = new Date();
+      const [hours, minutes] = earliestEndTime.split(':').map(Number);
+      const endTime = new Date();
+      endTime.setHours(hours, minutes, 0, 0);
+
+      setIsTimeUp(now >= endTime);
     };
 
     // Only update if we have a valid earliestEndTime
@@ -198,8 +208,8 @@ const Home: React.FC = () => {
 
     // Check if initialization is already complete
     if (storageServ.isInitCompleted.value) {
-      readCards().catch((error) => {
-        console.error('Error reading cards:', error);
+      readObjectives().catch((error) => {
+        console.error('Error reading objectives:', error);
       });
     } else {
       // Wait for app initialization to complete
@@ -208,10 +218,10 @@ const Home: React.FC = () => {
         if (isInit) {
           try {
             // StorageService already has the database connection opened
-            // Just read the cards directly
-            await readCards();
+            // Just read the objectives directly
+            await readObjectives();
           } catch (error) {
-            console.error('Error reading cards after initialization:', error);
+            console.error('Error reading objectives after initialization:', error);
           }
         }
       });
@@ -223,11 +233,11 @@ const Home: React.FC = () => {
     }
   }, [storageServ]);
 
-  // Reload cards and earliest end time every time the page becomes visible
+  // Reload objectives and earliest end time every time the page becomes visible
   useIonViewDidEnter(() => {
     if (storageServ.isInitCompleted.value) {
-      readCards().catch((error) => {
-        console.error('Error reading cards on view enter:', error);
+      readObjectives().catch((error) => {
+        console.error('Error reading objectives on view enter:', error);
       });
     }
 
@@ -236,6 +246,13 @@ const Home: React.FC = () => {
       setEarliestEndTime(time);
     }).catch((error) => {
       console.error('Error reading earliest end time on view enter:', error);
+    });
+
+    // Reload last planning date from preferences
+    PreferencesService.getLastPlanningDate().then((date) => {
+      setLastPlanningDate(date);
+    }).catch((error) => {
+      console.error('Error reading last planning date on view enter:', error);
     });
   });
 
@@ -254,70 +271,101 @@ const Home: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        {/* <IonButton onClick={createCard}>create card</IonButton> */}
+        {/* <IonButton onClick={createObjective}>create objective</IonButton> */}
 
-        {cards.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '70vh'
-            }}
-          >
-            <IonButton size="large" onClick={planTheDay}>
-              Plan the day
-            </IonButton>
-          </div>
-        ) : (
-          <IonList>
-            {cards
-              .sort((a, b) => {
-                // Sort by status: Open cards first, then Done cards
-                if (a.status === CardStatus.Open && b.status === CardStatus.Done) return -1;
-                if (a.status === CardStatus.Done && b.status === CardStatus.Open) return 1;
-                return 0;
-              })
-              .map(card => (
-                <IonCard
-                  key={card.id}
-                  button={true}
-                  onClick={() => cardClicked(card)}
-                  style={{
-                    opacity: card.status === CardStatus.Done ? 0.35 : 1
-                  }}
-                >
-                  <IonCardHeader>
-                    <IonCardTitle
-                      style={{
-                        textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
-                      }}
-                    >
-                      {card.title}
-                    </IonCardTitle>
-                  </IonCardHeader>
-
-                  <IonCardContent
+        <IonList>
+          {objectives
+            .sort((a, b) => {
+              // Sort by status: Open objectives first, then Done objectives
+              if (a.status === ObjectiveStatus.Open && b.status === ObjectiveStatus.Done) return -1;
+              if (a.status === ObjectiveStatus.Done && b.status === ObjectiveStatus.Open) return 1;
+              return 0;
+            })
+            .map(objective => (
+              <IonCard
+                key={objective.id}
+                button={true}
+                onClick={() => objectiveClicked(objective)}
+                style={{
+                  opacity: objective.status === ObjectiveStatus.Done ? 0.35 : 1
+                }}
+              >
+                <IonCardHeader>
+                  <IonCardTitle
                     style={{
-                      textDecoration: card.status === CardStatus.Done ? 'line-through' : 'none'
+                      textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
                     }}
                   >
-                    {card.description}
-                  </IonCardContent>
-                </IonCard>
-              ))}
-          </IonList>
-        )}
+                    {objective.title}
+                  </IonCardTitle>
+                </IonCardHeader>
+
+                <IonCardContent
+                  style={{
+                    textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
+                  }}
+                >
+                  {objective.description}
+                </IonCardContent>
+              </IonCard>
+            ))}
+        </IonList>
       </IonContent>
 
-      {cards.length > 0 && (
-        <IonFooter>
-          <IonToolbar>
-            <IonButton expand="block" onClick={planTheDay}>Plan the day</IonButton>
-            <IonButton expand="block" onClick={deleteAllCards}>delete</IonButton>
-          </IonToolbar>
-        </IonFooter>
-      )}
+      {(() => {
+        const todayDate = getTodayDate();
+
+        if (objectives.length === 0) {
+          // No objectives - show Plan the day button only
+          return (
+            <IonFooter>
+              <IonToolbar>
+                <IonButton expand="block" onClick={planTheDay}>
+                  Plan the day
+                </IonButton>
+              </IonToolbar>
+            </IonFooter>
+          );
+        }
+
+        // Has objectives - check conditions
+        const allObjectivesDone = objectives.every(obj => obj.status === ObjectiveStatus.Done);
+
+        // Check if planning conditions are met (all done OR time is up)
+        const planningReady = allObjectivesDone || isTimeUp;
+
+        // Check if today was already planned
+        const todayWasPlanned = lastPlanningDate === todayDate;
+
+        // Hide the button if today was planned and tasks are not complete
+        const shouldHideButton = todayWasPlanned && !planningReady;
+
+        // Planning is enabled only if ready AND it's a different day
+        const canPlanToday = planningReady && (!lastPlanningDate || lastPlanningDate < todayDate);
+
+        let buttonText = 'Plan the day';
+        if (!canPlanToday) {
+          // Ready but same day as last planning
+          buttonText += ' (Available tomorrow)';
+        }
+
+        return (
+          <IonFooter>
+            <IonToolbar>
+              {!shouldHideButton && (
+                <IonButton
+                  expand="block"
+                  onClick={planTheDay}
+                  disabled={!canPlanToday}
+                >
+                  {buttonText}
+                </IonButton>
+              )}
+              <IonButton expand="block" onClick={deleteAllObjectives}>delete</IonButton>
+            </IonToolbar>
+          </IonFooter>
+        );
+      })()}
     </IonPage>
   );
 };

@@ -1,4 +1,4 @@
-export interface Card {
+export interface Objective {
     id: number
     title: string
     description: string
@@ -7,7 +7,7 @@ export interface Card {
     active: number
 }
 
-export enum CardStatus {
+export enum ObjectiveStatus {
     Open = 1,
     Done,
     Overdue,

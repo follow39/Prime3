@@ -1,89 +1,71 @@
-import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, useIonRouter } from '@ionic/react';
+import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, useIonRouter } from '@ionic/react';
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Card as CardModel, CardStatus } from '../models/Card';
+import { Objective as ObjectiveModel, ObjectiveStatus } from '../models/Objective';
 import { StorageServiceContext } from '../App';
-import { Toast } from '@capacitor/toast';
 
-const Card: React.FC = () => {
-    const location = useLocation<{ card: CardModel }>();
+const Objective: React.FC = () => {
+    const location = useLocation<{ objective: ObjectiveModel }>();
     const router = useIonRouter();
     const storageServ = useContext(StorageServiceContext);
 
-    const [card, setCard] = useState<CardModel | null>(null);
+    const [objective, setObjective] = useState<ObjectiveModel | null>(null);
     const [title, setTitle] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
     useEffect(() => {
-        if (location.state?.card) {
-            const cardData = location.state.card;
-            setCard(cardData);
-            setTitle(cardData.title);
-            setDescription(cardData.description || '');
+        if (location.state?.objective) {
+            const objectiveData = location.state.objective;
+            setObjective(objectiveData);
+            setTitle(objectiveData.title);
+            setDescription(objectiveData.description || '');
         }
     }, [location.state]);
 
     const handleSave = async () => {
         if (!title.trim()) {
-            Toast.show({
-                text: 'Title cannot be empty',
-                duration: 'long'
-            });
             return;
         }
 
-        if (!card) return;
+        if (!objective) return;
 
         try {
-            const updatedCard: CardModel = {
-                ...card,
+            const updatedObjective: ObjectiveModel = {
+                ...objective,
                 title: title.trim(),
                 description: description.trim()
             };
 
-            await storageServ.updateCard(updatedCard);
-            setCard(updatedCard);
+            await storageServ.updateObjective(updatedObjective);
+            setObjective(updatedObjective);
             setIsEditing(false);
-
-            Toast.show({
-                text: 'Card updated successfully',
-                duration: 'short'
-            });
         } catch (error) {
-            const msg = `Error updating card: ${error}`;
+            const msg = `Error updating objective: ${error}`;
             console.error(msg);
-            Toast.show({
-                text: msg,
-                duration: 'long'
-            });
         }
     };
 
     const handleToggleStatus = async () => {
-        if (!card) return;
+        if (!objective) return;
 
         try {
-            const newStatus = card.status === CardStatus.Done ? CardStatus.Open : CardStatus.Done;
-            const updatedCard: CardModel = {
-                ...card,
+            const newStatus = objective.status === ObjectiveStatus.Done ? ObjectiveStatus.Open : ObjectiveStatus.Done;
+            const updatedObjective: ObjectiveModel = {
+                ...objective,
                 status: newStatus
             };
 
-            await storageServ.updateCard(updatedCard);
-            setCard(updatedCard);
+            await storageServ.updateObjective(updatedObjective);
+            setObjective(updatedObjective);
 
-            Toast.show({
-                text: newStatus === CardStatus.Done ? 'Card marked as done' : 'Card marked as undone',
-                duration: 'short'
-            });
+            // Navigate back to home page
+            if (newStatus === ObjectiveStatus.Done) {
+                router.push('/home', 'back');
+            }
         } catch (error) {
-            const msg = `Error updating card status: ${error}`;
+            const msg = `Error updating objective status: ${error}`;
             console.error(msg);
-            Toast.show({
-                text: msg,
-                duration: 'long'
-            });
         }
     };
 
@@ -92,14 +74,14 @@ const Card: React.FC = () => {
     };
 
     const handleCancel = () => {
-        if (card) {
-            setTitle(card.title);
-            setDescription(card.description || '');
+        if (objective) {
+            setTitle(objective.title);
+            setDescription(objective.description || '');
         }
         setIsEditing(false);
     };
 
-    if (!card) {
+    if (!objective) {
         return (
             <IonPage>
                 <IonHeader>
@@ -107,11 +89,11 @@ const Card: React.FC = () => {
                         <IonButtons slot='start'>
                             <IonBackButton defaultHref='/home' />
                         </IonButtons>
-                        <IonTitle>Card</IonTitle>
+                        <IonTitle>Objective</IonTitle>
                     </IonToolbar>
                 </IonHeader>
                 <IonContent className="ion-padding">
-                    <p>No card data available</p>
+                    <p>No objective data available</p>
                 </IonContent>
             </IonPage>
         );
@@ -124,14 +106,13 @@ const Card: React.FC = () => {
                     <IonButtons slot='start'>
                         <IonBackButton defaultHref='/home' />
                     </IonButtons>
-                    <IonTitle>Card Details</IonTitle>
+                    <IonTitle>Objective Details</IonTitle>
                     <IonButtons slot='end'>
-                        <IonButton
-                            onClick={handleToggleStatus}
-                            color={card.status === CardStatus.Done ? 'success' : 'primary'}
-                        >
-                            {card.status === CardStatus.Done ? 'Undone' : 'Done'}
-                        </IonButton>
+                        {!isEditing && (
+                            <IonButton onClick={handleEdit}>
+                                Edit
+                            </IonButton>
+                        )}
                     </IonButtons>
                 </IonToolbar>
             </IonHeader>
@@ -155,31 +136,45 @@ const Card: React.FC = () => {
                                 rows={5}
                             />
                         </IonItem>
-                        <IonButton expand="block" onClick={handleSave} className="ion-margin-top">
-                            Save
-                        </IonButton>
-                        <IonButton expand="block" onClick={handleCancel} color="medium">
-                            Cancel
-                        </IonButton>
                     </>
                 ) : (
                     <>
                         <IonItem>
                             <IonLabel position="stacked">Title</IonLabel>
-                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{card.title}</p>
+                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{objective.title}</p>
                         </IonItem>
                         <IonItem>
                             <IonLabel position="stacked">Description</IonLabel>
-                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{card.description || 'No description'}</p>
+                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{objective.description || 'No description'}</p>
                         </IonItem>
-                        <IonButton expand="block" onClick={handleEdit} className="ion-margin-top">
-                            Edit
-                        </IonButton>
                     </>
                 )}
             </IonContent>
+
+            <IonFooter>
+                <IonToolbar>
+                    {isEditing ? (
+                        <>
+                            <IonButton expand="block" onClick={handleSave}>
+                                Save
+                            </IonButton>
+                            <IonButton expand="block" onClick={handleCancel} color="medium">
+                                Cancel
+                            </IonButton>
+                        </>
+                    ) : (
+                        <IonButton
+                            expand="block"
+                            onClick={handleToggleStatus}
+                            color={objective.status === ObjectiveStatus.Done ? 'primary' : 'success'}
+                        >
+                            {objective.status === ObjectiveStatus.Done ? 'Uncharted' : 'Conquered'}
+                        </IonButton>
+                    )}
+                </IonToolbar>
+            </IonFooter>
         </IonPage>
     );
 };
 
-export default Card;
+export default Objective;

@@ -38,7 +38,7 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
-import Card from './pages/Card';
+import Objective from './pages/Objective';
 import Planning from './pages/Planning';
 
 
@@ -62,8 +62,8 @@ const App: React.FC = () => (
                 <Route exact path="/">
                   <Redirect to="/home" />
                 </Route>
-                <Route exact path="/card">
-                  <Card />
+                <Route exact path="/objective">
+                  <Objective />
                 </Route>
                 <Route exact path="/planning">
                   <Planning />

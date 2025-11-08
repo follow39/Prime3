@@ -3,21 +3,21 @@ import { ISQLiteService } from '../services/sqliteService';
 import { IDbVersionService } from '../services/dbVersionService';
 import { SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { CardUpgradeStatements } from '../upgrades/card.upgrade.statements';
-import { Card } from '../models/Card';
+import { Objective } from '../models/Objective';
 
 export interface IStorageService {
     initializeDatabase(): Promise<void>
-    getCards(): Promise<Card[]>
-    getCardsByDate(date: string): Promise<Card[]>
-    addCard(card: Card): Promise<number>
-    updateCard(card: Card): Promise<void>
+    getObjectives(): Promise<Objective[]>
+    getObjectivesByDate(date: string): Promise<Objective[]>
+    addObjective(objective: Objective): Promise<number>
+    updateObjective(objective: Objective): Promise<void>
     getDatabaseName(): string
     getDatabaseVersion(): number
-    updateCardDescriptionById(id: number, description: string): Promise<void>
-    deleteAllCards(): Promise<void>
-    deleteCardsByDate(date: string): Promise<void>
-    getMostRecentDateWithCards(excludeDate?: string): Promise<string | null>
-    copyUndoneCardsFromDateToToday(fromDate: string, todayDate: string): Promise<number>
+    updateObjectiveDescriptionById(id: number, description: string): Promise<void>
+    deleteAllObjectives(): Promise<void>
+    deleteObjectivesByDate(date: string): Promise<void>
+    getMostRecentDateWithObjectives(excludeDate?: string): Promise<string | null>
+    copyUndoneObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
 };
 class StorageService implements IStorageService {
     versionUpgrades = CardUpgradeStatements;
@@ -66,47 +66,47 @@ class StorageService implements IStorageService {
             throw new Error(`storageService.initializeDatabase: ${msg}`);
         }
     }
-    async getCards(): Promise<Card[]> {
-        return (await this.db.query('SELECT * FROM cards;')).values as Card[];
+    async getObjectives(): Promise<Objective[]> {
+        return (await this.db.query('SELECT * FROM cards;')).values as Objective[];
     }
-    async getCardsByDate(date: string): Promise<Card[]> {
+    async getObjectivesByDate(date: string): Promise<Objective[]> {
         const sql = `SELECT * FROM cards WHERE creation_date = ?;`;
         const result = await this.db.query(sql, [date]);
-        return result.values as Card[];
+        return result.values as Objective[];
     }
-    async addCard(card: Card): Promise<number> {
+    async addObjective(objective: Objective): Promise<number> {
         const sql = `INSERT INTO cards (title, description, status, creation_date, active) VALUES (?, ?, ?, ?, ?);`;
         const res = await this.db.run(sql, [
-            card.title,
-            card.description || '',
-            card.status || 1,
-            card.creation_date || '',
-            card.active || 1
+            objective.title,
+            objective.description || '',
+            objective.status || 1,
+            objective.creation_date || '',
+            objective.active || 1
         ]);
         if (res.changes !== undefined
             && res.changes.lastId !== undefined && res.changes.lastId > 0) {
             return res.changes.lastId;
         } else {
-            throw new Error(`storageService.addCard: lastId not returned`);
+            throw new Error(`storageService.addObjective: lastId not returned`);
         }
     }
-    async updateCard(card: Card): Promise<void> {
+    async updateObjective(objective: Objective): Promise<void> {
         const sql = `UPDATE cards SET title=?, description=?, status=? WHERE id=?`;
-        await this.db.run(sql, [card.title, card.description || '', card.status, card.id]);
+        await this.db.run(sql, [objective.title, objective.description || '', objective.status, objective.id]);
     }
-    async updateCardDescriptionById(id: number, description: string): Promise<void> {
+    async updateObjectiveDescriptionById(id: number, description: string): Promise<void> {
         const sql = `UPDATE cards SET description=? WHERE id=?`;
         await this.db.run(sql, [description, id]);
     }
-    async deleteAllCards(): Promise<void> {
+    async deleteAllObjectives(): Promise<void> {
         const sql = `DELETE FROM cards`;
         await this.db.run(sql);
     }
-    async deleteCardsByDate(date: string): Promise<void> {
+    async deleteObjectivesByDate(date: string): Promise<void> {
         const sql = `DELETE FROM cards WHERE creation_date = ?`;
         await this.db.run(sql, [date]);
     }
-    async getMostRecentDateWithCards(excludeDate?: string): Promise<string | null> {
+    async getMostRecentDateWithObjectives(excludeDate?: string): Promise<string | null> {
         try {
             let sql = `SELECT DISTINCT creation_date FROM cards`;
             const params: any[] = [];
@@ -126,41 +126,41 @@ class StorageService implements IStorageService {
 
             return null;
         } catch (error) {
-            console.error('Error getting most recent date with cards:', error);
+            console.error('Error getting most recent date with objectives:', error);
             throw error;
         }
     }
 
-    async copyUndoneCardsFromDateToToday(fromDate: string, todayDate: string): Promise<number> {
+    async copyUndoneObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number> {
         try {
-            // Get cards from the specified date
-            const previousCards = await this.getCardsByDate(fromDate);
+            // Get objectives from the specified date
+            const previousObjectives = await this.getObjectivesByDate(fromDate);
 
-            if (previousCards.length === 0) {
+            if (previousObjectives.length === 0) {
                 return 0;
             }
 
-            // Copy only undone cards (status != Done which is 2)
+            // Copy only undone objectives (status != Done which is 2)
             let copiedCount = 0;
-            for (const card of previousCards) {
-                // Only copy if card is not done (status == 1 is Open)
-                if (card.status !== 2) { // CardStatus.Done = 2
-                    const newCard: Card = {
+            for (const objective of previousObjectives) {
+                // Only copy if objective is not done (status == 1 is Open)
+                if (objective.status !== 2) { // ObjectiveStatus.Done = 2
+                    const newObjective: Objective = {
                         id: 0, // Will be auto-generated
-                        title: card.title,
-                        description: card.description,
+                        title: objective.title,
+                        description: objective.description,
                         status: 1, // Reset to Open
                         creation_date: todayDate,
                         active: 1
                     };
-                    await this.addCard(newCard);
+                    await this.addObjective(newObjective);
                     copiedCount++;
                 }
             }
 
             return copiedCount;
         } catch (error) {
-            console.error('Error copying undone cards:', error);
+            console.error('Error copying undone objectives:', error);
             throw error;
         }
     }

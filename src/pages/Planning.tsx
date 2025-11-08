@@ -13,10 +13,11 @@ import {
   IonInput,
   IonTextarea,
   IonList,
+  IonFooter,
   useIonRouter
 } from '@ionic/react';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Card, CardStatus } from '../models/Card';
+import { Objective, ObjectiveStatus } from '../models/Objective';
 import { Toast } from '@capacitor/toast';
 import PreferencesService from '../services/preferencesService';
 
@@ -28,15 +29,15 @@ const Planning: React.FC = () => {
   // State for earliest end time
   const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
 
-  // State for 3 cards
-  const [card1Title, setCard1Title] = useState<string>('');
-  const [card1Description, setCard1Description] = useState<string>('');
+  // State for 3 objectives
+  const [objective1Title, setObjective1Title] = useState<string>('');
+  const [objective1Description, setObjective1Description] = useState<string>('');
 
-  const [card2Title, setCard2Title] = useState<string>('');
-  const [card2Description, setCard2Description] = useState<string>('');
+  const [objective2Title, setObjective2Title] = useState<string>('');
+  const [objective2Description, setObjective2Description] = useState<string>('');
 
-  const [card3Title, setCard3Title] = useState<string>('');
-  const [card3Description, setCard3Description] = useState<string>('');
+  const [objective3Title, setObjective3Title] = useState<string>('');
+  const [objective3Description, setObjective3Description] = useState<string>('');
 
   // Load earliest end time from preferences on mount
   useEffect(() => {
@@ -66,10 +67,10 @@ const Planning: React.FC = () => {
       return;
     }
 
-    // Validate that at least one card has a title
-    if (!card1Title.trim() && !card2Title.trim() && !card3Title.trim()) {
+    // Validate that at least one objective has a title
+    if (!objective1Title.trim() && !objective2Title.trim() && !objective3Title.trim()) {
       Toast.show({
-        text: 'At least one card must have a title',
+        text: 'At least one objective must have a title',
         duration: 'long'
       });
       return;
@@ -88,56 +89,59 @@ const Planning: React.FC = () => {
 
       const todayDate = getTodayDate();
 
-      // Create cards for each non-empty title
-      const cardsToCreate: Card[] = [];
+      // Create objectives for each non-empty title
+      const objectivesToCreate: Objective[] = [];
 
-      if (card1Title.trim()) {
-        cardsToCreate.push({
+      if (objective1Title.trim()) {
+        objectivesToCreate.push({
           id: 0,
-          title: card1Title.trim(),
-          description: card1Description.trim(),
-          status: CardStatus.Open,
+          title: objective1Title.trim(),
+          description: objective1Description.trim(),
+          status: ObjectiveStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (card2Title.trim()) {
-        cardsToCreate.push({
+      if (objective2Title.trim()) {
+        objectivesToCreate.push({
           id: 0,
-          title: card2Title.trim(),
-          description: card2Description.trim(),
-          status: CardStatus.Open,
+          title: objective2Title.trim(),
+          description: objective2Description.trim(),
+          status: ObjectiveStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (card3Title.trim()) {
-        cardsToCreate.push({
+      if (objective3Title.trim()) {
+        objectivesToCreate.push({
           id: 0,
-          title: card3Title.trim(),
-          description: card3Description.trim(),
-          status: CardStatus.Open,
+          title: objective3Title.trim(),
+          description: objective3Description.trim(),
+          status: ObjectiveStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      // Add all cards
-      for (const card of cardsToCreate) {
-        await storageServ.addCard(card);
+      // Add all objectives
+      for (const objective of objectivesToCreate) {
+        await storageServ.addObjective(objective);
       }
+
+      // Save today as the last planning date
+      await PreferencesService.setLastPlanningDate(todayDate);
 
       Toast.show({
-        text: `Successfully created ${cardsToCreate.length} card(s)`,
+        text: `Successfully created ${objectivesToCreate.length} objective(s)`,
         duration: 'short'
       });
 
       // Navigate back to home
       router.push('/home', 'back');
     } catch (error) {
-      const msg = `Error creating cards: ${error}`;
+      const msg = `Error creating objectives: ${error}`;
       console.error(msg);
       Toast.show({
         text: msg,
@@ -169,68 +173,72 @@ const Planning: React.FC = () => {
             />
           </IonItem>
 
-          {/* Card 1 */}
+          {/* Objective 1 */}
           <IonItem>
-            <IonLabel position="stacked">Card 1 - Title *</IonLabel>
+            <IonLabel position="stacked">Objective 1 - Title *</IonLabel>
             <IonInput
-              value={card1Title}
-              onIonInput={(e) => setCard1Title(e.detail.value!)}
+              value={objective1Title}
+              onIonInput={(e) => setObjective1Title(e.detail.value!)}
               placeholder="Enter title"
             />
           </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Card 1 - Description</IonLabel>
+            <IonLabel position="stacked">Objective 1 - Description</IonLabel>
             <IonTextarea
-              value={card1Description}
-              onIonInput={(e) => setCard1Description(e.detail.value!)}
+              value={objective1Description}
+              onIonInput={(e) => setObjective1Description(e.detail.value!)}
               placeholder="Enter description (optional)"
               rows={3}
             />
           </IonItem>
 
-          {/* Card 2 */}
+          {/* Objective 2 */}
           <IonItem>
-            <IonLabel position="stacked">Card 2 - Title *</IonLabel>
+            <IonLabel position="stacked">Objective 2 - Title *</IonLabel>
             <IonInput
-              value={card2Title}
-              onIonInput={(e) => setCard2Title(e.detail.value!)}
+              value={objective2Title}
+              onIonInput={(e) => setObjective2Title(e.detail.value!)}
               placeholder="Enter title"
             />
           </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Card 2 - Description</IonLabel>
+            <IonLabel position="stacked">Objective 2 - Description</IonLabel>
             <IonTextarea
-              value={card2Description}
-              onIonInput={(e) => setCard2Description(e.detail.value!)}
+              value={objective2Description}
+              onIonInput={(e) => setObjective2Description(e.detail.value!)}
               placeholder="Enter description (optional)"
               rows={3}
             />
           </IonItem>
 
-          {/* Card 3 */}
+          {/* Objective 3 */}
           <IonItem>
-            <IonLabel position="stacked">Card 3 - Title *</IonLabel>
+            <IonLabel position="stacked">Objective 3 - Title *</IonLabel>
             <IonInput
-              value={card3Title}
-              onIonInput={(e) => setCard3Title(e.detail.value!)}
+              value={objective3Title}
+              onIonInput={(e) => setObjective3Title(e.detail.value!)}
               placeholder="Enter title"
             />
           </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Card 3 - Description</IonLabel>
+            <IonLabel position="stacked">Objective 3 - Description</IonLabel>
             <IonTextarea
-              value={card3Description}
-              onIonInput={(e) => setCard3Description(e.detail.value!)}
+              value={objective3Description}
+              onIonInput={(e) => setObjective3Description(e.detail.value!)}
               placeholder="Enter description (optional)"
               rows={3}
             />
           </IonItem>
         </IonList>
-
-        <IonButton expand="block" onClick={handleSubmit} className="ion-margin-top">
-          Create Cards
-        </IonButton>
       </IonContent>
+
+      <IonFooter>
+        <IonToolbar>
+          <IonButton expand="block" onClick={handleSubmit}>
+            Start the day
+          </IonButton>
+        </IonToolbar>
+      </IonFooter>
     </IonPage>
   );
 };
