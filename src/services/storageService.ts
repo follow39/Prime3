@@ -2,7 +2,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ISQLiteService } from '../services/sqliteService';
 import { IDbVersionService } from '../services/dbVersionService';
 import { SQLiteDBConnection } from '@capacitor-community/sqlite';
-import { CardUpgradeStatements } from '../upgrades/card.upgrade.statements';
+import { ObjectiveUpgradeStatements } from '../upgrades/objective.upgrade.statements';
 import { Objective } from '../models/Objective';
 
 export interface IStorageService {
@@ -20,8 +20,8 @@ export interface IStorageService {
     copyUndoneObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
 };
 class StorageService implements IStorageService {
-    versionUpgrades = CardUpgradeStatements;
-    loadToVersion = CardUpgradeStatements[CardUpgradeStatements.length - 1].toVersion;
+    versionUpgrades = ObjectiveUpgradeStatements;
+    loadToVersion = ObjectiveUpgradeStatements[ObjectiveUpgradeStatements.length - 1].toVersion;
     db!: SQLiteDBConnection;
     database: string = 'mycarddb';
     sqliteServ!: ISQLiteService;

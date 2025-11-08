@@ -1,4 +1,4 @@
-export const CardUpgradeStatements = [
+export const ObjectiveUpgradeStatements = [
     {
     toVersion: 1,
     statements: [

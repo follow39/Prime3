@@ -162,7 +162,7 @@ const Objective: React.FC = () => {
                                 value={description}
                                 onIonInput={(e) => setDescription(e.detail.value!)}
                                 placeholder="Enter description (optional)"
-                                rows={5}
+                                rows={11}
                             />
                         </IonItem>
                     </>

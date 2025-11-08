@@ -280,34 +280,49 @@ const Home: React.FC = () => {
               if (a.status === ObjectiveStatus.Done && b.status === ObjectiveStatus.Open) return 1;
               return 0;
             })
-            .map(objective => (
-              <IonCard
-                key={objective.id}
-                button={true}
-                onClick={() => objectiveClicked(objective)}
-                style={{
-                  opacity: objective.status === ObjectiveStatus.Done ? 0.35 : 1
-                }}
-              >
-                <IonCardHeader>
-                  <IonCardTitle
+            .map(objective => {
+              const maxLength = 500;
+              let displayDescription = objective.description || '';
+              if (displayDescription.length > maxLength) {
+                // Cut to maxLength - 3 to account for "..."
+                let truncated = displayDescription.substring(0, maxLength - 3);
+                // Find the last space to avoid cutting words
+                const lastSpace = truncated.lastIndexOf(' ');
+                if (lastSpace > 0) {
+                  truncated = truncated.substring(0, lastSpace);
+                }
+                displayDescription = truncated + '...';
+              }
+
+              return (
+                <IonCard
+                  key={objective.id}
+                  button={true}
+                  onClick={() => objectiveClicked(objective)}
+                  style={{
+                    opacity: objective.status === ObjectiveStatus.Done ? 0.35 : 1
+                  }}
+                >
+                  <IonCardHeader>
+                    <IonCardTitle
+                      style={{
+                        textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
+                      }}
+                    >
+                      {objective.title}
+                    </IonCardTitle>
+                  </IonCardHeader>
+
+                  <IonCardContent
                     style={{
                       textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
                     }}
                   >
-                    {objective.title}
-                  </IonCardTitle>
-                </IonCardHeader>
-
-                <IonCardContent
-                  style={{
-                    textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
-                  }}
-                >
-                  {objective.description}
-                </IonCardContent>
-              </IonCard>
-            ))}
+                    {displayDescription}
+                  </IonCardContent>
+                </IonCard>
+              );
+            })}
         </IonList>
       </IonContent>
 
