@@ -1,7 +1,13 @@
+import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
+import { Capacitor } from '@capacitor/core';
+import SqliteService from './services/sqliteService';
+import DbVersionService from './services/dbVersionService';
+import StorageService from './services/storageService';
+import AppInitializer from './components/AppInitializer';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -32,22 +38,39 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import Card from './pages/Card';
+
+
+export const SqliteServiceContext = React.createContext(SqliteService);
+export const DbVersionServiceContext = React.createContext(DbVersionService);
+export const StorageServiceContext = React.createContext(new StorageService(SqliteService, DbVersionService));
 
 setupIonicReact();
 
 const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
+  <SqliteServiceContext.Provider value={SqliteService}>
+    <DbVersionServiceContext.Provider value={DbVersionService}>
+      <StorageServiceContext.Provider value={new StorageService(SqliteService, DbVersionService)}>
+        <AppInitializer>
+          <IonApp>
+            <IonReactRouter>
+              <IonRouterOutlet>
+                <Route exact path="/home">
+                  <Home />
+                </Route>
+                <Route exact path="/">
+                  <Redirect to="/home" />
+                </Route>
+                <Route exact path="/card">
+                  <Card />
+                </Route>
+              </IonRouterOutlet>
+            </IonReactRouter>
+          </IonApp>
+        </AppInitializer>
+      </StorageServiceContext.Provider>
+    </DbVersionServiceContext.Provider>
+  </SqliteServiceContext.Provider>
 );
 
 export default App;
