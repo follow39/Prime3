@@ -8,6 +8,7 @@ import { Card } from '../models/Card';
 export interface IStorageService {
     initializeDatabase(): Promise<void>
     getCards(): Promise<Card[]>
+    getCardsByDate(date: string): Promise<Card[]>
     addCard(card: Card): Promise<number>
     // updateCardById(id: string, active: number): Promise<void>
     // deleteCardById(id: string): Promise<void>
@@ -15,6 +16,7 @@ export interface IStorageService {
     getDatabaseVersion(): number
     updateCardDescriptionById(id: number, description: string): Promise<void>
     deleteAllCards(): Promise<void>
+    deleteCardsByDate(date: string): Promise<void>
 };
 class StorageService implements IStorageService {
     versionUpgrades = CardUpgradeStatements;
@@ -66,9 +68,20 @@ class StorageService implements IStorageService {
     async getCards(): Promise<Card[]> {
         return (await this.db.query('SELECT * FROM cards;')).values as Card[];
     }
+    async getCardsByDate(date: string): Promise<Card[]> {
+        const sql = `SELECT * FROM cards WHERE creation_date = ?;`;
+        const result = await this.db.query(sql, [date]);
+        return result.values as Card[];
+    }
     async addCard(card: Card): Promise<number> {
-        const sql = `INSERT INTO cards (title) VALUES (?);`;
-        const res = await this.db.run(sql, [card.title]);
+        const sql = `INSERT INTO cards (title, description, status, creation_date, active) VALUES (?, ?, ?, ?, ?);`;
+        const res = await this.db.run(sql, [
+            card.title,
+            card.description || '',
+            card.status || 1,
+            card.creation_date || '',
+            card.active || 1
+        ]);
         if (res.changes !== undefined
             && res.changes.lastId !== undefined && res.changes.lastId > 0) {
             return res.changes.lastId;
@@ -91,6 +104,10 @@ class StorageService implements IStorageService {
     async deleteAllCards(): Promise<void> {
         const sql = `DELETE FROM cards`;
         await this.db.run(sql);
+    }
+    async deleteCardsByDate(date: string): Promise<void> {
+        const sql = `DELETE FROM cards WHERE creation_date = ?`;
+        await this.db.run(sql, [date]);
     }
 }
 export default StorageService;

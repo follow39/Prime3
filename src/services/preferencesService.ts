@@ -1,5 +1,3 @@
-import { Preferences } from '@capacitor/preferences';
-
 export interface IPreferencesService {
     getEarliestEndTime(): Promise<string>
     setEarliestEndTime(time: string): Promise<void>
@@ -11,7 +9,7 @@ class PreferencesService implements IPreferencesService {
 
     async getEarliestEndTime(): Promise<string> {
         try {
-            const { value } = await Preferences.get({ key: this.EARLIEST_END_TIME_KEY });
+            const value = localStorage.getItem(this.EARLIEST_END_TIME_KEY);
             return value || this.DEFAULT_END_TIME;
         } catch (error) {
             console.error('Error reading earliest end time from preferences:', error);
@@ -21,7 +19,7 @@ class PreferencesService implements IPreferencesService {
 
     async setEarliestEndTime(time: string): Promise<void> {
         try {
-            await Preferences.set({ key: this.EARLIEST_END_TIME_KEY, value: time });
+            localStorage.setItem(this.EARLIEST_END_TIME_KEY, time);
         } catch (error) {
             console.error('Error saving earliest end time to preferences:', error);
             throw error;

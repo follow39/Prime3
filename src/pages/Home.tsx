@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useContext } from 'react';
-import { IonContent, useIonRouter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter } from '@ionic/react';
+import { IonContent, useIonRouter, useIonViewDidEnter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter } from '@ionic/react';
 import './Home.css';
 import TimeLeft from '../services/timeLeftService';
 import StorageService from '../services/storageService';
@@ -14,8 +14,8 @@ import { add } from 'ionicons/icons';
 const Home: React.FC = () => {
   const router = useIonRouter();
 
-  const cardClicked = () => {
-    router.push('/card', 'root');
+  const planTheDay = () => {
+    router.push('/planning', 'forward');
   };
 
   const dbNameRef = useRef('');
@@ -24,6 +24,15 @@ const Home: React.FC = () => {
   const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
+
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const handleAddCard = async (newCard: Card) => {
     try {
@@ -37,11 +46,14 @@ const Home: React.FC = () => {
         throw new Error('Database connection not available');
       }
 
-      // Add card using storage service
+      // Set creation_date to today if not already set
+      if (!newCard.creation_date) {
+        newCard.creation_date = getTodayDate();
+      }
+
+      // Add card using storage service (now includes creation_date)
       const lastId = await storageServ.addCard(newCard);
       newCard.id = lastId;
-
-      await storageServ.updateCardDescriptionById(newCard.id, newCard.description);
 
       // Refresh cards list
       await readCards();
@@ -60,7 +72,7 @@ const Home: React.FC = () => {
       id: 0, title: "Some task",
       description: "Here's a small text description for the card content. Nothing more, nothing less.",
       status: CardStatus.Open,
-      creation_date: "",
+      creation_date: getTodayDate(),
       active: 1
     };
     await handleAddCard(card);
@@ -79,7 +91,9 @@ const Home: React.FC = () => {
         return;
       }
 
-      const cards = await storageServ.getCards();
+      // Get today's date and fetch only today's cards
+      const todayDate = getTodayDate();
+      const cards = await storageServ.getCardsByDate(todayDate);
       setCards(cards);
     } catch (error) {
       const msg = `Error reading cards: ${error}`;
@@ -105,7 +119,9 @@ const Home: React.FC = () => {
         return;
       }
 
-      await storageServ.deleteAllCards();
+      // Delete only today's cards
+      const todayDate = getTodayDate();
+      await storageServ.deleteCardsByDate(todayDate);
       await readCards();
     } catch (error) {
       const msg = `Error deleting cards: ${error}`;
@@ -179,6 +195,22 @@ const Home: React.FC = () => {
     }
   }, [storageServ]);
 
+  // Reload cards and earliest end time every time the page becomes visible
+  useIonViewDidEnter(() => {
+    if (storageServ.isInitCompleted.value) {
+      readCards().catch((error) => {
+        console.error('Error reading cards on view enter:', error);
+      });
+    }
+
+    // Reload earliest end time from preferences
+    PreferencesService.getEarliestEndTime().then((time) => {
+      setEarliestEndTime(time);
+    }).catch((error) => {
+      console.error('Error reading earliest end time on view enter:', error);
+    });
+  });
+
   return (
     <IonPage>
       <IonHeader collapse="fade">
@@ -194,11 +226,11 @@ const Home: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <IonButton onClick={createCard}>create card</IonButton>
+        {/* <IonButton onClick={createCard}>create card</IonButton> */}
 
         <IonList>
           {cards.map(card => (
-            <IonCard button={true} onClick={cardClicked}>
+            <IonCard key={card.id}>
               <IonCardHeader>
                 <IonCardTitle>{card.title}</IonCardTitle>
               </IonCardHeader>
@@ -211,7 +243,8 @@ const Home: React.FC = () => {
 
       <IonFooter>
         <IonToolbar>
-          <IonButton expand="block" onClick={deleteAllCards}>Plan the day</IonButton>
+          <IonButton expand="block" onClick={planTheDay}>Plan the day</IonButton>
+          <IonButton expand="block" onClick={deleteAllCards}>delete</IonButton>
         </IonToolbar>
       </IonFooter>
     </IonPage>
