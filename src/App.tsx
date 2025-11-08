@@ -40,6 +40,7 @@ import '@ionic/react/css/palettes/dark.system.css';
 import './theme/variables.css';
 import Objective from './pages/Objective';
 import Planning from './pages/Planning';
+import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
 
 
 export const SqliteServiceContext = React.createContext(SqliteService);
@@ -67,6 +68,9 @@ const App: React.FC = () => (
                 </Route>
                 <Route exact path="/planning">
                   <Planning />
+                </Route>
+                <Route exact path="/three-goals-help">
+                  <ThreeGoalsHelp />
                 </Route>
               </IonRouterOutlet>
             </IonReactRouter>

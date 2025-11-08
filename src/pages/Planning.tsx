@@ -14,8 +14,14 @@ import {
   IonTextarea,
   IonList,
   IonFooter,
+  IonIcon,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
   useIonRouter
 } from '@ionic/react';
+import { helpCircleOutline } from 'ionicons/icons';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Objective, ObjectiveStatus } from '../models/Objective';
 import { Toast } from '@capacitor/toast';
@@ -68,7 +74,7 @@ const Planning: React.FC = () => {
     }
 
     // Validate that at least one objective has a title
-    if (!objective1Title.trim() && !objective2Title.trim() && !objective3Title.trim()) {
+    if (objective1Title.trim() && objective2Title.trim() && objective3Title.trim()) {
       Toast.show({
         text: 'At least one objective must have a title',
         duration: 'long'
@@ -153,83 +159,118 @@ const Planning: React.FC = () => {
             <IonBackButton defaultHref="/home" />
           </IonButtons>
           <IonTitle>Plan the Day</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => router.push('/three-goals-help', 'forward')}>
+              <IonIcon icon={helpCircleOutline} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        <IonList>
-          {/* Earliest End Time */}
-          <IonItem>
-            <IonLabel position="stacked">Earliest End Time *</IonLabel>
-            <IonInput
-              type="time"
-              value={earliestEndTime}
-              onIonInput={(e) => setEarliestEndTime(e.detail.value!)}
-              placeholder="HH:MM"
-            />
-          </IonItem>
+        {/* Working Day End Time */}
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Working Day Schedule</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonItem>
+              <IonLabel position="stacked">Working day ends at *</IonLabel>
+              <IonInput
+                type="time"
+                value={earliestEndTime}
+                onIonInput={(e) => setEarliestEndTime(e.detail.value!)}
+                placeholder="HH:MM"
+              />
+            </IonItem>
+          </IonCardContent>
+        </IonCard>
 
-          {/* Objective 1 */}
-          <IonItem>
-            <IonLabel position="stacked">Objective 1 - Title *</IonLabel>
-            <IonInput
-              value={objective1Title}
-              onIonInput={(e) => setObjective1Title(e.detail.value!)}
-              placeholder="Enter title"
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Objective 1 - Description</IonLabel>
-            <IonTextarea
-              value={objective1Description}
-              onIonInput={(e) => setObjective1Description(e.detail.value!)}
-              placeholder="Enter description (optional)"
-              rows={3}
-            />
-          </IonItem>
+        {/* Objective 1 */}
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Objective 1</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonItem>
+              <IonLabel position="stacked">Title *</IonLabel>
+              <IonInput
+                value={objective1Title}
+                onIonInput={(e) => setObjective1Title(e.detail.value!)}
+                placeholder="Enter title"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">Description</IonLabel>
+              <IonTextarea
+                value={objective1Description}
+                onIonInput={(e) => setObjective1Description(e.detail.value!)}
+                placeholder="Enter description (optional)"
+                rows={3}
+              />
+            </IonItem>
+          </IonCardContent>
+        </IonCard>
 
-          {/* Objective 2 */}
-          <IonItem>
-            <IonLabel position="stacked">Objective 2 - Title *</IonLabel>
-            <IonInput
-              value={objective2Title}
-              onIonInput={(e) => setObjective2Title(e.detail.value!)}
-              placeholder="Enter title"
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Objective 2 - Description</IonLabel>
-            <IonTextarea
-              value={objective2Description}
-              onIonInput={(e) => setObjective2Description(e.detail.value!)}
-              placeholder="Enter description (optional)"
-              rows={3}
-            />
-          </IonItem>
+        {/* Objective 2 */}
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Objective 2</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonItem>
+              <IonLabel position="stacked">Title *</IonLabel>
+              <IonInput
+                value={objective2Title}
+                onIonInput={(e) => setObjective2Title(e.detail.value!)}
+                placeholder="Enter title"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">Description</IonLabel>
+              <IonTextarea
+                value={objective2Description}
+                onIonInput={(e) => setObjective2Description(e.detail.value!)}
+                placeholder="Enter description (optional)"
+                rows={3}
+              />
+            </IonItem>
+          </IonCardContent>
+        </IonCard>
 
-          {/* Objective 3 */}
-          <IonItem>
-            <IonLabel position="stacked">Objective 3 - Title *</IonLabel>
-            <IonInput
-              value={objective3Title}
-              onIonInput={(e) => setObjective3Title(e.detail.value!)}
-              placeholder="Enter title"
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Objective 3 - Description</IonLabel>
-            <IonTextarea
-              value={objective3Description}
-              onIonInput={(e) => setObjective3Description(e.detail.value!)}
-              placeholder="Enter description (optional)"
-              rows={3}
-            />
-          </IonItem>
-        </IonList>
+        {/* Objective 3 */}
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Objective 3</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonItem>
+              <IonLabel position="stacked">Title *</IonLabel>
+              <IonInput
+                value={objective3Title}
+                onIonInput={(e) => setObjective3Title(e.detail.value!)}
+                placeholder="Enter title"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">Description</IonLabel>
+              <IonTextarea
+                value={objective3Description}
+                onIonInput={(e) => setObjective3Description(e.detail.value!)}
+                placeholder="Enter description (optional)"
+                rows={3}
+              />
+            </IonItem>
+          </IonCardContent>
+        </IonCard>
       </IonContent>
 
       <IonFooter>
         <IonToolbar>
-          <IonButton expand="block" onClick={handleSubmit}>
+          <IonButton
+            expand="block"
+            onClick={handleSubmit}
+            disabled={!objective1Title.trim() || !objective2Title.trim() || !objective3Title.trim()}
+          >
             Start the day
           </IonButton>
         </IonToolbar>
