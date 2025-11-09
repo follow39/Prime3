@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonContent,
   IonHeader,
@@ -23,7 +24,8 @@ import {
   IonDatetime,
   IonList,
   IonItem,
-  IonBadge
+  IonBadge,
+  useIonViewDidEnter
 } from '@ionic/react';
 import { shareOutline } from 'ionicons/icons';
 import { Share } from '@capacitor/share';
@@ -65,9 +67,17 @@ interface DayStats {
 }
 
 const Review: React.FC = () => {
+  const history = useHistory();
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
   const statsContainerRef = useRef<HTMLDivElement>(null);
+
+  const taskClicked = (task: Task) => {
+    history.push({
+      pathname: '/task',
+      state: { task }
+    });
+  };
 
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = (): string => {
@@ -92,9 +102,29 @@ const Review: React.FC = () => {
   const [tasksForSelectedDate, setTasksForSelectedDate] = useState<Task[]>([]);
   const [completedCountByDate, setCompletedCountByDate] = useState<{ [key: string]: number }>({});
 
+  const reloadTasksForSelectedDate = async () => {
+    try {
+      const dbName = storageServ.getDatabaseName();
+      const isConn = await sqliteServ.isConnection(dbName, false);
+
+      if (!isConn) {
+        return;
+      }
+
+      const tasks = await storageServ.getTasksByDate(selectedDate);
+      setTasksForSelectedDate(tasks);
+    } catch (error) {
+      console.error('Error reloading tasks for date:', error);
+    }
+  };
+
   useEffect(() => {
     loadStatistics();
   }, []);
+
+  useIonViewDidEnter(() => {
+    reloadTasksForSelectedDate();
+  });
 
   const loadStatistics = async () => {
     try {
@@ -667,7 +697,7 @@ const Review: React.FC = () => {
                       <h3>Tasks for {selectedDate}</h3>
                       <IonList>
                         {tasksForSelectedDate.map(task => (
-                          <IonItem key={task.id}>
+                          <IonItem key={task.id} button={true} onClick={() => taskClicked(task)}>
                             <IonLabel>
                               <h3>{task.title}</h3>
                               {task.description && <p>{task.description}</p>}

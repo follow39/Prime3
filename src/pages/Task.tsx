@@ -61,14 +61,14 @@ const Task: React.FC = () => {
         if (!task) return;
 
         try {
-            const updatedObjective: ObjectiveModel = {
+            const updatedTask: TaskModel = {
                 ...task,
                 title: title.trim(),
                 description: description.trim()
             };
 
-            await storageServ.updateObjective(updatedObjective);
-            setObjective(updatedObjective);
+            await storageServ.updateTask(updatedTask);
+            setTask(updatedTask);
             setIsEditing(false);
         } catch (error) {
             const msg = `Error updating task: ${error}`;
@@ -84,13 +84,13 @@ const Task: React.FC = () => {
         if (!task) return;
 
         try {
-            const updatedObjective: ObjectiveModel = {
+            const updatedTask: TaskModel = {
                 ...task,
                 status: TaskStatus.Done
             };
 
-            await storageServ.updateObjective(updatedObjective);
-            setObjective(updatedObjective);
+            await storageServ.updateTask(updatedTask);
+            setTask(updatedTask);
 
             // Navigate back to home page
             router.push('/home', 'back');
@@ -201,7 +201,7 @@ const Task: React.FC = () => {
                                     onClick={handleDoneClick}
                                     color="success"
                                 >
-                                    Conquered
+                                    Done
                                 </IonButton>
                             )}
                         </>
@@ -212,8 +212,8 @@ const Task: React.FC = () => {
             <IonAlert
                 isOpen={showConfirmDialog}
                 onDidDismiss={() => setShowConfirmDialog(false)}
-                header="Mark as Conquered?"
-                message="Are you sure you want to mark this task as conquered?"
+                header="Mark as Done?"
+                message="Are you sure you want to mark this task as done?"
                 buttons={[
                     {
                         text: 'Cancel',
@@ -223,7 +223,7 @@ const Task: React.FC = () => {
                         }
                     },
                     {
-                        text: 'Conquered',
+                        text: 'Done',
                         role: 'confirm',
                         handler: () => {
                             handleConfirmDone();
