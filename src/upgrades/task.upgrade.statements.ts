@@ -1,8 +1,8 @@
-export const ObjectiveUpgradeStatements = [
+export const TaskUpgradeStatements = [
     {
     toVersion: 1,
     statements: [
-        `CREATE TABLE IF NOT EXISTS objectives (
+        `CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,

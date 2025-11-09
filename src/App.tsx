@@ -2,12 +2,13 @@ import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import Home from './pages/Home';
 import { Capacitor } from '@capacitor/core';
 import SqliteService from './services/sqliteService';
 import DbVersionService from './services/dbVersionService';
 import StorageService from './services/storageService';
 import AppInitializer from './components/AppInitializer';
+import Home from './pages/Home';
+import Review from './pages/Review';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -38,11 +39,9 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
-import Objective from './pages/Objective';
+import Task from './pages/Task';
 import Planning from './pages/Planning';
 import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
-import Statistics from './pages/Statistics';
-import Calendar from './pages/Calendar';
 import Debug from './pages/Debug';
 
 
@@ -66,20 +65,17 @@ const App: React.FC = () => (
                 <Route exact path="/">
                   <Redirect to="/home" />
                 </Route>
-                <Route exact path="/objective">
-                  <Objective />
+                <Route exact path="/review">
+                  <Review />
+                </Route>
+                <Route exact path="/task">
+                  <Task />
                 </Route>
                 <Route exact path="/planning">
                   <Planning />
                 </Route>
                 <Route exact path="/three-goals-help">
                   <ThreeGoalsHelp />
-                </Route>
-                <Route exact path="/statistics">
-                  <Statistics />
-                </Route>
-                <Route exact path="/calendar">
-                  <Calendar />
                 </Route>
                 <Route exact path="/debug">
                   <Debug />

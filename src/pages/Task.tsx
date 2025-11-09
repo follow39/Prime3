@@ -1,17 +1,17 @@
 import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter } from '@ionic/react';
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Objective as ObjectiveModel, ObjectiveStatus } from '../models/Objective';
+import { Task as TaskModel, TaskStatus } from '../models/Task';
 import { StorageServiceContext } from '../App';
 import TimeLeft from '../services/timeLeftService';
 import PreferencesService from '../services/preferencesService';
 
-const Objective: React.FC = () => {
-    const location = useLocation<{ objective: ObjectiveModel }>();
+const Task: React.FC = () => {
+    const location = useLocation<{ task: TaskModel }>();
     const router = useIonRouter();
     const storageServ = useContext(StorageServiceContext);
 
-    const [objective, setObjective] = useState<ObjectiveModel | null>(null);
+    const [task, setTask] = useState<TaskModel | null>(null);
     const [title, setTitle] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -20,11 +20,11 @@ const Objective: React.FC = () => {
     const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
     useEffect(() => {
-        if (location.state?.objective) {
-            const objectiveData = location.state.objective;
-            setObjective(objectiveData);
-            setTitle(objectiveData.title);
-            setDescription(objectiveData.description || '');
+        if (location.state?.task) {
+            const taskData = location.state.task;
+            setTask(taskData);
+            setTitle(taskData.title);
+            setDescription(taskData.description || '');
         }
     }, [location.state]);
 
@@ -58,11 +58,11 @@ const Objective: React.FC = () => {
             return;
         }
 
-        if (!objective) return;
+        if (!task) return;
 
         try {
             const updatedObjective: ObjectiveModel = {
-                ...objective,
+                ...task,
                 title: title.trim(),
                 description: description.trim()
             };
@@ -71,7 +71,7 @@ const Objective: React.FC = () => {
             setObjective(updatedObjective);
             setIsEditing(false);
         } catch (error) {
-            const msg = `Error updating objective: ${error}`;
+            const msg = `Error updating task: ${error}`;
             console.error(msg);
         }
     };
@@ -81,12 +81,12 @@ const Objective: React.FC = () => {
     };
 
     const handleConfirmDone = async () => {
-        if (!objective) return;
+        if (!task) return;
 
         try {
             const updatedObjective: ObjectiveModel = {
-                ...objective,
-                status: ObjectiveStatus.Done
+                ...task,
+                status: TaskStatus.Done
             };
 
             await storageServ.updateObjective(updatedObjective);
@@ -95,7 +95,7 @@ const Objective: React.FC = () => {
             // Navigate back to home page
             router.push('/home', 'back');
         } catch (error) {
-            const msg = `Error updating objective status: ${error}`;
+            const msg = `Error updating task status: ${error}`;
             console.error(msg);
         }
     };
@@ -105,14 +105,14 @@ const Objective: React.FC = () => {
     };
 
     const handleCancel = () => {
-        if (objective) {
-            setTitle(objective.title);
-            setDescription(objective.description || '');
+        if (task) {
+            setTitle(task.title);
+            setDescription(task.description || '');
         }
         setIsEditing(false);
     };
 
-    if (!objective) {
+    if (!task) {
         return (
             <IonPage>
                 <IonHeader>
@@ -124,7 +124,7 @@ const Objective: React.FC = () => {
                     </IonToolbar>
                 </IonHeader>
                 <IonContent className="ion-padding">
-                    <p>No objective data available</p>
+                    <p>No task data available</p>
                 </IonContent>
             </IonPage>
         );
@@ -172,11 +172,11 @@ const Objective: React.FC = () => {
                     <>
                         <IonItem>
                             <IonLabel position="stacked">Title</IonLabel>
-                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{objective.title}</p>
+                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{task.title}</p>
                         </IonItem>
                         <IonItem>
                             <IonLabel position="stacked">Description</IonLabel>
-                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{objective.description || 'No description'}</p>
+                            <p style={{ marginTop: '8px', fontSize: '16px' }}>{task.description || 'No description'}</p>
                         </IonItem>
                     </>
                 )}
@@ -195,7 +195,7 @@ const Objective: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            {objective.status !== ObjectiveStatus.Done && (
+                            {task.status !== TaskStatus.Done && (
                                 <IonButton
                                     expand="block"
                                     onClick={handleDoneClick}
@@ -213,7 +213,7 @@ const Objective: React.FC = () => {
                 isOpen={showConfirmDialog}
                 onDidDismiss={() => setShowConfirmDialog(false)}
                 header="Mark as Conquered?"
-                message="Are you sure you want to mark this objective as conquered?"
+                message="Are you sure you want to mark this task as conquered?"
                 buttons={[
                     {
                         text: 'Cancel',
@@ -235,4 +235,4 @@ const Objective: React.FC = () => {
     );
 };
 
-export default Objective;
+export default Task;

@@ -20,7 +20,7 @@ import {
   useIonPicker
 } from '@ionic/react';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Objective, ObjectiveStatus } from '../models/Objective';
+import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 
 const Debug: React.FC = () => {
@@ -29,14 +29,14 @@ const Debug: React.FC = () => {
   const [present] = useIonPicker();
 
   const [loading, setLoading] = useState(true);
-  const [allObjectives, setAllObjectives] = useState<Objective[]>([]);
-  const [groupedByDate, setGroupedByDate] = useState<{ [key: string]: Objective[] }>({});
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [groupedByDate, setGroupedByDate] = useState<{ [key: string]: Task[] }>({});
 
   useEffect(() => {
-    loadAllObjectives();
+    loadAllTasks();
   }, []);
 
-  const loadAllObjectives = async () => {
+  const loadAllTasks = async () => {
     try {
       setLoading(true);
       const dbName = storageServ.getDatabaseName();
@@ -46,13 +46,13 @@ const Debug: React.FC = () => {
         throw new Error('Database connection not available');
       }
 
-      // Get all objectives
-      const objectives = await storageServ.getObjectives();
-      setAllObjectives(objectives);
+      // Get all tasks
+      const tasks = await storageServ.getTasks();
+      setAllTasks(tasks);
 
       // Group by date
-      const grouped: { [key: string]: Objective[] } = {};
-      objectives.forEach(obj => {
+      const grouped: { [key: string]: Task[] } = {};
+      tasks.forEach(obj => {
         const date = obj.creation_date;
         if (!grouped[date]) {
           grouped[date] = [];
@@ -62,7 +62,7 @@ const Debug: React.FC = () => {
 
       setGroupedByDate(grouped);
     } catch (error) {
-      console.error('Error loading objectives:', error);
+      console.error('Error loading tasks:', error);
       Toast.show({
         text: `Error: ${error}`,
         duration: 'long'
@@ -74,11 +74,11 @@ const Debug: React.FC = () => {
 
   const getStatusLabel = (status: number): string => {
     switch (status) {
-      case ObjectiveStatus.Open:
+      case TaskStatus.Open:
         return 'Open';
-      case ObjectiveStatus.Done:
+      case TaskStatus.Done:
         return 'Done';
-      case ObjectiveStatus.Overdue:
+      case TaskStatus.Overdue:
         return 'Overdue';
       default:
         return `Unknown (${status})`;
@@ -87,32 +87,32 @@ const Debug: React.FC = () => {
 
   const getStatusColor = (status: number): string => {
     switch (status) {
-      case ObjectiveStatus.Open:
+      case TaskStatus.Open:
         return 'primary';
-      case ObjectiveStatus.Done:
+      case TaskStatus.Done:
         return 'success';
-      case ObjectiveStatus.Overdue:
+      case TaskStatus.Overdue:
         return 'danger';
       default:
         return 'medium';
     }
   };
 
-  const handleDeleteObjective = async (id: number, title: string) => {
-    if (!confirm(`Delete objective "${title}"?`)) {
+  const handleDeleteTask = async (id: number, title: string) => {
+    if (!confirm(`Delete task "${title}"?`)) {
       return;
     }
 
     try {
-      await storageServ.deleteObjectiveById(id);
+      await storageServ.deleteTaskById(id);
       Toast.show({
-        text: `Deleted objective: ${title}`,
+        text: `Deleted task: ${title}`,
         duration: 'short'
       });
       // Reload the list
-      await loadAllObjectives();
+      await loadAllTasks();
     } catch (error) {
-      console.error('Error deleting objective:', error);
+      console.error('Error deleting task:', error);
       Toast.show({
         text: `Error deleting: ${error}`,
         duration: 'long'
@@ -120,17 +120,17 @@ const Debug: React.FC = () => {
     }
   };
 
-  const handleOpenStatusPicker = (objective: Objective) => {
-    const statusIndex = [ObjectiveStatus.Open, ObjectiveStatus.Done, ObjectiveStatus.Overdue].indexOf(objective.status);
+  const handleOpenStatusPicker = (task: Task) => {
+    const statusIndex = [TaskStatus.Open, TaskStatus.Done, TaskStatus.Overdue].indexOf(task.status);
 
     present({
       columns: [
         {
           name: 'status',
           options: [
-            { text: 'Open', value: ObjectiveStatus.Open },
-            { text: 'Done', value: ObjectiveStatus.Done },
-            { text: 'Overdue', value: ObjectiveStatus.Overdue }
+            { text: 'Open', value: TaskStatus.Open },
+            { text: 'Done', value: TaskStatus.Done },
+            { text: 'Overdue', value: TaskStatus.Overdue }
           ],
           selectedIndex: statusIndex >= 0 ? statusIndex : 0
         }
@@ -143,27 +143,27 @@ const Debug: React.FC = () => {
         {
           text: 'Confirm',
           handler: (value) => {
-            handleStatusChange(objective, value.status.value);
+            handleStatusChange(task, value.status.value);
           }
         }
       ]
     });
   };
 
-  const handleStatusChange = async (objective: Objective, newStatus: number) => {
+  const handleStatusChange = async (task: Task, newStatus: number) => {
     try {
-      const updatedObjective: Objective = {
-        ...objective,
+      const updatedTask: Task = {
+        ...task,
         status: newStatus
       };
 
-      await storageServ.updateObjective(updatedObjective);
+      await storageServ.updateTask(updatedTask);
       Toast.show({
         text: `Status updated to ${getStatusLabel(newStatus)}`,
         duration: 'short'
       });
       // Reload the list
-      await loadAllObjectives();
+      await loadAllTasks();
     } catch (error) {
       console.error('Error updating status:', error);
       Toast.show({
@@ -195,8 +195,8 @@ const Debug: React.FC = () => {
                 <IonCardTitle>Database Summary</IonCardTitle>
               </IonCardHeader>
               <IonCardContent>
-                <p>Total objectives: {allObjectives.length}</p>
-                <p>Dates with objectives: {Object.keys(groupedByDate).length}</p>
+                <p>Total tasks: {allTasks.length}</p>
+                <p>Dates with tasks: {Object.keys(groupedByDate).length}</p>
                 <p>Dates: {Object.keys(groupedByDate).sort().reverse().join(', ')}</p>
               </IonCardContent>
             </IonCard>
@@ -207,7 +207,7 @@ const Debug: React.FC = () => {
               .map(date => (
                 <IonCard key={date}>
                   <IonCardHeader>
-                    <IonCardTitle>{date} ({groupedByDate[date].length} objectives)</IonCardTitle>
+                    <IonCardTitle>{date} ({groupedByDate[date].length} tasks)</IonCardTitle>
                   </IonCardHeader>
                   <IonCardContent>
                     <IonList>
@@ -231,7 +231,7 @@ const Debug: React.FC = () => {
                             slot="end"
                             color="danger"
                             fill="clear"
-                            onClick={() => handleDeleteObjective(obj.id, obj.title)}
+                            onClick={() => handleDeleteTask(obj.id, obj.title)}
                           >
                             Delete
                           </IonButton>
@@ -242,10 +242,10 @@ const Debug: React.FC = () => {
                 </IonCard>
               ))}
 
-            {allObjectives.length === 0 && (
+            {allTasks.length === 0 && (
               <IonCard>
                 <IonCardContent>
-                  <p>No objectives found in database.</p>
+                  <p>No tasks found in database.</p>
                 </IonCardContent>
               </IonCard>
             )}

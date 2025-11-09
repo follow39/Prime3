@@ -2,8 +2,6 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import {
   IonContent,
   IonHeader,
-  IonButtons,
-  IonBackButton,
   IonPage,
   IonTitle,
   IonToolbar,
@@ -16,16 +14,24 @@ import {
   IonCol,
   IonSpinner,
   IonButton,
+  IonButtons,
+  IonBackButton,
   IonIcon,
-  useIonRouter
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
+  IonDatetime,
+  IonList,
+  IonItem,
+  IonBadge
 } from '@ionic/react';
-import { shareOutline, calendarOutline } from 'ionicons/icons';
+import { shareOutline } from 'ionicons/icons';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import html2canvas from 'html2canvas';
 import { Toast } from '@capacitor/toast';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { ObjectiveStatus } from '../models/Objective';
+import { Task, TaskStatus } from '../models/Task';
 import './Statistics.css';
 import {
   Chart as ChartJS,
@@ -58,19 +64,33 @@ interface DayStats {
   count: number;
 }
 
-const Statistics: React.FC = () => {
-  const router = useIonRouter();
+const Review: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
   const statsContainerRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [loading, setLoading] = useState(true);
+  const [selectedView, setSelectedView] = useState<string>('charts');
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [totalDaysTracked, setTotalDaysTracked] = useState(0);
   const [last7Days, setLast7Days] = useState(0);
   const [last30Days, setLast30Days] = useState(0);
   const [fourMonthData, setFourMonthData] = useState<DayStats[]>([]);
   const [chartData, setChartData] = useState<{ labels: string[], data: number[] }>({ labels: [], data: [] });
+
+  // Calendar view states
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
+  const [tasksForSelectedDate, setTasksForSelectedDate] = useState<Task[]>([]);
+  const [completedCountByDate, setCompletedCountByDate] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     loadStatistics();
@@ -87,19 +107,19 @@ const Statistics: React.FC = () => {
       }
 
       // Get all objectives
-      const allObjectives = await storageServ.getObjectives();
+      const allTasks = await storageServ.getTasks();
 
       // Filter completed objectives
-      const completedObjectives = allObjectives.filter(
-        obj => obj.status === ObjectiveStatus.Done
+      const completedTasks = allTasks.filter(
+        obj => obj.status === TaskStatus.Done
       );
 
       // Calculate total
-      setTotalCompleted(completedObjectives.length);
+      setTotalCompleted(completedTasks.length);
 
       // Calculate days tracked from the first objective
-      if (allObjectives.length > 0) {
-        const dates = allObjectives.map(obj => new Date(obj.creation_date));
+      if (allTasks.length > 0) {
+        const dates = allTasks.map(obj => new Date(obj.creation_date));
         const firstDate = new Date(Math.min(...dates.map(d => d.getTime())));
         const today = new Date();
         const daysDiff = Math.floor((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -116,26 +136,39 @@ const Statistics: React.FC = () => {
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
       // Count last 7 days
-      const last7 = completedObjectives.filter(obj => {
+      const last7 = completedTasks.filter(obj => {
         const objDate = new Date(obj.creation_date);
         return objDate >= sevenDaysAgo;
       }).length;
       setLast7Days(last7);
 
       // Count last 30 days
-      const last30 = completedObjectives.filter(obj => {
+      const last30 = completedTasks.filter(obj => {
         const objDate = new Date(obj.creation_date);
         return objDate >= thirtyDaysAgo;
       }).length;
       setLast30Days(last30);
 
       // Generate heatmap data for last 4 months
-      const fourMonth = generateFourMonthHeatmapData(completedObjectives);
+      const fourMonth = generateFourMonthHeatmapData(completedTasks);
       setFourMonthData(fourMonth);
 
       // Generate chart data for the last 10 days
-      const chart = generateChartData(completedObjectives, 10);
+      const chart = generateChartData(completedTasks, 10);
       setChartData(chart);
+
+      // Create completed count by date map for calendar styling
+      const countByDate: { [key: string]: number } = {};
+      completedTasks.forEach(obj => {
+        const date = obj.creation_date;
+        countByDate[date] = (countByDate[date] || 0) + 1;
+      });
+      setCompletedCountByDate(countByDate);
+
+      // Load today's tasks by default
+      const todayDate = getTodayDate();
+      const todayTasks = await storageServ.getTasksByDate(todayDate);
+      setTasksForSelectedDate(todayTasks);
 
     } catch (error) {
       console.error('Error loading statistics:', error);
@@ -144,7 +177,7 @@ const Statistics: React.FC = () => {
     }
   };
 
-  const generateChartData = (completedObjectives: Objective[], days: number): { labels: string[], data: number[] } => {
+  const generateChartData = (completedTasks: Task[], days: number): { labels: string[], data: number[] } => {
     const today = new Date();
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - (days - 1)); // Include today
@@ -152,7 +185,7 @@ const Statistics: React.FC = () => {
     // Create a map of date -> count
     const countByDate: { [key: string]: number } = {};
 
-    completedObjectives.forEach(obj => {
+    completedTasks.forEach(obj => {
       const date = obj.creation_date;
       countByDate[date] = (countByDate[date] || 0) + 1;
     });
@@ -175,7 +208,7 @@ const Statistics: React.FC = () => {
     return { labels, data };
   };
 
-  const generateFourMonthHeatmapData = (completedObjectives: Objective[]): DayStats[] => {
+  const generateFourMonthHeatmapData = (completedTasks: Task[]): DayStats[] => {
     const today = new Date();
     const fourMonthsAgo = new Date(today);
     fourMonthsAgo.setDate(today.getDate() - 119); // 120 days including today (approximately 4 months)
@@ -183,7 +216,7 @@ const Statistics: React.FC = () => {
     // Create a map of date -> count
     const countByDate: { [key: string]: number } = {};
 
-    completedObjectives.forEach(obj => {
+    completedTasks.forEach(obj => {
       const date = obj.creation_date;
       countByDate[date] = (countByDate[date] || 0) + 1;
     });
@@ -216,6 +249,57 @@ const Statistics: React.FC = () => {
     if (count === 1) return 'heatmap-low';
     if (count === 2) return 'heatmap-medium';
     return 'heatmap-high'; // 3 or more
+  };
+
+  const handleDateChange = async (e: any) => {
+    const selectedDateValue = e.detail.value;
+    if (!selectedDateValue) return;
+
+    // Extract date in YYYY-MM-DD format
+    const date = new Date(selectedDateValue);
+    const dateStr = formatDate(date);
+    setSelectedDate(dateStr);
+
+    // Load tasks for this date
+    try {
+      const dbName = storageServ.getDatabaseName();
+      const isConn = await sqliteServ.isConnection(dbName, false);
+
+      if (!isConn) {
+        return;
+      }
+
+      const tasks = await storageServ.getTasksByDate(dateStr);
+      setTasksForSelectedDate(tasks);
+    } catch (error) {
+      console.error('Error loading tasks for date:', error);
+    }
+  };
+
+  const getStatusLabel = (status: number): string => {
+    switch (status) {
+      case TaskStatus.Open:
+        return 'Open';
+      case TaskStatus.Done:
+        return 'Done';
+      case TaskStatus.Overdue:
+        return 'Overdue';
+      default:
+        return `Unknown (${status})`;
+    }
+  };
+
+  const getStatusColor = (status: number): string => {
+    switch (status) {
+      case TaskStatus.Open:
+        return 'primary';
+      case TaskStatus.Done:
+        return 'success';
+      case TaskStatus.Overdue:
+        return 'danger';
+      default:
+        return 'medium';
+    }
   };
 
   const renderFourMonthHeatmap = () => {
@@ -401,11 +485,15 @@ const Statistics: React.FC = () => {
           <IonButtons slot="start">
             <IonBackButton defaultHref="/home" />
           </IonButtons>
-          <IonTitle>Your Statistics</IonTitle>
+          <IonSegment value={selectedView} onIonChange={(e) => setSelectedView(e.detail.value as string)}>
+            <IonSegmentButton value="charts">
+              <IonLabel>Charts</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="calendar">
+              <IonLabel>Calendar</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
           <IonButtons slot="end">
-            <IonButton onClick={() => router.push('/calendar', 'forward')}>
-              <IonIcon icon={calendarOutline} />
-            </IonButton>
             <IonButton onClick={handleShare} disabled={loading}>
               <IonIcon icon={shareOutline} />
             </IonButton>
@@ -419,6 +507,7 @@ const Statistics: React.FC = () => {
           </div>
         ) : (
           <div ref={statsContainerRef}>
+            {/* Summary stats - always visible */}
             <IonGrid>
               <IonRow>
                 <IonCol size="4">
@@ -471,64 +560,135 @@ const Statistics: React.FC = () => {
               </IonRow>
             </IonGrid>
 
-            <IonCard>
-              <IonCardHeader>
-                <IonCardTitle>10 Days performance</IonCardTitle>
-              </IonCardHeader>
-              <IonCardContent>
-                <div>
-                  <Line
-                    data={{
-                      labels: chartData.labels,
-                      datasets: [{
-                        label: 'Tasks Completed',
-                        data: chartData.data,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        tension: 0.4
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: true,
-                      plugins: {
-                        legend: {
-                          display: false
-                        },
-                        tooltip: {
-                          callbacks: {
-                            title: (context) => {
-                              return chartData.labels[context[0].dataIndex];
+            {/* Charts View - Plot and Heatmap */}
+            {selectedView === 'charts' && (
+              <>
+                <IonCard>
+                  <IonCardHeader>
+                    <IonCardTitle>10 Days performance</IonCardTitle>
+                  </IonCardHeader>
+                  <IonCardContent>
+                    <div>
+                      <Line
+                        data={{
+                          labels: chartData.labels,
+                          datasets: [{
+                            label: 'Tasks Completed',
+                            data: chartData.data,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: true,
+                          plugins: {
+                            legend: {
+                              display: false
                             },
-                            label: (context) => {
-                              return `${context.parsed.y} task${context.parsed.y !== 1 ? 's' : ''}`;
+                            tooltip: {
+                              callbacks: {
+                                title: (context) => {
+                                  return chartData.labels[context[0].dataIndex];
+                                },
+                                label: (context) => {
+                                  return `${context.parsed.y} task${context.parsed.y !== 1 ? 's' : ''}`;
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              ticks: {
+                                stepSize: 1
+                              }
                             }
                           }
-                        }
-                      },
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                          ticks: {
-                            stepSize: 1
-                          }
-                        }
+                        }}
+                      />
+                    </div>
+                  </IonCardContent>
+                </IonCard>
+
+                <IonCard>
+                  <IonCardHeader>
+                    <IonCardTitle>4 Months performance</IonCardTitle>
+                  </IonCardHeader>
+                  <IonCardContent>
+                    {renderFourMonthHeatmap()}
+                  </IonCardContent>
+                </IonCard>
+              </>
+            )}
+
+            {/* Calendar View */}
+            {selectedView === 'calendar' && (
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>Task Calendar</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <IonDatetime
+                    presentation="date"
+                    value={selectedDate}
+                    onIonChange={handleDateChange}
+                    highlightedDates={(isoString) => {
+                      const date = new Date(isoString);
+                      const dateStr = formatDate(date);
+                      const count = completedCountByDate[dateStr] || 0;
+
+                      if (count === 0) return undefined;
+
+                      // Return color based on completed count (like heatmap)
+                      if (count === 1) {
+                        return {
+                          textColor: '#000000',
+                          backgroundColor: '#9be9a8'
+                        };
+                      } else if (count === 2) {
+                        return {
+                          textColor: '#ffffff',
+                          backgroundColor: '#40c463'
+                        };
+                      } else {
+                        return {
+                          textColor: '#ffffff',
+                          backgroundColor: '#30a14e'
+                        };
                       }
                     }}
                   />
-                </div>
-              </IonCardContent>
-            </IonCard>
 
-            <IonCard>
-              <IonCardHeader>
-                <IonCardTitle>4 Months performance</IonCardTitle>
-              </IonCardHeader>
-              <IonCardContent>
-                {renderFourMonthHeatmap()}
-              </IonCardContent>
-            </IonCard>
+                  {selectedDate && tasksForSelectedDate.length > 0 && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <h3>Tasks for {selectedDate}</h3>
+                      <IonList>
+                        {tasksForSelectedDate.map(task => (
+                          <IonItem key={task.id}>
+                            <IonLabel>
+                              <h3>{task.title}</h3>
+                              {task.description && <p>{task.description}</p>}
+                            </IonLabel>
+                            <IonBadge slot="end" color={getStatusColor(task.status)}>
+                              {getStatusLabel(task.status)}
+                            </IonBadge>
+                          </IonItem>
+                        ))}
+                      </IonList>
+                    </div>
+                  )}
+
+                  {selectedDate && tasksForSelectedDate.length === 0 && (
+                    <div style={{ marginTop: '1rem', textAlign: 'center', opacity: 0.6 }}>
+                      <p>No tasks for {selectedDate}</p>
+                    </div>
+                  )}
+                </IonCardContent>
+              </IonCard>
+            )}
           </div>
         )}
       </IonContent>
@@ -536,4 +696,4 @@ const Statistics: React.FC = () => {
   );
 };
 
-export default Statistics;
+export default Review;

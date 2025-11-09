@@ -1,4 +1,4 @@
-export interface Objective {
+export interface Task {
     id: number
     title: string
     description: string
@@ -7,7 +7,7 @@ export interface Objective {
     active: number
 }
 
-export enum ObjectiveStatus {
+export enum TaskStatus {
     Open = 1,
     Done,
     Overdue,

@@ -6,7 +6,7 @@ import TimeLeft from '../services/timeLeftService';
 import StorageService from '../services/storageService';
 import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Objective, ObjectiveStatus } from '../models/Objective';
+import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import { add, bug } from 'ionicons/icons';
 
@@ -16,10 +16,10 @@ const Home: React.FC = () => {
   const router = useIonRouter();
   const history = useHistory();
 
-  const objectiveClicked = (objective: Objective) => {
+  const taskClicked = (task: Task) => {
     history.push({
-      pathname: '/objective',
-      state: { objective }
+      pathname: '/task',
+      state: { task }
     });
   };
 
@@ -28,12 +28,12 @@ const Home: React.FC = () => {
   };
 
   const dbNameRef = useRef('');
-  const [objectives, setObjectives] = useState<Objective[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [headerTimeLeft, setHeaderTimeLeft] = useState<string>("");
   const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
   const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
-  const [todayHasObjectives, setTodayHasObjectives] = useState<boolean>(false);
-  const [allObjectivesDone, setAllObjectivesDone] = useState<boolean>(false);
+  const [todayHasTasks, setTodayHasTasks] = useState<boolean>(false);
+  const [allTasksDone, setAllTasksDone] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -46,7 +46,7 @@ const Home: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleAddObjective = async (newObjective: Objective) => {
+  const handleAddTask = async (newTask: Task) => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -59,18 +59,18 @@ const Home: React.FC = () => {
       }
 
       // Set creation_date to today if not already set
-      if (!newObjective.creation_date) {
-        newObjective.creation_date = getTodayDate();
+      if (!newTask.creation_date) {
+        newTask.creation_date = getTodayDate();
       }
 
-      // Add objective using storage service (now includes creation_date)
-      const lastId = await storageServ.addObjective(newObjective);
-      newObjective.id = lastId;
+      // Add task using storage service (now includes creation_date)
+      const lastId = await storageServ.addTask(newTask);
+      newTask.id = lastId;
 
-      // Refresh objectives list
-      await readObjectives();
+      // Refresh tasks list
+      await readTasks();
     } catch (error) {
-      const msg = `Error adding objective: ${error}`;
+      const msg = `Error adding task: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
     }
   };
 
-  const readObjectives = async () => {
+  const readTasks = async () => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -94,25 +94,25 @@ const Home: React.FC = () => {
 
       const todayDate = getTodayDate();
 
-      // Check if today has any objectives
-      const todayObjectives = await storageServ.getObjectivesByDate(todayDate);
-      setTodayHasObjectives(todayObjectives.length > 0);
+      // Check if today has any tasks
+      const todayTasks = await storageServ.getTasksByDate(todayDate);
+      setTodayHasTasks(todayTasks.length > 0);
 
-      // Get the most recent date with objectives
-      const mostRecentDate = await storageServ.getMostRecentDateWithObjectives();
+      // Get the most recent date with tasks
+      const mostRecentDate = await storageServ.getMostRecentDateWithTasks();
 
       if (mostRecentDate) {
-        // Load objectives from the most recent date
-        const objectives = await storageServ.getObjectivesByDate(mostRecentDate);
-        setObjectives(objectives);
-        // Update allObjectivesDone state
-        setAllObjectivesDone(objectives.length > 0 && objectives.every(obj => obj.status === ObjectiveStatus.Done));
+        // Load tasks from the most recent date
+        const tasks = await storageServ.getTasksByDate(mostRecentDate);
+        setTasks(tasks);
+        // Update allTasksDone state
+        setAllTasksDone(tasks.length > 0 && tasks.every(obj => obj.status === TaskStatus.Done));
       } else {
-        setObjectives([]);
-        setAllObjectivesDone(false);
+        setTasks([]);
+        setAllTasksDone(false);
       }
     } catch (error) {
-      const msg = `Error reading objectives: ${error}`;
+      const msg = `Error reading tasks: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -122,7 +122,7 @@ const Home: React.FC = () => {
   };
 
 
-  const deleteAllObjectives = async () => {
+  const deleteAllTasks = async () => {
     try {
       if (!dbNameRef.current) {
         dbNameRef.current = storageServ.getDatabaseName();
@@ -135,12 +135,12 @@ const Home: React.FC = () => {
         return;
       }
 
-      // Delete only today's objectives
+      // Delete only today's tasks
       const todayDate = getTodayDate();
-      await storageServ.deleteObjectivesByDate(todayDate);
-      await readObjectives();
+      await storageServ.deleteTasksByDate(todayDate);
+      await readTasks();
     } catch (error) {
-      const msg = `Error deleting objectives: ${error}`;
+      const msg = `Error deleting tasks: ${error}`;
       console.error(msg);
       Toast.show({
         text: `${msg}`,
@@ -179,11 +179,11 @@ const Home: React.FC = () => {
 
         if (lastOverdueMarkedDate !== todayDate) {
           try {
-            const overdueCount = await storageServ.markIncompleteObjectivesForDateAsOverdue(todayDate);
+            const overdueCount = await storageServ.markIncompleteTasksForDateAsOverdue(todayDate);
             if (overdueCount > 0) {
               await PreferencesService.setLastOverdueMarkedDate(todayDate);
-              // Refresh the objectives list to show updated statuses
-              await readObjectives();
+              // Refresh the tasks list to show updated statuses
+              await readTasks();
             }
           } catch (error) {
             console.error('Error marking tasks as overdue:', error);
@@ -200,7 +200,7 @@ const Home: React.FC = () => {
     };
 
     // Only update if we have a valid earliestEndTime AND today has been planned
-    if (earliestEndTime && todayHasObjectives) {
+    if (earliestEndTime && todayHasTasks) {
       let interval: NodeJS.Timeout | null = null;
 
       // Update immediately
@@ -222,12 +222,12 @@ const Home: React.FC = () => {
           clearInterval(interval);
         }
       };
-    } else if (!todayHasObjectives) {
+    } else if (!todayHasTasks) {
       // If today is not planned, show placeholder
       setHeaderTimeLeft("00:00:00");
       setIsTimeUp(false);
     }
-  }, [earliestEndTime, todayHasObjectives]);
+  }, [earliestEndTime, todayHasTasks]);
 
   useEffect(() => {
     // Initialize database name reference
@@ -235,8 +235,8 @@ const Home: React.FC = () => {
 
     // Check if initialization is already complete
     if (storageServ.isInitCompleted.value) {
-      readObjectives().catch((error) => {
-        console.error('Error reading objectives:', error);
+      readTasks().catch((error) => {
+        console.error('Error reading tasks:', error);
       });
     } else {
       // Wait for app initialization to complete
@@ -245,10 +245,10 @@ const Home: React.FC = () => {
         if (isInit) {
           try {
             // StorageService already has the database connection opened
-            // Just read the objectives directly
-            await readObjectives();
+            // Just read the tasks directly
+            await readTasks();
           } catch (error) {
-            console.error('Error reading objectives after initialization:', error);
+            console.error('Error reading tasks after initialization:', error);
           }
         }
       });
@@ -260,11 +260,11 @@ const Home: React.FC = () => {
     }
   }, [storageServ]);
 
-  // Reload objectives and earliest end time every time the page becomes visible
+  // Reload tasks and earliest end time every time the page becomes visible
   useIonViewDidEnter(() => {
     if (storageServ.isInitCompleted.value) {
-      readObjectives().catch((error) => {
-        console.error('Error reading objectives on view enter:', error);
+      readTasks().catch((error) => {
+        console.error('Error reading tasks on view enter:', error);
       });
     }
 
@@ -280,7 +280,7 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader collapse="fade">
         <IonToolbar>
-          <IonTitle color={allObjectivesDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
+          <IonTitle color={allTasksDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => router.push('/debug', 'forward')}>
               <IonIcon icon={bug} />
@@ -292,22 +292,22 @@ const Home: React.FC = () => {
       <IonContent fullscreen className="ion-padding">
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large" color={allObjectivesDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
-            {/* <IonButton expand="block" onClick={deleteAllObjectives}>delete</IonButton> */}
+            <IonTitle size="large" color={allTasksDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
+            {/* <IonButton expand="block" onClick={deleteAllTasks}>delete</IonButton> */}
           </IonToolbar>
         </IonHeader>
 
         <IonList>
-          {objectives
+          {tasks
             .sort((a, b) => {
               // Sort by status: Done tasks last, everything else first
-              if (a.status === ObjectiveStatus.Done && b.status !== ObjectiveStatus.Done) return 1;
-              if (a.status !== ObjectiveStatus.Done && b.status === ObjectiveStatus.Done) return -1;
+              if (a.status === TaskStatus.Done && b.status !== TaskStatus.Done) return 1;
+              if (a.status !== TaskStatus.Done && b.status === TaskStatus.Done) return -1;
               return 0;
             })
-            .map(objective => {
+            .map(task => {
               const maxLength = 500;
-              let displayDescription = objective.description || '';
+              let displayDescription = task.description || '';
               if (displayDescription.length > maxLength) {
                 // Cut to maxLength - 3 to account for "..."
                 let truncated = displayDescription.substring(0, maxLength - 3);
@@ -321,26 +321,26 @@ const Home: React.FC = () => {
 
               return (
                 <IonCard
-                  key={objective.id}
+                  key={task.id}
                   button={true}
-                  onClick={() => objectiveClicked(objective)}
+                  onClick={() => taskClicked(task)}
                   style={{
-                    opacity: objective.status === ObjectiveStatus.Done ? 0.35 : 1
+                    opacity: task.status === TaskStatus.Done ? 0.35 : 1
                   }}
                 >
                   <IonCardHeader>
                     <IonCardTitle
                       style={{
-                        textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
+                        textDecoration: task.status === TaskStatus.Done ? 'line-through' : 'none'
                       }}
                     >
-                      {objective.title}
+                      {task.title}
                     </IonCardTitle>
                   </IonCardHeader>
 
                   <IonCardContent
                     style={{
-                      textDecoration: objective.status === ObjectiveStatus.Done ? 'line-through' : 'none'
+                      textDecoration: task.status === TaskStatus.Done ? 'line-through' : 'none'
                     }}
                   >
                     {displayDescription}
@@ -352,8 +352,8 @@ const Home: React.FC = () => {
       </IonContent>
 
       {(() => {
-        if (objectives.length === 0) {
-          // No objectives - show Plan the day button only
+        if (tasks.length === 0) {
+          // No tasks - show Plan the day button only
           return (
             <IonFooter>
               <IonToolbar>
@@ -365,15 +365,15 @@ const Home: React.FC = () => {
           );
         }
 
-        // Has objectives - check conditions
-        const allObjectivesDone = objectives.every(obj => obj.status === ObjectiveStatus.Done);
+        // Has tasks - check conditions
+        const allTasksDone = tasks.every(obj => obj.status === TaskStatus.Done);
 
-        // "Plan the day" button is enabled if today has no objectives in the database
-        const canPlanToday = !todayHasObjectives;
+        // "Plan the day" button is enabled if today has no tasks in the database
+        const canPlanToday = !todayHasTasks;
 
         return (
           <IonFooter>
-            {allObjectivesDone &&
+            {allTasksDone &&
               <IonToolbar>
                 <IonButton
                   expand="block"
@@ -385,9 +385,9 @@ const Home: React.FC = () => {
                 <IonButton
                   expand="block"
                   fill="clear"
-                  onClick={() => router.push('/statistics', 'forward')}
+                  onClick={() => router.push('/review', 'forward')}
                 >
-                  Review your stats
+                  Review your results
                 </IonButton>
               </IonToolbar>
             }

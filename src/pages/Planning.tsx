@@ -23,7 +23,7 @@ import {
 } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Objective, ObjectiveStatus } from '../models/Objective';
+import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import PreferencesService from '../services/preferencesService';
 
@@ -35,15 +35,15 @@ const Planning: React.FC = () => {
   // State for earliest end time
   const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
 
-  // State for 3 objectives
-  const [objective1Title, setObjective1Title] = useState<string>('');
-  const [objective1Description, setObjective1Description] = useState<string>('');
+  // State for 3 tasks
+  const [task1Title, setTask1Title] = useState<string>('');
+  const [task1Description, setTask1Description] = useState<string>('');
 
-  const [objective2Title, setObjective2Title] = useState<string>('');
-  const [objective2Description, setObjective2Description] = useState<string>('');
+  const [task2Title, setTask2Title] = useState<string>('');
+  const [task2Description, setTask2Description] = useState<string>('');
 
-  const [objective3Title, setObjective3Title] = useState<string>('');
-  const [objective3Description, setObjective3Description] = useState<string>('');
+  const [task3Title, setTask3Title] = useState<string>('');
+  const [task3Description, setTask3Description] = useState<string>('');
 
   // Load earliest end time and incomplete tasks from previous day on mount
   useEffect(() => {
@@ -61,32 +61,32 @@ const Planning: React.FC = () => {
           return;
         }
 
-        // Get the most recent date with objectives
-        const mostRecentDate = await storageServ.getMostRecentDateWithObjectives();
+        // Get the most recent date with tasks
+        const mostRecentDate = await storageServ.getMostRecentDateWithTasks();
 
         if (mostRecentDate) {
-          // Get objectives from that date
-          const recentObjectives = await storageServ.getObjectivesByDate(mostRecentDate);
+          // Get tasks from that date
+          const recentTasks = await storageServ.getTasksByDate(mostRecentDate);
 
-          // Filter incomplete objectives (not Done)
-          const incompleteObjectives = recentObjectives.filter(
-            obj => obj.status !== ObjectiveStatus.Done
+          // Filter incomplete tasks (not Done)
+          const incompleteTasks = recentTasks.filter(
+            obj => obj.status !== TaskStatus.Done
           );
 
-          // Prefill the fields with incomplete objectives (up to 3)
-          if (incompleteObjectives.length > 0 && incompleteObjectives[0]) {
-            setObjective1Title(incompleteObjectives[0].title);
-            setObjective1Description(incompleteObjectives[0].description || '');
+          // Prefill the fields with incomplete tasks (up to 3)
+          if (incompleteTasks.length > 0 && incompleteTasks[0]) {
+            setTask1Title(incompleteTasks[0].title);
+            setTask1Description(incompleteTasks[0].description || '');
           }
 
-          if (incompleteObjectives.length > 1 && incompleteObjectives[1]) {
-            setObjective2Title(incompleteObjectives[1].title);
-            setObjective2Description(incompleteObjectives[1].description || '');
+          if (incompleteTasks.length > 1 && incompleteTasks[1]) {
+            setTask2Title(incompleteTasks[1].title);
+            setTask2Description(incompleteTasks[1].description || '');
           }
 
-          if (incompleteObjectives.length > 2 && incompleteObjectives[2]) {
-            setObjective3Title(incompleteObjectives[2].title);
-            setObjective3Description(incompleteObjectives[2].description || '');
+          if (incompleteTasks.length > 2 && incompleteTasks[2]) {
+            setTask3Title(incompleteTasks[2].title);
+            setTask3Description(incompleteTasks[2].description || '');
           }
         }
       } catch (error) {
@@ -129,45 +129,45 @@ const Planning: React.FC = () => {
 
       const todayDate = getTodayDate();
 
-      // Create objectives for each non-empty title
-      const objectivesToCreate: Objective[] = [];
+      // Create tasks for each non-empty title
+      const tasksToCreate: Task[] = [];
 
-      if (objective1Title.trim()) {
-        objectivesToCreate.push({
+      if (task1Title.trim()) {
+        tasksToCreate.push({
           id: 0,
-          title: objective1Title.trim(),
-          description: objective1Description.trim(),
-          status: ObjectiveStatus.Open,
+          title: task1Title.trim(),
+          description: task1Description.trim(),
+          status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (objective2Title.trim()) {
-        objectivesToCreate.push({
+      if (task2Title.trim()) {
+        tasksToCreate.push({
           id: 0,
-          title: objective2Title.trim(),
-          description: objective2Description.trim(),
-          status: ObjectiveStatus.Open,
+          title: task2Title.trim(),
+          description: task2Description.trim(),
+          status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (objective3Title.trim()) {
-        objectivesToCreate.push({
+      if (task3Title.trim()) {
+        tasksToCreate.push({
           id: 0,
-          title: objective3Title.trim(),
-          description: objective3Description.trim(),
-          status: ObjectiveStatus.Open,
+          title: task3Title.trim(),
+          description: task3Description.trim(),
+          status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      // Add all objectives
-      for (const objective of objectivesToCreate) {
-        await storageServ.addObjective(objective);
+      // Add all tasks
+      for (const task of tasksToCreate) {
+        await storageServ.addTask(task);
       }
 
       // Save today as the last planning date
@@ -176,7 +176,7 @@ const Planning: React.FC = () => {
       // Navigate back to home
       router.push('/home', 'back');
     } catch (error) {
-      const msg = `Error creating objectives: ${error}`;
+      const msg = `Error creating tasks: ${error}`;
       console.error(msg);
       Toast.show({
         text: msg,
@@ -219,25 +219,25 @@ const Planning: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
-        {/* Objective 1 */}
+        {/* Task 1 */}
         <IonCard>
           <IonCardHeader>
-            <IonCardTitle>Objective 1</IonCardTitle>
+            <IonCardTitle>Task 1</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <IonItem>
               <IonLabel position="stacked">Title *</IonLabel>
               <IonInput
-                value={objective1Title}
-                onIonInput={(e) => setObjective1Title(e.detail.value!)}
+                value={task1Title}
+                onIonInput={(e) => setTask1Title(e.detail.value!)}
                 placeholder="Enter title"
               />
             </IonItem>
             <IonItem>
               <IonLabel position="stacked">Description</IonLabel>
               <IonTextarea
-                value={objective1Description}
-                onIonInput={(e) => setObjective1Description(e.detail.value!)}
+                value={task1Description}
+                onIonInput={(e) => setTask1Description(e.detail.value!)}
                 placeholder="Enter description (optional)"
                 rows={3}
               />
@@ -245,25 +245,25 @@ const Planning: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
-        {/* Objective 2 */}
+        {/* Task 2 */}
         <IonCard>
           <IonCardHeader>
-            <IonCardTitle>Objective 2</IonCardTitle>
+            <IonCardTitle>Task 2</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <IonItem>
               <IonLabel position="stacked">Title *</IonLabel>
               <IonInput
-                value={objective2Title}
-                onIonInput={(e) => setObjective2Title(e.detail.value!)}
+                value={task2Title}
+                onIonInput={(e) => setTask2Title(e.detail.value!)}
                 placeholder="Enter title"
               />
             </IonItem>
             <IonItem>
               <IonLabel position="stacked">Description</IonLabel>
               <IonTextarea
-                value={objective2Description}
-                onIonInput={(e) => setObjective2Description(e.detail.value!)}
+                value={task2Description}
+                onIonInput={(e) => setTask2Description(e.detail.value!)}
                 placeholder="Enter description (optional)"
                 rows={3}
               />
@@ -271,25 +271,25 @@ const Planning: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
-        {/* Objective 3 */}
+        {/* Task 3 */}
         <IonCard>
           <IonCardHeader>
-            <IonCardTitle>Objective 3</IonCardTitle>
+            <IonCardTitle>Task 3</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <IonItem>
               <IonLabel position="stacked">Title *</IonLabel>
               <IonInput
-                value={objective3Title}
-                onIonInput={(e) => setObjective3Title(e.detail.value!)}
+                value={task3Title}
+                onIonInput={(e) => setTask3Title(e.detail.value!)}
                 placeholder="Enter title"
               />
             </IonItem>
             <IonItem>
               <IonLabel position="stacked">Description</IonLabel>
               <IonTextarea
-                value={objective3Description}
-                onIonInput={(e) => setObjective3Description(e.detail.value!)}
+                value={task3Description}
+                onIonInput={(e) => setTask3Description(e.detail.value!)}
                 placeholder="Enter description (optional)"
                 rows={3}
               />
@@ -303,7 +303,7 @@ const Planning: React.FC = () => {
           <IonButton
             expand="block"
             onClick={handleSubmit}
-            disabled={!objective1Title.trim() || !objective2Title.trim() || !objective3Title.trim()}
+            disabled={!task1Title.trim() || !task2Title.trim() || !task3Title.trim()}
           >
             Start your day
           </IonButton>
