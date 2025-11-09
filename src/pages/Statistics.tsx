@@ -17,20 +17,15 @@ import {
   IonSpinner,
   IonButton,
   IonIcon,
-  IonLabel,
-  IonItem,
-  IonDatetime,
-  IonList,
-  IonBadge,
-  IonInput
+  useIonRouter
 } from '@ionic/react';
-import { shareOutline } from 'ionicons/icons';
+import { shareOutline, calendarOutline } from 'ionicons/icons';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import html2canvas from 'html2canvas';
 import { Toast } from '@capacitor/toast';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
-import { Objective, ObjectiveStatus } from '../models/Objective';
+import { ObjectiveStatus } from '../models/Objective';
 import './Statistics.css';
 import {
   Chart as ChartJS,
@@ -64,6 +59,7 @@ interface DayStats {
 }
 
 const Statistics: React.FC = () => {
+  const router = useIonRouter();
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
   const statsContainerRef = useRef<HTMLDivElement>(null);
@@ -74,11 +70,7 @@ const Statistics: React.FC = () => {
   const [last7Days, setLast7Days] = useState(0);
   const [last30Days, setLast30Days] = useState(0);
   const [fourMonthData, setFourMonthData] = useState<DayStats[]>([]);
-  const [chartDays, setChartDays] = useState(10);
   const [chartData, setChartData] = useState<{ labels: string[], data: number[] }>({ labels: [], data: [] });
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [tasksForSelectedDate, setTasksForSelectedDate] = useState<Objective[]>([]);
-  const [completedCountByDate, setCompletedCountByDate] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     loadStatistics();
@@ -141,17 +133,9 @@ const Statistics: React.FC = () => {
       const fourMonth = generateFourMonthHeatmapData(completedObjectives);
       setFourMonthData(fourMonth);
 
-      // Generate chart data for the selected number of days
-      const chart = generateChartData(completedObjectives, chartDays);
+      // Generate chart data for the last 10 days
+      const chart = generateChartData(completedObjectives, 10);
       setChartData(chart);
-
-      // Create completed count by date map for calendar styling
-      const countByDate: { [key: string]: number } = {};
-      completedObjectives.forEach(obj => {
-        const date = obj.creation_date;
-        countByDate[date] = (countByDate[date] || 0) + 1;
-      });
-      setCompletedCountByDate(countByDate);
 
     } catch (error) {
       console.error('Error loading statistics:', error);
@@ -190,34 +174,6 @@ const Statistics: React.FC = () => {
 
     return { labels, data };
   };
-
-  // Regenerate chart data when chartDays changes
-  useEffect(() => {
-    const regenerateChartData = async () => {
-      try {
-        const dbName = storageServ.getDatabaseName();
-        const isConn = await sqliteServ.isConnection(dbName, false);
-
-        if (!isConn) {
-          return;
-        }
-
-        const allObjectives = await storageServ.getObjectives();
-        const completedObjectives = allObjectives.filter(
-          obj => obj.status === ObjectiveStatus.Done
-        );
-
-        const chart = generateChartData(completedObjectives, chartDays);
-        setChartData(chart);
-      } catch (error) {
-        console.error('Error regenerating chart data:', error);
-      }
-    };
-
-    if (!loading) {
-      regenerateChartData();
-    }
-  }, [chartDays]);
 
   const generateFourMonthHeatmapData = (completedObjectives: Objective[]): DayStats[] => {
     const today = new Date();
@@ -438,64 +394,6 @@ const Statistics: React.FC = () => {
     }
   };
 
-  const handleChartDaysChange = (e: any) => {
-    const value = parseInt(e.detail.value, 10);
-    if (!isNaN(value) && value >= 7 && value <= 30) {
-      setChartDays(value);
-    }
-  };
-
-  const handleDateChange = async (e: any) => {
-    const selectedDateValue = e.detail.value;
-    if (!selectedDateValue) return;
-
-    // Extract date in YYYY-MM-DD format
-    const date = new Date(selectedDateValue);
-    const dateStr = formatDate(date);
-    setSelectedDate(dateStr);
-
-    // Load tasks for this date
-    try {
-      const dbName = storageServ.getDatabaseName();
-      const isConn = await sqliteServ.isConnection(dbName, false);
-
-      if (!isConn) {
-        return;
-      }
-
-      const tasks = await storageServ.getObjectivesByDate(dateStr);
-      setTasksForSelectedDate(tasks);
-    } catch (error) {
-      console.error('Error loading tasks for date:', error);
-    }
-  };
-
-  const getStatusLabel = (status: number): string => {
-    switch (status) {
-      case ObjectiveStatus.Open:
-        return 'Open';
-      case ObjectiveStatus.Done:
-        return 'Done';
-      case ObjectiveStatus.Overdue:
-        return 'Overdue';
-      default:
-        return `Unknown (${status})`;
-    }
-  };
-
-  const getStatusColor = (status: number): string => {
-    switch (status) {
-      case ObjectiveStatus.Open:
-        return 'primary';
-      case ObjectiveStatus.Done:
-        return 'success';
-      case ObjectiveStatus.Overdue:
-        return 'danger';
-      default:
-        return 'medium';
-    }
-  };
-
   return (
     <IonPage>
       <IonHeader>
@@ -505,6 +403,9 @@ const Statistics: React.FC = () => {
           </IonButtons>
           <IonTitle>Your Statistics</IonTitle>
           <IonButtons slot="end">
+            <IonButton onClick={() => router.push('/calendar', 'forward')}>
+              <IonIcon icon={calendarOutline} />
+            </IonButton>
             <IonButton onClick={handleShare} disabled={loading}>
               <IonIcon icon={shareOutline} />
             </IonButton>
@@ -626,68 +527,6 @@ const Statistics: React.FC = () => {
               </IonCardHeader>
               <IonCardContent>
                 {renderFourMonthHeatmap()}
-              </IonCardContent>
-            </IonCard>
-
-            <IonCard>
-              <IonCardHeader>
-                <IonCardTitle>Calendar View</IonCardTitle>
-              </IonCardHeader>
-              <IonCardContent>
-                <IonDatetime
-                  presentation="date"
-                  onIonChange={handleDateChange}
-                  highlightedDates={(isoString) => {
-                    const date = new Date(isoString);
-                    const dateStr = formatDate(date);
-                    const count = completedCountByDate[dateStr] || 0;
-
-                    if (count === 0) return undefined;
-
-                    // Return color based on completed count (like heatmap)
-                    if (count === 1) {
-                      return {
-                        textColor: '#000000',
-                        backgroundColor: '#9be9a8'
-                      };
-                    } else if (count === 2) {
-                      return {
-                        textColor: '#ffffff',
-                        backgroundColor: '#40c463'
-                      };
-                    } else {
-                      return {
-                        textColor: '#ffffff',
-                        backgroundColor: '#30a14e'
-                      };
-                    }
-                  }}
-                />
-
-                {selectedDate && tasksForSelectedDate.length > 0 && (
-                  <div style={{ marginTop: '1rem' }}>
-                    <h3>Tasks for {selectedDate}</h3>
-                    <IonList>
-                      {tasksForSelectedDate.map(task => (
-                        <IonItem key={task.id}>
-                          <IonLabel>
-                            <h3>{task.title}</h3>
-                            {task.description && <p>{task.description}</p>}
-                          </IonLabel>
-                          <IonBadge slot="end" color={getStatusColor(task.status)}>
-                            {getStatusLabel(task.status)}
-                          </IonBadge>
-                        </IonItem>
-                      ))}
-                    </IonList>
-                  </div>
-                )}
-
-                {selectedDate && tasksForSelectedDate.length === 0 && (
-                  <div style={{ marginTop: '1rem', textAlign: 'center', opacity: 0.6 }}>
-                    <p>No tasks for {selectedDate}</p>
-                  </div>
-                )}
               </IonCardContent>
             </IonCard>
           </div>

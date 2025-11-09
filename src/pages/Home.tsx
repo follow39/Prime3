@@ -33,6 +33,7 @@ const Home: React.FC = () => {
   const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
   const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
   const [todayHasObjectives, setTodayHasObjectives] = useState<boolean>(false);
+  const [allObjectivesDone, setAllObjectivesDone] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -104,8 +105,11 @@ const Home: React.FC = () => {
         // Load objectives from the most recent date
         const objectives = await storageServ.getObjectivesByDate(mostRecentDate);
         setObjectives(objectives);
+        // Update allObjectivesDone state
+        setAllObjectivesDone(objectives.length > 0 && objectives.every(obj => obj.status === ObjectiveStatus.Done));
       } else {
         setObjectives([]);
+        setAllObjectivesDone(false);
       }
     } catch (error) {
       const msg = `Error reading objectives: ${error}`;
@@ -276,7 +280,7 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader collapse="fade">
         <IonToolbar>
-          <IonTitle color="danger">{headerTimeLeft}</IonTitle>
+          <IonTitle color={allObjectivesDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => router.push('/debug', 'forward')}>
               <IonIcon icon={bug} />
@@ -288,7 +292,7 @@ const Home: React.FC = () => {
       <IonContent fullscreen className="ion-padding">
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large" color="danger">{headerTimeLeft}</IonTitle>
+            <IonTitle size="large" color={allObjectivesDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
             {/* <IonButton expand="block" onClick={deleteAllObjectives}>delete</IonButton> */}
           </IonToolbar>
         </IonHeader>
@@ -369,15 +373,15 @@ const Home: React.FC = () => {
 
         return (
           <IonFooter>
-            <IonToolbar>
-              <IonButton
-                expand="block"
-                onClick={planTheDay}
-                disabled={!canPlanToday}
-              >
-                {canPlanToday ? 'Plan the day' : 'Plan the day (available tomorrow)'}
-              </IonButton>
-              {allObjectivesDone && (
+            {allObjectivesDone &&
+              <IonToolbar>
+                <IonButton
+                  expand="block"
+                  onClick={planTheDay}
+                  disabled={!canPlanToday}
+                >
+                  {(canPlanToday ? 'Plan the day' : 'Great job! Enjoy the rest of the day. Planning will be available tomorrow.')}
+                </IonButton>
                 <IonButton
                   expand="block"
                   fill="clear"
@@ -385,8 +389,8 @@ const Home: React.FC = () => {
                 >
                   Review your stats
                 </IonButton>
-              )}
-            </IonToolbar>
+              </IonToolbar>
+            }
           </IonFooter>
         );
       })()}

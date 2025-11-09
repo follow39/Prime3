@@ -42,6 +42,7 @@ import Objective from './pages/Objective';
 import Planning from './pages/Planning';
 import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
 import Statistics from './pages/Statistics';
+import Calendar from './pages/Calendar';
 import Debug from './pages/Debug';
 
 
@@ -76,6 +77,9 @@ const App: React.FC = () => (
                 </Route>
                 <Route exact path="/statistics">
                   <Statistics />
+                </Route>
+                <Route exact path="/calendar">
+                  <Calendar />
                 </Route>
                 <Route exact path="/debug">
                   <Debug />
