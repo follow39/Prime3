@@ -45,13 +45,56 @@ const Planning: React.FC = () => {
   const [objective3Title, setObjective3Title] = useState<string>('');
   const [objective3Description, setObjective3Description] = useState<string>('');
 
-  // Load earliest end time from preferences on mount
+  // Load earliest end time and incomplete tasks from previous day on mount
   useEffect(() => {
-    const loadEarliestEndTime = async () => {
+    const loadInitialData = async () => {
+      // Load earliest end time
       const time = await PreferencesService.getEarliestEndTime();
       setEarliestEndTime(time);
+
+      // Load incomplete tasks from the most recent date
+      try {
+        const dbName = storageServ.getDatabaseName();
+        const isConn = await sqliteServ.isConnection(dbName, false);
+
+        if (!isConn) {
+          return;
+        }
+
+        // Get the most recent date with objectives
+        const mostRecentDate = await storageServ.getMostRecentDateWithObjectives();
+
+        if (mostRecentDate) {
+          // Get objectives from that date
+          const recentObjectives = await storageServ.getObjectivesByDate(mostRecentDate);
+
+          // Filter incomplete objectives (not Done)
+          const incompleteObjectives = recentObjectives.filter(
+            obj => obj.status !== ObjectiveStatus.Done
+          );
+
+          // Prefill the fields with incomplete objectives (up to 3)
+          if (incompleteObjectives.length > 0 && incompleteObjectives[0]) {
+            setObjective1Title(incompleteObjectives[0].title);
+            setObjective1Description(incompleteObjectives[0].description || '');
+          }
+
+          if (incompleteObjectives.length > 1 && incompleteObjectives[1]) {
+            setObjective2Title(incompleteObjectives[1].title);
+            setObjective2Description(incompleteObjectives[1].description || '');
+          }
+
+          if (incompleteObjectives.length > 2 && incompleteObjectives[2]) {
+            setObjective3Title(incompleteObjectives[2].title);
+            setObjective3Description(incompleteObjectives[2].description || '');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading incomplete tasks:', error);
+      }
     };
-    loadEarliestEndTime();
+
+    loadInitialData();
   }, []);
 
   // Helper function to get today's date in YYYY-MM-DD format
@@ -68,15 +111,6 @@ const Planning: React.FC = () => {
     if (!earliestEndTime || !earliestEndTime.trim()) {
       Toast.show({
         text: 'Earliest end time is required',
-        duration: 'long'
-      });
-      return;
-    }
-
-    // Validate that at least one objective has a title
-    if (objective1Title.trim() && objective2Title.trim() && objective3Title.trim()) {
-      Toast.show({
-        text: 'At least one objective must have a title',
         duration: 'long'
       });
       return;
@@ -271,7 +305,7 @@ const Planning: React.FC = () => {
             onClick={handleSubmit}
             disabled={!objective1Title.trim() || !objective2Title.trim() || !objective3Title.trim()}
           >
-            Start the day
+            Start your day
           </IonButton>
         </IonToolbar>
       </IonFooter>

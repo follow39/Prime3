@@ -1,0 +1,128 @@
+/* GitHub-style heatmap */
+.github-heatmap-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+.github-heatmap-months {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 0.5rem;
+  padding-left: calc(30px + 3px);
+  font-size: 0.65rem;
+  color: var(--ion-color-medium);
+  position: relative;
+}
+
+.github-month-label {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.github-heatmap-graph {
+  display: flex;
+  gap: 3px;
+}
+
+.github-heatmap-days {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.65rem;
+  color: var(--ion-color-medium);
+  width: 30px;
+  text-align: right;
+  padding-right: 5px;
+}
+
+.github-heatmap-days span {
+  height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  line-height: 10px;
+}
+
+.github-heatmap-grid {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+.github-week-column {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.github-day-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.github-day-cell:hover {
+  outline: 1px solid rgba(27, 31, 35, 0.06);
+  outline-offset: 1px;
+}
+
+.github-empty {
+  background-color: transparent;
+  cursor: default;
+}
+
+.github-empty:hover {
+  outline: none;
+}
+
+.heatmap-empty {
+  background-color: #ebedf0;
+}
+
+.heatmap-low {
+  background-color: #9be9a8;
+}
+
+.heatmap-medium {
+  background-color: #40c463;
+}
+
+.heatmap-high {
+  background-color: #30a14e;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .heatmap-empty {
+    background-color: #161b22;
+  }
+
+  .heatmap-low {
+    background-color: #0e4429;
+  }
+
+  .heatmap-medium {
+    background-color: #006d32;
+  }
+
+  .heatmap-high {
+    background-color: #26a641;
+  }
+
+  .github-day-cell:hover {
+    outline: 1px solid rgba(240, 246, 252, 0.1);
+  }
+}
+
+.github-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.65rem;
+  color: var(--ion-color-medium);
+  justify-content: flex-end;
+}

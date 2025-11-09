@@ -16,8 +16,11 @@ export interface IStorageService {
     updateObjectiveDescriptionById(id: number, description: string): Promise<void>
     deleteAllObjectives(): Promise<void>
     deleteObjectivesByDate(date: string): Promise<void>
+    deleteObjectiveById(id: number): Promise<void>
     getMostRecentDateWithObjectives(excludeDate?: string): Promise<string | null>
     copyUndoneObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
+    copyAllObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
+    markPreviousIncompleteObjectivesAsOverdue(beforeDate: string): Promise<number>
 };
 class StorageService implements IStorageService {
     versionUpgrades = ObjectiveUpgradeStatements;
@@ -106,6 +109,10 @@ class StorageService implements IStorageService {
         const sql = `DELETE FROM objectives WHERE creation_date = ?`;
         await this.db.run(sql, [date]);
     }
+    async deleteObjectiveById(id: number): Promise<void> {
+        const sql = `DELETE FROM objectives WHERE id = ?`;
+        await this.db.run(sql, [id]);
+    }
     async getMostRecentDateWithObjectives(excludeDate?: string): Promise<string | null> {
         try {
             let sql = `SELECT DISTINCT creation_date FROM objectives`;
@@ -161,6 +168,52 @@ class StorageService implements IStorageService {
             return copiedCount;
         } catch (error) {
             console.error('Error copying undone objectives:', error);
+            throw error;
+        }
+    }
+
+    async copyAllObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number> {
+        try {
+            // Get objectives from the specified date
+            const previousObjectives = await this.getObjectivesByDate(fromDate);
+
+            if (previousObjectives.length === 0) {
+                return 0;
+            }
+
+            // Copy all objectives, preserving their status
+            let copiedCount = 0;
+            for (const objective of previousObjectives) {
+                const newObjective: Objective = {
+                    id: 0, // Will be auto-generated
+                    title: objective.title,
+                    description: objective.description,
+                    status: objective.status, // Preserve original status
+                    creation_date: todayDate,
+                    active: 1
+                };
+                await this.addObjective(newObjective);
+                copiedCount++;
+            }
+
+            return copiedCount;
+        } catch (error) {
+            console.error('Error copying all objectives:', error);
+            throw error;
+        }
+    }
+
+    async markPreviousIncompleteObjectivesAsOverdue(beforeDate: string): Promise<number> {
+        try {
+            // Update all objectives with creation_date < beforeDate
+            // and status != Done (2) to status = Overdue (3)
+            const sql = `UPDATE objectives SET status = 3 WHERE creation_date < ? AND status != 2`;
+            const result = await this.db.run(sql, [beforeDate]);
+
+            // Return the number of rows updated
+            return result.changes?.changes || 0;
+        } catch (error) {
+            console.error('Error marking previous objectives as overdue:', error);
             throw error;
         }
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { IonContent, useIonRouter, useIonViewDidEnter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter } from '@ionic/react';
+import { IonContent, useIonRouter, useIonViewDidEnter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter, IonButtons } from '@ionic/react';
 import './Home.css';
 import TimeLeft from '../services/timeLeftService';
 import StorageService from '../services/storageService';
@@ -8,7 +8,7 @@ import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Objective, ObjectiveStatus } from '../models/Objective';
 import { Toast } from '@capacitor/toast';
-import { add } from 'ionicons/icons';
+import { add, bug } from 'ionicons/icons';
 
 
 
@@ -32,7 +32,7 @@ const Home: React.FC = () => {
   const [headerTimeLeft, setHeaderTimeLeft] = useState<string>("");
   const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
   const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
-  const [lastPlanningDate, setLastPlanningDate] = useState<string | null>(null);
+  const [todayHasObjectives, setTodayHasObjectives] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -78,17 +78,6 @@ const Home: React.FC = () => {
     }
   };
 
-  const createObjective = async () => {
-    const objective: Objective = {
-      id: 0, title: "Some task",
-      description: "Here's a small text description for the objective content. Nothing more, nothing less.",
-      status: ObjectiveStatus.Open,
-      creation_date: getTodayDate(),
-      active: 1
-    };
-    await handleAddObjective(objective);
-  };
-
   const readObjectives = async () => {
     try {
       if (!dbNameRef.current) {
@@ -102,29 +91,22 @@ const Home: React.FC = () => {
         return;
       }
 
-      // Get today's date and fetch only today's objectives
       const todayDate = getTodayDate();
-      let objectives = await storageServ.getObjectivesByDate(todayDate);
 
-      // If no objectives for today, find the most recent date with objectives and copy undone tasks
-      if (objectives.length === 0) {
-        const mostRecentDate = await storageServ.getMostRecentDateWithObjectives(todayDate);
+      // Check if today has any objectives
+      const todayObjectives = await storageServ.getObjectivesByDate(todayDate);
+      setTodayHasObjectives(todayObjectives.length > 0);
 
-        if (mostRecentDate) {
-          const copiedCount = await storageServ.copyUndoneObjectivesFromDateToToday(mostRecentDate, todayDate);
+      // Get the most recent date with objectives
+      const mostRecentDate = await storageServ.getMostRecentDateWithObjectives();
 
-          if (copiedCount > 0) {
-            // Reload objectives after copying
-            objectives = await storageServ.getObjectivesByDate(todayDate);
-            Toast.show({
-              text: `Copied ${copiedCount} undone task${copiedCount > 1 ? 's' : ''} from ${mostRecentDate}`,
-              duration: 'short'
-            });
-          }
-        }
+      if (mostRecentDate) {
+        // Load objectives from the most recent date
+        const objectives = await storageServ.getObjectivesByDate(mostRecentDate);
+        setObjectives(objectives);
+      } else {
+        setObjectives([]);
       }
-
-      setObjectives(objectives);
     } catch (error) {
       const msg = `Error reading objectives: ${error}`;
       console.error(msg);
@@ -247,13 +229,6 @@ const Home: React.FC = () => {
     }).catch((error) => {
       console.error('Error reading earliest end time on view enter:', error);
     });
-
-    // Reload last planning date from preferences
-    PreferencesService.getLastPlanningDate().then((date) => {
-      setLastPlanningDate(date);
-    }).catch((error) => {
-      console.error('Error reading last planning date on view enter:', error);
-    });
   });
 
   return (
@@ -261,6 +236,11 @@ const Home: React.FC = () => {
       <IonHeader collapse="fade">
         <IonToolbar>
           <IonTitle color="danger">{headerTimeLeft}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => router.push('/debug', 'forward')}>
+              <IonIcon icon={bug} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
 
@@ -327,8 +307,6 @@ const Home: React.FC = () => {
       </IonContent>
 
       {(() => {
-        const todayDate = getTodayDate();
-
         if (objectives.length === 0) {
           // No objectives - show Plan the day button only
           return (
@@ -345,37 +323,29 @@ const Home: React.FC = () => {
         // Has objectives - check conditions
         const allObjectivesDone = objectives.every(obj => obj.status === ObjectiveStatus.Done);
 
-        // Check if planning conditions are met (all done OR time is up)
-        const planningReady = allObjectivesDone || isTimeUp;
-
-        // Check if today was already planned
-        const todayWasPlanned = lastPlanningDate === todayDate;
-
-        // Hide the button if today was planned and tasks are not complete
-        const shouldHideButton = todayWasPlanned && !planningReady;
-
-        // Planning is enabled only if ready AND it's a different day
-        const canPlanToday = planningReady && (!lastPlanningDate || lastPlanningDate < todayDate);
-
-        let buttonText = 'Plan the day';
-        if (!canPlanToday) {
-          // Ready but same day as last planning
-          buttonText += ' (Available tomorrow)';
-        }
+        // "Plan the day" button is enabled if today has no objectives in the database
+        const canPlanToday = !todayHasObjectives;
 
         return (
           <IonFooter>
-            {!shouldHideButton && (
-              <IonToolbar>
+            <IonToolbar>
+              <IonButton
+                expand="block"
+                onClick={planTheDay}
+                disabled={!canPlanToday}
+              >
+                {canPlanToday ? 'Plan the day' : 'Day already planned'}
+              </IonButton>
+              {allObjectivesDone && (
                 <IonButton
                   expand="block"
-                  onClick={planTheDay}
-                  disabled={!canPlanToday}
+                  fill="clear"
+                  onClick={() => router.push('/statistics', 'forward')}
                 >
-                  {buttonText}
+                  Review your stats
                 </IonButton>
-              </IonToolbar>
-            )}
+              )}
+            </IonToolbar>
           </IonFooter>
         );
       })()}
