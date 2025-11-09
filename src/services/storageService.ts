@@ -21,6 +21,7 @@ export interface IStorageService {
     copyUndoneObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
     copyAllObjectivesFromDateToToday(fromDate: string, todayDate: string): Promise<number>
     markPreviousIncompleteObjectivesAsOverdue(beforeDate: string): Promise<number>
+    markIncompleteObjectivesForDateAsOverdue(date: string): Promise<number>
 };
 class StorageService implements IStorageService {
     versionUpgrades = ObjectiveUpgradeStatements;
@@ -214,6 +215,21 @@ class StorageService implements IStorageService {
             return result.changes?.changes || 0;
         } catch (error) {
             console.error('Error marking previous objectives as overdue:', error);
+            throw error;
+        }
+    }
+
+    async markIncompleteObjectivesForDateAsOverdue(date: string): Promise<number> {
+        try {
+            // Update all objectives with creation_date = date
+            // and status != Done (2) to status = Overdue (3)
+            const sql = `UPDATE objectives SET status = 3 WHERE creation_date = ? AND status != 2`;
+            const result = await this.db.run(sql, [date]);
+
+            // Return the number of rows updated
+            return result.changes?.changes || 0;
+        } catch (error) {
+            console.error('Error marking objectives as overdue for date:', error);
             throw error;
         }
     }

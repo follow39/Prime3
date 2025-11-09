@@ -16,7 +16,8 @@ import {
   IonCardContent,
   IonSpinner,
   IonBadge,
-  IonButton
+  IonButton,
+  useIonPicker
 } from '@ionic/react';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Objective, ObjectiveStatus } from '../models/Objective';
@@ -25,6 +26,7 @@ import { Toast } from '@capacitor/toast';
 const Debug: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
+  const [present] = useIonPicker();
 
   const [loading, setLoading] = useState(true);
   const [allObjectives, setAllObjectives] = useState<Objective[]>([]);
@@ -59,11 +61,6 @@ const Debug: React.FC = () => {
       });
 
       setGroupedByDate(grouped);
-
-      Toast.show({
-        text: `Loaded ${objectives.length} objectives from database`,
-        duration: 'short'
-      });
     } catch (error) {
       console.error('Error loading objectives:', error);
       Toast.show({
@@ -123,6 +120,59 @@ const Debug: React.FC = () => {
     }
   };
 
+  const handleOpenStatusPicker = (objective: Objective) => {
+    const statusIndex = [ObjectiveStatus.Open, ObjectiveStatus.Done, ObjectiveStatus.Overdue].indexOf(objective.status);
+
+    present({
+      columns: [
+        {
+          name: 'status',
+          options: [
+            { text: 'Open', value: ObjectiveStatus.Open },
+            { text: 'Done', value: ObjectiveStatus.Done },
+            { text: 'Overdue', value: ObjectiveStatus.Overdue }
+          ],
+          selectedIndex: statusIndex >= 0 ? statusIndex : 0
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirm',
+          handler: (value) => {
+            handleStatusChange(objective, value.status.value);
+          }
+        }
+      ]
+    });
+  };
+
+  const handleStatusChange = async (objective: Objective, newStatus: number) => {
+    try {
+      const updatedObjective: Objective = {
+        ...objective,
+        status: newStatus
+      };
+
+      await storageServ.updateObjective(updatedObjective);
+      Toast.show({
+        text: `Status updated to ${getStatusLabel(newStatus)}`,
+        duration: 'short'
+      });
+      // Reload the list
+      await loadAllObjectives();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      Toast.show({
+        text: `Error updating status: ${error}`,
+        duration: 'long'
+      });
+    }
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -169,7 +219,12 @@ const Debug: React.FC = () => {
                             <p>Description: {obj.description || '(none)'}</p>
                             <p>Active: {obj.active}</p>
                           </IonLabel>
-                          <IonBadge slot="end" color={getStatusColor(obj.status)}>
+                          <IonBadge
+                            slot="end"
+                            color={getStatusColor(obj.status)}
+                            onClick={() => handleOpenStatusPicker(obj)}
+                            style={{ cursor: 'pointer', minWidth: '80px', textAlign: 'center' }}
+                          >
                             {getStatusLabel(obj.status)}
                           </IonBadge>
                           <IonButton

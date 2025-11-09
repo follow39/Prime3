@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, useIonRouter } from '@ionic/react';
+import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter } from '@ionic/react';
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Objective as ObjectiveModel, ObjectiveStatus } from '../models/Objective';
@@ -17,6 +17,7 @@ const Objective: React.FC = () => {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [headerTimeLeft, setHeaderTimeLeft] = useState<string>('');
     const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
+    const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
     useEffect(() => {
         if (location.state?.objective) {
@@ -75,23 +76,24 @@ const Objective: React.FC = () => {
         }
     };
 
-    const handleToggleStatus = async () => {
+    const handleDoneClick = () => {
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmDone = async () => {
         if (!objective) return;
 
         try {
-            const newStatus = objective.status === ObjectiveStatus.Done ? ObjectiveStatus.Open : ObjectiveStatus.Done;
             const updatedObjective: ObjectiveModel = {
                 ...objective,
-                status: newStatus
+                status: ObjectiveStatus.Done
             };
 
             await storageServ.updateObjective(updatedObjective);
             setObjective(updatedObjective);
 
             // Navigate back to home page
-            if (newStatus === ObjectiveStatus.Done) {
-                router.push('/home', 'back');
-            }
+            router.push('/home', 'back');
         } catch (error) {
             const msg = `Error updating objective status: ${error}`;
             console.error(msg);
@@ -192,16 +194,43 @@ const Objective: React.FC = () => {
                             </IonButton>
                         </>
                     ) : (
-                        <IonButton
-                            expand="block"
-                            onClick={handleToggleStatus}
-                            color={objective.status === ObjectiveStatus.Done ? 'primary' : 'success'}
-                        >
-                            {objective.status === ObjectiveStatus.Done ? 'Uncharted' : 'Conquered'}
-                        </IonButton>
+                        <>
+                            {objective.status !== ObjectiveStatus.Done && (
+                                <IonButton
+                                    expand="block"
+                                    onClick={handleDoneClick}
+                                    color="success"
+                                >
+                                    Conquered
+                                </IonButton>
+                            )}
+                        </>
                     )}
                 </IonToolbar>
             </IonFooter>
+
+            <IonAlert
+                isOpen={showConfirmDialog}
+                onDidDismiss={() => setShowConfirmDialog(false)}
+                header="Mark as Conquered?"
+                message="Are you sure you want to mark this objective as conquered?"
+                buttons={[
+                    {
+                        text: 'Cancel',
+                        role: 'cancel',
+                        handler: () => {
+                            setShowConfirmDialog(false);
+                        }
+                    },
+                    {
+                        text: 'Conquered',
+                        role: 'confirm',
+                        handler: () => {
+                            handleConfirmDone();
+                        }
+                    }
+                ]}
+            />
         </IonPage>
     );
 };

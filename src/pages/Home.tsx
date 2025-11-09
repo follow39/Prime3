@@ -156,33 +156,74 @@ const Home: React.FC = () => {
 
   // Update header time left periodically
   useEffect(() => {
-    const updateHeaderTime = () => {
-      const timeLeftResult = TimeLeft(earliestEndTime);
-      // Show full HH:MM:SS format in header
-      setHeaderTimeLeft(timeLeftResult);
-
-      // Check if time is up (negative time or "00:00:00")
+    const updateHeaderTime = async () => {
+      // Check if time is up
       const now = new Date();
       const [hours, minutes] = earliestEndTime.split(':').map(Number);
       const endTime = new Date();
       endTime.setHours(hours, minutes, 0, 0);
+      const timeIsUp = now >= endTime;
 
-      setIsTimeUp(now >= endTime);
+      if (timeIsUp) {
+        // If time is up, stop at 00:00:00
+        setHeaderTimeLeft("00:00:00");
+        setIsTimeUp(true);
+
+        // Mark today's incomplete tasks as overdue (only once per day)
+        const todayDate = getTodayDate();
+        const lastOverdueMarkedDate = await PreferencesService.getLastOverdueMarkedDate();
+
+        if (lastOverdueMarkedDate !== todayDate) {
+          try {
+            const overdueCount = await storageServ.markIncompleteObjectivesForDateAsOverdue(todayDate);
+            if (overdueCount > 0) {
+              await PreferencesService.setLastOverdueMarkedDate(todayDate);
+              // Refresh the objectives list to show updated statuses
+              await readObjectives();
+            }
+          } catch (error) {
+            console.error('Error marking tasks as overdue:', error);
+          }
+        }
+
+        return true; // Signal to stop the interval
+      } else {
+        const timeLeftResult = TimeLeft(earliestEndTime);
+        setHeaderTimeLeft(timeLeftResult);
+        setIsTimeUp(false);
+        return false;
+      }
     };
 
-    // Only update if we have a valid earliestEndTime
-    if (earliestEndTime) {
-      // Update immediately
-      updateHeaderTime();
+    // Only update if we have a valid earliestEndTime AND today has been planned
+    if (earliestEndTime && todayHasObjectives) {
+      let interval: NodeJS.Timeout | null = null;
 
-      // Update every second for real-time countdown
-      const interval = setInterval(updateHeaderTime, 1000);
+      // Update immediately
+      updateHeaderTime().then((shouldStop) => {
+        if (!shouldStop) {
+          // Only set up interval if time is not up yet
+          interval = setInterval(() => {
+            updateHeaderTime().then((shouldStop) => {
+              if (shouldStop && interval) {
+                clearInterval(interval);
+              }
+            });
+          }, 1000);
+        }
+      });
 
       return () => {
-        clearInterval(interval);
+        if (interval) {
+          clearInterval(interval);
+        }
       };
+    } else if (!todayHasObjectives) {
+      // If today is not planned, show placeholder
+      setHeaderTimeLeft("00:00:00");
+      setIsTimeUp(false);
     }
-  }, [earliestEndTime]);
+  }, [earliestEndTime, todayHasObjectives]);
 
   useEffect(() => {
     // Initialize database name reference
@@ -255,9 +296,9 @@ const Home: React.FC = () => {
         <IonList>
           {objectives
             .sort((a, b) => {
-              // Sort by status: Open objectives first, then Done objectives
-              if (a.status === ObjectiveStatus.Open && b.status === ObjectiveStatus.Done) return -1;
-              if (a.status === ObjectiveStatus.Done && b.status === ObjectiveStatus.Open) return 1;
+              // Sort by status: Done tasks last, everything else first
+              if (a.status === ObjectiveStatus.Done && b.status !== ObjectiveStatus.Done) return 1;
+              if (a.status !== ObjectiveStatus.Done && b.status === ObjectiveStatus.Done) return -1;
               return 0;
             })
             .map(objective => {
@@ -334,7 +375,7 @@ const Home: React.FC = () => {
                 onClick={planTheDay}
                 disabled={!canPlanToday}
               >
-                {canPlanToday ? 'Plan the day' : 'Day already planned'}
+                {canPlanToday ? 'Plan the day' : 'Plan the day (available tomorrow)'}
               </IonButton>
               {allObjectivesDone && (
                 <IonButton
