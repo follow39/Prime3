@@ -32,8 +32,33 @@ const Planning: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
+  // Get current time rounded to next hour in HH:MM format
+  const getRoundedNextHourTime = (): string => {
+    const now = new Date();
+    const nextHour = now.getHours() + 1;
+    return `${String(nextHour).padStart(2, '0')}:00`;
+  };
+
   // State for earliest end time
   const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
+  const [minTime, setMinTime] = useState<string>(getRoundedNextHourTime());
+
+  // Handle time input change
+  const handleTimeChange = (value: string) => {
+    if (!value) return;
+    setEarliestEndTime(value);
+  };
+
+  // Validate time when user finishes selecting
+  const handleTimeBlur = () => {
+    if (earliestEndTime < minTime) {
+      setEarliestEndTime(minTime);
+      Toast.show({
+        text: 'Time adjusted to next available hour',
+        duration: 'short'
+      });
+    }
+  };
 
   // State for 3 tasks
   const [task1Title, setTask1Title] = useState<string>('');
@@ -45,12 +70,25 @@ const Planning: React.FC = () => {
   const [task3Title, setTask3Title] = useState<string>('');
   const [task3Description, setTask3Description] = useState<string>('');
 
+  // Update minimum time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMinTime(getRoundedNextHourTime());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Load earliest end time and incomplete tasks from previous day on mount
   useEffect(() => {
     const loadInitialData = async () => {
-      // Load earliest end time
-      const time = await PreferencesService.getEarliestEndTime();
-      setEarliestEndTime(time);
+      // Load earliest end time from preferences
+      const previousTime = await PreferencesService.getEarliestEndTime();
+      const roundedNextHour = getRoundedNextHourTime();
+
+      // Use maximum of previous time and rounded next hour
+      const initialTime = previousTime > roundedNextHour ? previousTime : roundedNextHour;
+      setEarliestEndTime(initialTime);
 
       // Load incomplete tasks from the most recent date
       try {
@@ -212,7 +250,9 @@ const Planning: React.FC = () => {
               <IonInput
                 type="time"
                 value={earliestEndTime}
-                onIonInput={(e) => setEarliestEndTime(e.detail.value!)}
+                min={minTime}
+                onIonChange={(e) => handleTimeChange(e.detail.value!)}
+                onIonBlur={handleTimeBlur}
                 placeholder="HH:MM"
               />
             </IonItem>

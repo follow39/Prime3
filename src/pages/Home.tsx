@@ -94,6 +94,13 @@ const Home: React.FC = () => {
 
       const todayDate = getTodayDate();
 
+      // Mark all incomplete tasks from previous dates as overdue
+      try {
+        await storageServ.markPreviousIncompleteTasksAsOverdue(todayDate);
+      } catch (error) {
+        console.error('Error marking previous incomplete tasks as overdue:', error);
+      }
+
       // Check if today has any tasks
       const todayTasks = await storageServ.getTasksByDate(todayDate);
       setTodayHasTasks(todayTasks.length > 0);
@@ -352,47 +359,42 @@ const Home: React.FC = () => {
       </IonContent>
 
       {(() => {
-        if (tasks.length === 0) {
-          // No tasks - show Plan the day button only
+        // "Plan the day" button is shown if today has no tasks in the database
+        const canPlanToday = !todayHasTasks;
+
+        // Check if all displayed tasks are done
+        const allTasksDone = tasks.length > 0 && tasks.every(obj => obj.status === TaskStatus.Done);
+
+        // Show footer if we can plan today OR if all tasks are done
+        if (canPlanToday || allTasksDone) {
           return (
             <IonFooter>
               <IonToolbar>
-                <IonButton expand="block" onClick={planTheDay}>
-                  Plan the day
-                </IonButton>
+                {canPlanToday && (
+                  <IonButton expand="block" onClick={planTheDay}>
+                    Plan the day
+                  </IonButton>
+                )}
+                {allTasksDone && !canPlanToday && (
+                  <IonButton expand="block" disabled={true}>
+                    Great job! Enjoy the rest of the day. Planning will be available tomorrow.
+                  </IonButton>
+                )}
+                {allTasksDone && (
+                  <IonButton
+                    expand="block"
+                    fill="clear"
+                    onClick={() => router.push('/review', 'forward')}
+                  >
+                    Review your results
+                  </IonButton>
+                )}
               </IonToolbar>
             </IonFooter>
           );
         }
 
-        // Has tasks - check conditions
-        const allTasksDone = tasks.every(obj => obj.status === TaskStatus.Done);
-
-        // "Plan the day" button is enabled if today has no tasks in the database
-        const canPlanToday = !todayHasTasks;
-
-        return (
-          <IonFooter>
-            {allTasksDone &&
-              <IonToolbar>
-                <IonButton
-                  expand="block"
-                  onClick={planTheDay}
-                  disabled={!canPlanToday}
-                >
-                  {(canPlanToday ? 'Plan the day' : 'Great job! Enjoy the rest of the day. Planning will be available tomorrow.')}
-                </IonButton>
-                <IonButton
-                  expand="block"
-                  fill="clear"
-                  onClick={() => router.push('/review', 'forward')}
-                >
-                  Review your results
-                </IonButton>
-              </IonToolbar>
-            }
-          </IonFooter>
-        );
+        return null;
       })()}
     </IonPage>
   );
