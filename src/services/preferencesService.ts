@@ -17,6 +17,8 @@ export interface IPreferencesService {
     setPushNotificationsEnabled(enabled: boolean): Promise<void>
     getIntroShown(): Promise<boolean>
     setIntroShown(shown: boolean): Promise<void>
+    getAutoCopyIncompleteTasks(): Promise<boolean>
+    setAutoCopyIncompleteTasks(enabled: boolean): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
@@ -28,6 +30,7 @@ class PreferencesService implements IPreferencesService {
     private readonly THEME_PREFERENCE_KEY = 'themePreference';
     private readonly PUSH_NOTIFICATIONS_ENABLED_KEY = 'pushNotificationsEnabled';
     private readonly INTRO_SHOWN_KEY = 'introShown';
+    private readonly AUTO_COPY_INCOMPLETE_TASKS_KEY = 'autoCopyIncompleteTasks';
     private readonly DEFAULT_END_TIME = '22:00';
     private readonly DEFAULT_START_TIME = '09:00';
 
@@ -179,6 +182,26 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.DAY_SCHEDULE_CONFIGURED_KEY, configured.toString());
         } catch (error) {
             console.error('Error saving day schedule configured to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getAutoCopyIncompleteTasks(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.AUTO_COPY_INCOMPLETE_TASKS_KEY);
+            // Default to true (enabled) for backwards compatibility
+            return value === null ? true : value === 'true';
+        } catch (error) {
+            console.error('Error reading auto copy incomplete tasks from preferences:', error);
+            return true;
+        }
+    }
+
+    async setAutoCopyIncompleteTasks(enabled: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.AUTO_COPY_INCOMPLETE_TASKS_KEY, enabled.toString());
+        } catch (error) {
+            console.error('Error saving auto copy incomplete tasks to preferences:', error);
             throw error;
         }
     }

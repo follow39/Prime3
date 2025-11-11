@@ -57,6 +57,13 @@ const Planning: React.FC = () => {
   // Load incomplete tasks from previous day on mount
   useEffect(() => {
     const loadInitialData = async () => {
+      // Check if auto-copy is enabled
+      const autoCopyEnabled = await PreferencesService.getAutoCopyIncompleteTasks();
+
+      if (!autoCopyEnabled) {
+        // Don't copy tasks if auto-copy is disabled
+        return;
+      }
 
       // Load incomplete tasks from previous days
       try {

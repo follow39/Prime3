@@ -31,6 +31,7 @@ const Settings: React.FC = () => {
   const [dayEndTime, setDayEndTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(false);
+  const [autoCopyIncompleteTasks, setAutoCopyIncompleteTasks] = useState<boolean>(true);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -38,10 +39,12 @@ const Settings: React.FC = () => {
       const endTime = await PreferencesService.getEarliestEndTime();
       const theme = await PreferencesService.getThemePreference();
       const pushEnabled = await PreferencesService.getPushNotificationsEnabled();
+      const autoCopy = await PreferencesService.getAutoCopyIncompleteTasks();
       setDayStartTime(startTime);
       setDayEndTime(endTime);
       setThemePreference(theme);
       setPushNotificationsEnabled(pushEnabled);
+      setAutoCopyIncompleteTasks(autoCopy);
     };
     loadSettings();
   }, []);
@@ -88,6 +91,11 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleAutoCopyIncompleteTasksChange = async (checked: boolean) => {
+    setAutoCopyIncompleteTasks(checked);
+    await PreferencesService.setAutoCopyIncompleteTasks(checked);
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -121,6 +129,27 @@ const Settings: React.FC = () => {
                   type="time"
                   value={dayEndTime}
                   onIonChange={(e) => handleEndTimeChange(e.detail.value!)}
+                />
+              </IonItem>
+            </IonList>
+          </IonCardContent>
+        </IonCard>
+
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Planning Settings</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonList>
+              <IonItem>
+                <IonLabel>
+                  <h3>Auto-copy incomplete tasks</h3>
+                  <p>Automatically copy open tasks from previous day when planning</p>
+                </IonLabel>
+                <IonToggle
+                  slot="end"
+                  checked={autoCopyIncompleteTasks}
+                  onIonChange={(e) => handleAutoCopyIncompleteTasksChange(e.detail.checked)}
                 />
               </IonItem>
             </IonList>
