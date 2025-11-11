@@ -23,6 +23,7 @@ import {
 } from '@ionic/react';
 import PreferencesService, { ThemePreference } from '../services/preferencesService';
 import ThemeService from '../services/themeService';
+import NotificationService from '../services/notificationService';
 
 const Settings: React.FC = () => {
   const history = useHistory();
@@ -49,12 +50,18 @@ const Settings: React.FC = () => {
     const timeValue = value || '09:00';
     setDayStartTime(timeValue);
     await PreferencesService.setDayStartTime(timeValue);
+
+    // Reschedule notifications with new time
+    await NotificationService.rescheduleNotifications();
   };
 
   const handleEndTimeChange = async (value: string) => {
     const timeValue = value || '22:00';
     setDayEndTime(timeValue);
     await PreferencesService.setEarliestEndTime(timeValue);
+
+    // Reschedule notifications with new time
+    await NotificationService.rescheduleNotifications();
   };
 
   const handleThemeChange = async (theme: ThemePreference) => {
@@ -65,6 +72,20 @@ const Settings: React.FC = () => {
   const handlePushNotificationsChange = async (checked: boolean) => {
     setPushNotificationsEnabled(checked);
     await PreferencesService.setPushNotificationsEnabled(checked);
+
+    // Schedule or cancel notifications based on toggle
+    if (checked) {
+      const granted = await NotificationService.requestPermissions();
+      if (granted) {
+        await NotificationService.scheduleAllNotifications();
+      } else {
+        // Revert toggle if permission denied
+        setPushNotificationsEnabled(false);
+        await PreferencesService.setPushNotificationsEnabled(false);
+      }
+    } else {
+      await NotificationService.cancelAllNotifications();
+    }
   };
 
   return (

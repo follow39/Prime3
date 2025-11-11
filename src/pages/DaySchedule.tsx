@@ -12,6 +12,7 @@ import {
   IonText,
 } from '@ionic/react';
 import PreferencesService from '../services/preferencesService';
+import NotificationService from '../services/notificationService';
 import { Toast } from '@capacitor/toast';
 
 const DaySchedule: React.FC = () => {
@@ -42,6 +43,17 @@ const DaySchedule: React.FC = () => {
     await PreferencesService.setDayStartTime(startTime);
     await PreferencesService.setEarliestEndTime(endTime);
     await PreferencesService.setDayScheduleConfigured(true);
+
+    // Request notification permissions and enable notifications
+    try {
+      const granted = await NotificationService.requestPermissions();
+      if (granted) {
+        await PreferencesService.setPushNotificationsEnabled(true);
+        await NotificationService.scheduleAllNotifications();
+      }
+    } catch (error) {
+      console.error('Error setting up notifications:', error);
+    }
 
     // Navigate to home
     history.replace('/home');

@@ -1,6 +1,8 @@
 import { FC, useEffect, useContext, useRef } from 'react';
 import { Toast } from '@capacitor/toast';
 import InitializeAppService from '../services/initializeAppService';
+import NotificationService from '../services/notificationService';
+import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 
 interface AppInitializerProps {
@@ -17,6 +19,13 @@ const AppInitializer: FC<AppInitializerProps> = ({ children }) => {
         const initApp = async (): Promise<void> => {
             try {
                 const appInit = await initializeAppService.initializeApp();
+
+                // Initialize notifications if enabled
+                const notificationsEnabled = await PreferencesService.getPushNotificationsEnabled();
+                if (notificationsEnabled) {
+                    await NotificationService.scheduleAllNotifications();
+                }
+
                 return;
             } catch (error: any) {
                 const msg = error.message ? error.message : error;

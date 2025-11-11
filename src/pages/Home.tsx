@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { IonContent, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonTitle, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
+import { IonContent, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
 import './Home.css';
-import TimeLeft from '../services/timeLeftService';
 import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import { bug, cogOutline } from 'ionicons/icons';
+import HeaderTimeLeft from '../components/HeaderTimeLeft';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
@@ -26,11 +26,8 @@ const Home: React.FC = () => {
 
   const dbNameRef = useRef('');
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [headerTimeLeft, setHeaderTimeLeft] = useState<string>("");
-  const [earliestEndTime, setEarliestEndTime] = useState<string>("22:00");
-  const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
   const [todayHasTasks, setTodayHasTasks] = useState<boolean>(false);
-  const [allTasksDone, setAllTasksDone] = useState<boolean>(false);
+  const [headerRefreshTrigger, setHeaderRefreshTrigger] = useState<number>(0);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -86,11 +83,8 @@ const Home: React.FC = () => {
         // Load tasks from the most recent date
         const tasks = await storageServ.getTasksByDate(mostRecentDate);
         setTasks(tasks);
-        // Update allTasksDone state
-        setAllTasksDone(tasks.length > 0 && tasks.every(obj => obj.status === TaskStatus.Done));
       } else {
         setTasks([]);
-        setAllTasksDone(false);
       }
     } catch (error) {
       const msg = `Error reading tasks: ${error}`;
@@ -101,68 +95,6 @@ const Home: React.FC = () => {
       });
     }
   };
-
-  // Load earliest end time from preferences
-  useEffect(() => {
-    const loadEarliestEndTime = async () => {
-      const time = await PreferencesService.getEarliestEndTime();
-      setEarliestEndTime(time);
-    };
-    loadEarliestEndTime();
-  }, []);
-
-  // Update header time left periodically
-  useEffect(() => {
-    const updateHeaderTime = async () => {
-      // Check if time is up
-      const now = new Date();
-      const [hours, minutes] = earliestEndTime.split(':').map(Number);
-      const endTime = new Date();
-      endTime.setHours(hours, minutes, 0, 0);
-      const timeIsUp = now >= endTime;
-
-      if (timeIsUp) {
-        // If time is up, stop at 00:00:00
-        setHeaderTimeLeft("00:00:00");
-        setIsTimeUp(true);
-        return true; // Signal to stop the interval
-      } else {
-        const timeLeftResult = TimeLeft(earliestEndTime);
-        setHeaderTimeLeft(timeLeftResult);
-        setIsTimeUp(false);
-        return false;
-      }
-    };
-
-    // Only update if we have a valid earliestEndTime AND today has been planned
-    if (earliestEndTime && todayHasTasks) {
-      let interval: NodeJS.Timeout | null = null;
-
-      // Update immediately
-      updateHeaderTime().then((shouldStop) => {
-        if (!shouldStop) {
-          // Only set up interval if time is not up yet
-          interval = setInterval(() => {
-            updateHeaderTime().then((shouldStop) => {
-              if (shouldStop && interval) {
-                clearInterval(interval);
-              }
-            });
-          }, 1000);
-        }
-      });
-
-      return () => {
-        if (interval) {
-          clearInterval(interval);
-        }
-      };
-    } else if (!todayHasTasks) {
-      // If today is not planned, show placeholder
-      setHeaderTimeLeft("00:00:00");
-      setIsTimeUp(false);
-    }
-  }, [earliestEndTime, todayHasTasks]);
 
   useEffect(() => {
     // Initialize database name reference
@@ -195,27 +127,22 @@ const Home: React.FC = () => {
     }
   }, [storageServ]);
 
-  // Reload tasks and earliest end time every time the page becomes visible
+  // Reload tasks and header every time the page becomes visible
   useIonViewDidEnter(() => {
     if (storageServ.isInitCompleted.value) {
       readTasks().catch((error) => {
         console.error('Error reading tasks on view enter:', error);
       });
+      // Trigger header refresh
+      setHeaderRefreshTrigger(prev => prev + 1);
     }
-
-    // Reload earliest end time from preferences
-    PreferencesService.getEarliestEndTime().then((time) => {
-      setEarliestEndTime(time);
-    }).catch((error) => {
-      console.error('Error reading earliest end time on view enter:', error);
-    });
   });
 
   return (
     <IonPage>
       <IonHeader collapse="fade">
         <IonToolbar>
-          <IonTitle color={allTasksDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
+          <HeaderTimeLeft refreshTrigger={headerRefreshTrigger} />
           <IonButtons slot="end">
             <IonButton onClick={() => router.push('/debug', 'forward')}>
               <IonIcon icon={bug} />
@@ -230,7 +157,7 @@ const Home: React.FC = () => {
       <IonContent fullscreen className="ion-padding">
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large" color={allTasksDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
+            <HeaderTimeLeft size="large" refreshTrigger={headerRefreshTrigger} />
           </IonToolbar>
         </IonHeader>
 

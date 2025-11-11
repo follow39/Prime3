@@ -1,10 +1,9 @@
-import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter } from '@ionic/react';
+import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter } from '@ionic/react';
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Task as TaskModel, TaskStatus } from '../models/Task';
 import { StorageServiceContext } from '../App';
-import TimeLeft from '../services/timeLeftService';
-import PreferencesService from '../services/preferencesService';
+import HeaderTimeLeft from '../components/HeaderTimeLeft';
 
 const Task: React.FC = () => {
     const location = useLocation<{ task: TaskModel }>();
@@ -15,8 +14,6 @@ const Task: React.FC = () => {
     const [title, setTitle] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isEditing, setIsEditing] = useState<boolean>(false);
-    const [headerTimeLeft, setHeaderTimeLeft] = useState<string>('');
-    const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
     const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
     useEffect(() => {
@@ -27,31 +24,6 @@ const Task: React.FC = () => {
             setDescription(taskData.description || '');
         }
     }, [location.state]);
-
-    // Load earliest end time from preferences
-    useEffect(() => {
-        const loadEarliestEndTime = async () => {
-            const time = await PreferencesService.getEarliestEndTime();
-            setEarliestEndTime(time);
-        };
-        loadEarliestEndTime();
-    }, []);
-
-    // Update header time left periodically
-    useEffect(() => {
-        const updateHeaderTime = () => {
-            const timeLeftResult = TimeLeft(earliestEndTime);
-            setHeaderTimeLeft(timeLeftResult);
-        };
-
-        if (earliestEndTime) {
-            updateHeaderTime();
-            const interval = setInterval(updateHeaderTime, 1000);
-            return () => {
-                clearInterval(interval);
-            };
-        }
-    }, [earliestEndTime]);
 
     const handleSave = async () => {
         if (!title.trim()) {
@@ -120,7 +92,7 @@ const Task: React.FC = () => {
                         <IonButtons slot='start'>
                             <IonBackButton defaultHref='/home' />
                         </IonButtons>
-                        <IonTitle color="danger">{headerTimeLeft}</IonTitle>
+                        <HeaderTimeLeft />
                     </IonToolbar>
                 </IonHeader>
                 <IonContent className="ion-padding">
@@ -137,14 +109,14 @@ const Task: React.FC = () => {
                     <IonButtons slot='start'>
                         <IonBackButton defaultHref='/home' />
                     </IonButtons>
-                    <IonTitle color="danger">{headerTimeLeft}</IonTitle>
-                    <IonButtons slot='end'>
-                        {!isEditing && (
+                    <HeaderTimeLeft />
+                    {!isEditing && (
+                        <IonButtons slot='end'>
                             <IonButton onClick={handleEdit}>
                                 Edit
                             </IonButton>
-                        )}
-                    </IonButtons>
+                        </IonButtons>
+                    )}
                 </IonToolbar>
             </IonHeader>
             <IonContent className="ion-padding">
