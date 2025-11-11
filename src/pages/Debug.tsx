@@ -17,11 +17,13 @@ import {
   IonSpinner,
   IonBadge,
   IonButton,
+  IonToggle,
   useIonPicker
 } from '@ionic/react';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
+import PreferencesService from '../services/preferencesService';
 
 const Debug: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
@@ -31,10 +33,26 @@ const Debug: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [groupedByDate, setGroupedByDate] = useState<{ [key: string]: Task[] }>({});
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
   useEffect(() => {
     loadAllTasks();
+    loadPremiumStatus();
   }, []);
+
+  const loadPremiumStatus = async () => {
+    const premium = await PreferencesService.getIsPremium();
+    setIsPremium(premium);
+  };
+
+  const handlePremiumToggle = async (checked: boolean) => {
+    setIsPremium(checked);
+    await PreferencesService.setIsPremium(checked);
+    Toast.show({
+      text: `Premium ${checked ? 'enabled' : 'disabled'}`,
+      duration: 'short'
+    });
+  };
 
   const loadAllTasks = async () => {
     try {
@@ -198,6 +216,25 @@ const Debug: React.FC = () => {
                 <p>Total tasks: {allTasks.length}</p>
                 <p>Dates with tasks: {Object.keys(groupedByDate).length}</p>
                 <p>Dates: {Object.keys(groupedByDate).sort().reverse().join(', ')}</p>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>Premium Settings</IonCardTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <IonItem lines="none">
+                  <IonLabel>
+                    <h3>Premium Status</h3>
+                    <p>{isPremium ? 'Enabled' : 'Disabled'}</p>
+                  </IonLabel>
+                  <IonToggle
+                    slot="end"
+                    checked={isPremium}
+                    onIonChange={(e) => handlePremiumToggle(e.detail.checked)}
+                  />
+                </IonItem>
               </IonCardContent>
             </IonCard>
 

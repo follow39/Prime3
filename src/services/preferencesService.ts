@@ -19,6 +19,8 @@ export interface IPreferencesService {
     setIntroShown(shown: boolean): Promise<void>
     getAutoCopyIncompleteTasks(): Promise<boolean>
     setAutoCopyIncompleteTasks(enabled: boolean): Promise<void>
+    getIsPremium(): Promise<boolean>
+    setIsPremium(isPremium: boolean): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
@@ -31,6 +33,7 @@ class PreferencesService implements IPreferencesService {
     private readonly PUSH_NOTIFICATIONS_ENABLED_KEY = 'pushNotificationsEnabled';
     private readonly INTRO_SHOWN_KEY = 'introShown';
     private readonly AUTO_COPY_INCOMPLETE_TASKS_KEY = 'autoCopyIncompleteTasks';
+    private readonly IS_PREMIUM_KEY = 'isPremium';
     private readonly DEFAULT_END_TIME = '22:00';
     private readonly DEFAULT_START_TIME = '09:00';
 
@@ -202,6 +205,25 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.AUTO_COPY_INCOMPLETE_TASKS_KEY, enabled.toString());
         } catch (error) {
             console.error('Error saving auto copy incomplete tasks to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getIsPremium(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.IS_PREMIUM_KEY);
+            return value === 'true';
+        } catch (error) {
+            console.error('Error reading premium status from preferences:', error);
+            return false;
+        }
+    }
+
+    async setIsPremium(isPremium: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.IS_PREMIUM_KEY, isPremium.toString());
+        } catch (error) {
+            console.error('Error saving premium status to preferences:', error);
             throw error;
         }
     }

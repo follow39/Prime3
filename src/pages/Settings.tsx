@@ -32,6 +32,7 @@ const Settings: React.FC = () => {
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(false);
   const [autoCopyIncompleteTasks, setAutoCopyIncompleteTasks] = useState<boolean>(true);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -40,11 +41,13 @@ const Settings: React.FC = () => {
       const theme = await PreferencesService.getThemePreference();
       const pushEnabled = await PreferencesService.getPushNotificationsEnabled();
       const autoCopy = await PreferencesService.getAutoCopyIncompleteTasks();
+      const premium = await PreferencesService.getIsPremium();
       setDayStartTime(startTime);
       setDayEndTime(endTime);
       setThemePreference(theme);
       setPushNotificationsEnabled(pushEnabled);
       setAutoCopyIncompleteTasks(autoCopy);
+      setIsPremium(premium);
     };
     loadSettings();
   }, []);
@@ -153,6 +156,35 @@ const Settings: React.FC = () => {
                 />
               </IonItem>
             </IonList>
+          </IonCardContent>
+        </IonCard>
+
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>Premium</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonList>
+              <IonItem>
+                <IonLabel>
+                  <h3>Premium Status</h3>
+                  <p>{isPremium ? 'Active - Thank you for your support!' : 'Not active'}</p>
+                </IonLabel>
+              </IonItem>
+            </IonList>
+            {isPremium && (
+              <div style={{ marginTop: '15px', padding: '10px', background: 'var(--ion-color-light)', borderRadius: '8px' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: 'var(--ion-color-medium)' }}>
+                  You have access to:
+                </p>
+                <ul style={{ margin: '10px 0 0 0', paddingLeft: '20px', fontSize: '14px', color: 'var(--ion-color-medium)' }}>
+                  <li>Visual Progress Calendar</li>
+                  <li>Task History</li>
+                  <li>Detailed Analytics</li>
+                  <li>Motivational Insights</li>
+                </ul>
+              </div>
+            )}
           </IonCardContent>
         </IonCard>
 

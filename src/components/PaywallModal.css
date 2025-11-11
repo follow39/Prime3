@@ -1,0 +1,108 @@
+.paywall-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px 0;
+}
+
+.paywall-hero {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.paywall-headline {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--ion-text-color);
+}
+
+.paywall-subheadline {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  line-height: 1.4;
+}
+
+.paywall-features {
+  margin-bottom: 15px;
+}
+
+.paywall-features ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 8px;
+}
+
+.paywall-features ion-icon {
+  font-size: 20px;
+  margin-right: 5px;
+}
+
+.paywall-features h3 {
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  font-size: 15px;
+}
+
+.paywall-features p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.paywall-pricing {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.price-tag {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.price-amount {
+  font-size: 36px;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+}
+
+.price-period {
+  font-size: 16px;
+  color: var(--ion-color-medium);
+}
+
+.price-description {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+.purchase-button {
+  margin: 15px 0 10px 0;
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary-shade);
+  font-weight: 600;
+  height: 50px;
+}
+
+.paywall-guarantee {
+  text-align: center;
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--ion-color-light);
+  border-radius: 6px;
+}
+
+.paywall-guarantee p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ion-color-medium);
+}
+
+.maybe-later-button {
+  margin-top: 5px;
+  opacity: 0.7;
+}

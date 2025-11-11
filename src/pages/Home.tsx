@@ -8,6 +8,7 @@ import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import { bug, cogOutline } from 'ionicons/icons';
 import HeaderTimeLeft from '../components/HeaderTimeLeft';
+import PaywallModal from '../components/PaywallModal';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
@@ -28,6 +29,8 @@ const Home: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [todayHasTasks, setTodayHasTasks] = useState<boolean>(false);
   const [headerRefreshTrigger, setHeaderRefreshTrigger] = useState<number>(0);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -47,6 +50,15 @@ const Home: React.FC = () => {
     };
     checkSetup();
   }, [history]);
+
+  // Load premium status
+  useEffect(() => {
+    const loadPremiumStatus = async () => {
+      const premium = await PreferencesService.getIsPremium();
+      setIsPremium(premium);
+    };
+    loadPremiumStatus();
+  }, []);
 
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = (): string => {
@@ -135,6 +147,10 @@ const Home: React.FC = () => {
       });
       // Trigger header refresh
       setHeaderRefreshTrigger(prev => prev + 1);
+      // Reload premium status
+      PreferencesService.getIsPremium().then(premium => {
+        setIsPremium(premium);
+      });
     }
   });
 
@@ -241,7 +257,13 @@ const Home: React.FC = () => {
                   <IonButton
                     expand="block"
                     fill="clear"
-                    onClick={() => router.push('/review', 'forward')}
+                    onClick={() => {
+                      if (isPremium) {
+                        router.push('/review', 'forward');
+                      } else {
+                        setShowPaywall(true);
+                      }
+                    }}
                   >
                     Review your results
                   </IonButton>
@@ -253,6 +275,12 @@ const Home: React.FC = () => {
 
         return null;
       })()}
+
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onPurchaseComplete={() => setIsPremium(true)}
+      />
     </IonPage>
   );
 };
