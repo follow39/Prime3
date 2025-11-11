@@ -128,34 +128,6 @@ const Home: React.FC = () => {
     }
   };
 
-
-  const deleteAllTasks = async () => {
-    try {
-      if (!dbNameRef.current) {
-        dbNameRef.current = storageServ.getDatabaseName();
-      }
-
-      // Verify connection exists
-      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
-      if (!isConn) {
-        console.warn('Database connection not available');
-        return;
-      }
-
-      // Delete only today's tasks
-      const todayDate = getTodayDate();
-      await storageServ.deleteTasksByDate(todayDate);
-      await readTasks();
-    } catch (error) {
-      const msg = `Error deleting tasks: ${error}`;
-      console.error(msg);
-      Toast.show({
-        text: `${msg}`,
-        duration: 'long'
-      });
-    }
-  };
-
   // Load earliest end time from preferences
   useEffect(() => {
     const loadEarliestEndTime = async () => {
@@ -300,7 +272,6 @@ const Home: React.FC = () => {
         <IonHeader collapse="condense">
           <IonToolbar>
             <IonTitle size="large" color={allTasksDone ? "success" : "danger"}>{headerTimeLeft}</IonTitle>
-            {/* <IonButton expand="block" onClick={deleteAllTasks}>delete</IonButton> */}
           </IonToolbar>
         </IonHeader>
 

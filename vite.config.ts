@@ -10,6 +10,30 @@ export default defineConfig({
     react(),
     legacy()
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router', 'react-router-dom'],
+          'ionic-vendor': ['@ionic/react', '@ionic/react-router'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
+          'capacitor-vendor': [
+            '@capacitor/core',
+            '@capacitor/app',
+            '@capacitor/filesystem',
+            '@capacitor/haptics',
+            '@capacitor/keyboard',
+            '@capacitor/preferences',
+            '@capacitor/share',
+            '@capacitor/status-bar',
+            '@capacitor/toast',
+            '@capacitor-community/sqlite'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 700
+  },
   test: {
     globals: true,
     environment: 'jsdom',
