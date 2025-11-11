@@ -1,16 +1,13 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { IonContent, useIonRouter, useIonViewDidEnter, IonFab, IonRow, IonFabButton, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonPage, IonTitle, IonToolbar, IonText, IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonReorderGroup, IonList, IonReorder, ReorderEndCustomEvent, IonDatetime, IonFooter, IonButtons } from '@ionic/react';
+import { IonContent, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonTitle, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
 import './Home.css';
 import TimeLeft from '../services/timeLeftService';
-import StorageService from '../services/storageService';
 import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
-import { add, bug } from 'ionicons/icons';
-
-
+import { bug } from 'ionicons/icons';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
@@ -44,39 +41,6 @@ const Home: React.FC = () => {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  };
-
-  const handleAddTask = async (newTask: Task) => {
-    try {
-      if (!dbNameRef.current) {
-        dbNameRef.current = storageServ.getDatabaseName();
-      }
-
-      // Verify connection exists
-      const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
-      if (!isConn) {
-        throw new Error('Database connection not available');
-      }
-
-      // Set creation_date to today if not already set
-      if (!newTask.creation_date) {
-        newTask.creation_date = getTodayDate();
-      }
-
-      // Add task using storage service (now includes creation_date)
-      const lastId = await storageServ.addTask(newTask);
-      newTask.id = lastId;
-
-      // Refresh tasks list
-      await readTasks();
-    } catch (error) {
-      const msg = `Error adding task: ${error}`;
-      console.error(msg);
-      Toast.show({
-        text: `${msg}`,
-        duration: 'long'
-      });
-    }
   };
 
   const readTasks = async () => {

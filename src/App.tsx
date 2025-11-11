@@ -2,7 +2,6 @@ import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { Capacitor } from '@capacitor/core';
 import SqliteService from './services/sqliteService';
 import DbVersionService from './services/dbVersionService';
 import StorageService from './services/storageService';
@@ -44,7 +43,6 @@ import Task from './pages/Task';
 import Planning from './pages/Planning';
 import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
 import Debug from './pages/Debug';
-
 
 export const SqliteServiceContext = React.createContext(SqliteService);
 export const DbVersionServiceContext = React.createContext(DbVersionService);
