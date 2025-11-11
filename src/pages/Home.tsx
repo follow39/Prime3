@@ -7,7 +7,7 @@ import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
-import { bug, settings } from 'ionicons/icons';
+import { bug, cogOutline } from 'ionicons/icons';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
@@ -221,7 +221,7 @@ const Home: React.FC = () => {
               <IonIcon icon={bug} />
             </IonButton>
             <IonButton onClick={() => router.push('/settings', 'forward')}>
-              <IonIcon icon={settings} />
+              <IonIcon icon={cogOutline} />
             </IonButton>
           </IonButtons>
         </IonToolbar>

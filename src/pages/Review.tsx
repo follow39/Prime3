@@ -537,61 +537,61 @@ const Review: React.FC = () => {
         ) : (
           <div ref={statsContainerRef}>
             {/* Summary stats - always visible */}
-            <IonGrid>
-              <IonRow>
-                <IonCol size="4">
-                  <IonCard style={{ margin: '0.25rem' }}>
-                    <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
-                        Total
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-primary)' }}>
-                        {totalCompleted}
-                      </div>
-                      {totalDaysTracked > 0 && (
-                        <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
-                          {(totalCompleted / totalDaysTracked).toFixed(1)}/day
-                        </div>
-                      )}
-                    </IonCardContent>
-                  </IonCard>
-                </IonCol>
-                <IonCol size="4">
-                  <IonCard style={{ margin: '0.25rem' }}>
-                    <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
-                        7 Days
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-success)' }}>
-                        {last7Days}
-                      </div>
-                      <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
-                        {(last7Days / 7).toFixed(1)}/day
-                      </div>
-                    </IonCardContent>
-                  </IonCard>
-                </IonCol>
-                <IonCol size="4">
-                  <IonCard style={{ margin: '0.25rem' }}>
-                    <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
-                        30 Days
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-secondary)' }}>
-                        {last30Days}
-                      </div>
-                      <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
-                        {(last30Days / 30).toFixed(1)}/day
-                      </div>
-                    </IonCardContent>
-                  </IonCard>
-                </IonCol>
-              </IonRow>
-            </IonGrid>
-
             {/* Charts View - Plot and Heatmap */}
             {selectedView === 'charts' && (
               <>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol size="4">
+                      <IonCard style={{ margin: '0.25rem' }}>
+                        <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
+                            Total
+                          </div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-primary)' }}>
+                            {totalCompleted}
+                          </div>
+                          {totalDaysTracked > 0 && (
+                            <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
+                              {(totalCompleted / totalDaysTracked).toFixed(1)}/day
+                            </div>
+                          )}
+                        </IonCardContent>
+                      </IonCard>
+                    </IonCol>
+                    <IonCol size="4">
+                      <IonCard style={{ margin: '0.25rem' }}>
+                        <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
+                            7 Days
+                          </div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-success)' }}>
+                            {last7Days}
+                          </div>
+                          <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
+                            {(last7Days / 7).toFixed(1)}/day
+                          </div>
+                        </IonCardContent>
+                      </IonCard>
+                    </IonCol>
+                    <IonCol size="4">
+                      <IonCard style={{ margin: '0.25rem' }}>
+                        <IonCardContent style={{ padding: '0.75rem', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.25rem' }}>
+                            30 Days
+                          </div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--ion-color-secondary)' }}>
+                            {last30Days}
+                          </div>
+                          <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '0.25rem' }}>
+                            {(last30Days / 30).toFixed(1)}/day
+                          </div>
+                        </IonCardContent>
+                      </IonCard>
+                    </IonCol>
+                  </IonRow>
+                </IonGrid>
+
                 <IonCard>
                   <IonCardHeader>
                     <IonCardTitle>10 Days performance</IonCardTitle>
