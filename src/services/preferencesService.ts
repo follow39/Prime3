@@ -1,3 +1,5 @@
+export type ThemePreference = 'system' | 'light' | 'dark';
+
 export interface IPreferencesService {
     getEarliestEndTime(): Promise<string>
     setEarliestEndTime(time: string): Promise<void>
@@ -7,6 +9,10 @@ export interface IPreferencesService {
     setLastOverdueMarkedDate(date: string): Promise<void>
     getConsistentEndOfDay(): Promise<boolean>
     setConsistentEndOfDay(enabled: boolean): Promise<void>
+    getThemePreference(): Promise<ThemePreference>
+    setThemePreference(theme: ThemePreference): Promise<void>
+    getPushNotificationsEnabled(): Promise<boolean>
+    setPushNotificationsEnabled(enabled: boolean): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
@@ -14,6 +20,8 @@ class PreferencesService implements IPreferencesService {
     private readonly LAST_PLANNING_DATE_KEY = 'lastPlanningDate';
     private readonly LAST_OVERDUE_MARKED_DATE_KEY = 'lastOverdueMarkedDate';
     private readonly CONSISTENT_END_OF_DAY_KEY = 'consistentEndOfDay';
+    private readonly THEME_PREFERENCE_KEY = 'themePreference';
+    private readonly PUSH_NOTIFICATIONS_ENABLED_KEY = 'pushNotificationsEnabled';
     private readonly DEFAULT_END_TIME = '22:00';
 
     async getEarliestEndTime(): Promise<string> {
@@ -88,6 +96,44 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.CONSISTENT_END_OF_DAY_KEY, enabled.toString());
         } catch (error) {
             console.error('Error saving consistent end of day to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getThemePreference(): Promise<ThemePreference> {
+        try {
+            const value = localStorage.getItem(this.THEME_PREFERENCE_KEY) as ThemePreference;
+            return value || 'system';
+        } catch (error) {
+            console.error('Error reading theme preference from preferences:', error);
+            return 'system';
+        }
+    }
+
+    async setThemePreference(theme: ThemePreference): Promise<void> {
+        try {
+            localStorage.setItem(this.THEME_PREFERENCE_KEY, theme);
+        } catch (error) {
+            console.error('Error saving theme preference to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getPushNotificationsEnabled(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.PUSH_NOTIFICATIONS_ENABLED_KEY);
+            return value === 'true';
+        } catch (error) {
+            console.error('Error reading push notifications setting from preferences:', error);
+            return false;
+        }
+    }
+
+    async setPushNotificationsEnabled(enabled: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.PUSH_NOTIFICATIONS_ENABLED_KEY, enabled.toString());
+        } catch (error) {
+            console.error('Error saving push notifications setting to preferences:', error);
             throw error;
         }
     }

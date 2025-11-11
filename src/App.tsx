@@ -29,13 +29,13 @@ import '@ionic/react/css/display.css';
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
+ * Dark mode is now managed by ThemeService based on user preference
  * For more info, please see:
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* import '@ionic/react/css/palettes/dark.always.css'; */
-/* import '@ionic/react/css/palettes/dark.class.css'; */
-import '@ionic/react/css/palettes/dark.system.css';
+/* Import dark palette - applied via class by ThemeService */
+import '@ionic/react/css/palettes/dark.class.css';
 
 /* Theme variables */
 import './theme/variables.css';
