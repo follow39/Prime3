@@ -26,6 +26,7 @@ import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import PreferencesService from '../services/preferencesService';
+import ThreeGoalsHelpModal from '../components/ThreeGoalsHelpModal';
 
 const Planning: React.FC = () => {
   const router = useIonRouter();
@@ -43,6 +44,7 @@ const Planning: React.FC = () => {
   const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
   const [minTime, setMinTime] = useState<string>(getRoundedNextHourTime());
   const [consistentEndOfDay, setConsistentEndOfDay] = useState<boolean>(false);
+  const [showThreeGoalsModal, setShowThreeGoalsModal] = useState<boolean>(false);
 
   // Handle time input change
   const handleTimeChange = (value: string) => {
@@ -237,7 +239,7 @@ const Planning: React.FC = () => {
           </IonButtons>
           <IonTitle>Plan the Day</IonTitle>
           <IonButtons slot="end">
-            <IonButton onClick={() => router.push('/three-goals-help', 'forward')}>
+            <IonButton onClick={() => setShowThreeGoalsModal(true)}>
               <IonIcon icon={helpCircleOutline} />
             </IonButton>
           </IonButtons>
@@ -356,6 +358,11 @@ const Planning: React.FC = () => {
           </IonButton>
         </IonToolbar>
       </IonFooter>
+
+      <ThreeGoalsHelpModal
+        isOpen={showThreeGoalsModal}
+        onClose={() => setShowThreeGoalsModal(false)}
+      />
     </IonPage>
   );
 };

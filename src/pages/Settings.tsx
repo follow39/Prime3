@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonContent,
   IonHeader,
@@ -24,6 +25,7 @@ import PreferencesService, { ThemePreference } from '../services/preferencesServ
 import ThemeService from '../services/themeService';
 
 const Settings: React.FC = () => {
+  const history = useHistory();
   const [consistentEndOfDay, setConsistentEndOfDay] = useState<boolean>(false);
   const [endOfDayTime, setEndOfDayTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
@@ -131,12 +133,6 @@ const Settings: React.FC = () => {
                   onIonChange={(e) => handlePushNotificationsChange(e.detail.checked)}
                 />
               </IonItem>
-              <IonItem>
-                <IonLabel>
-                  <h3>Version</h3>
-                  <p>0.0.1</p>
-                </IonLabel>
-              </IonItem>
             </IonList>
           </IonCardContent>
         </IonCard>
@@ -149,14 +145,26 @@ const Settings: React.FC = () => {
             <IonButton
               expand="block"
               fill="outline"
+              onClick={() => history.push('/intro')}
+            >
+              View Introduction
+            </IonButton>
+            <IonButton
+              expand="block"
+              fill="outline"
               onClick={() => {
                 window.location.href = 'mailto:feedback@example.com?subject=Time Left Feedback';
               }}
+              style={{ marginTop: '10px' }}
             >
               Send Feedback
             </IonButton>
           </IonCardContent>
         </IonCard>
+
+        <div style={{ textAlign: 'center', marginTop: '30px', color: 'var(--ion-color-medium)' }}>
+          <p>Version 0.0.1</p>
+        </div>
       </IonContent>
     </IonPage>
   );

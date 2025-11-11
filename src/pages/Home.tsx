@@ -34,6 +34,17 @@ const Home: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
+  // Check if intro has been shown on first mount
+  useEffect(() => {
+    const checkIntroShown = async () => {
+      const introShown = await PreferencesService.getIntroShown();
+      if (!introShown) {
+        history.replace('/intro');
+      }
+    };
+    checkIntroShown();
+  }, [history]);
+
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = (): string => {
     const today = new Date();

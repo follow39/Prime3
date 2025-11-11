@@ -1,0 +1,116 @@
+.intro-content {
+  --background: var(--ion-background-color);
+}
+
+.intro-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.skip-button {
+  align-self: flex-end;
+  margin-bottom: 20px;
+}
+
+.intro-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  box-shadow: none;
+}
+
+.intro-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.intro-icon-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  background: var(--ion-color-primary);
+  opacity: 0.9;
+}
+
+.intro-icon {
+  font-size: 64px;
+  color: white;
+}
+
+.intro-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0 0 20px 0;
+  color: var(--ion-text-color);
+}
+
+.intro-description {
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--ion-color-medium);
+}
+
+.intro-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.intro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ion-color-medium);
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.intro-dot.active {
+  opacity: 1;
+  background: var(--ion-color-primary);
+  width: 24px;
+  border-radius: 5px;
+}
+
+.intro-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.intro-buttons ion-button {
+  flex: 1;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.intro-card {
+  animation: fadeIn 0.5s ease;
+}

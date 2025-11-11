@@ -13,6 +13,8 @@ export interface IPreferencesService {
     setThemePreference(theme: ThemePreference): Promise<void>
     getPushNotificationsEnabled(): Promise<boolean>
     setPushNotificationsEnabled(enabled: boolean): Promise<void>
+    getIntroShown(): Promise<boolean>
+    setIntroShown(shown: boolean): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
@@ -22,6 +24,7 @@ class PreferencesService implements IPreferencesService {
     private readonly CONSISTENT_END_OF_DAY_KEY = 'consistentEndOfDay';
     private readonly THEME_PREFERENCE_KEY = 'themePreference';
     private readonly PUSH_NOTIFICATIONS_ENABLED_KEY = 'pushNotificationsEnabled';
+    private readonly INTRO_SHOWN_KEY = 'introShown';
     private readonly DEFAULT_END_TIME = '22:00';
 
     async getEarliestEndTime(): Promise<string> {
@@ -134,6 +137,25 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.PUSH_NOTIFICATIONS_ENABLED_KEY, enabled.toString());
         } catch (error) {
             console.error('Error saving push notifications setting to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getIntroShown(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.INTRO_SHOWN_KEY);
+            return value === 'true';
+        } catch (error) {
+            console.error('Error reading intro shown flag from preferences:', error);
+            return false;
+        }
+    }
+
+    async setIntroShown(shown: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.INTRO_SHOWN_KEY, shown.toString());
+        } catch (error) {
+            console.error('Error saving intro shown flag to preferences:', error);
             throw error;
         }
     }

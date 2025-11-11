@@ -9,6 +9,7 @@ import AppInitializer from './components/AppInitializer';
 import './services/themeService'; // Initialize theme service
 import Home from './pages/Home';
 import Review from './pages/Review';
+import Intro from './pages/Intro';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -41,7 +42,6 @@ import '@ionic/react/css/palettes/dark.class.css';
 import './theme/variables.css';
 import Task from './pages/Task';
 import Planning from './pages/Planning';
-import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
 import Settings from './pages/Settings';
 import Debug from './pages/Debug';
 
@@ -59,6 +59,9 @@ const App: React.FC = () => (
             <IonApp>
               <IonReactRouter>
                 <IonRouterOutlet>
+                  <Route exact path="/intro">
+                    <Intro />
+                  </Route>
                   <Route exact path="/home">
                     <Home />
                   </Route>
@@ -73,9 +76,6 @@ const App: React.FC = () => (
                   </Route>
                   <Route exact path="/planning">
                     <Planning />
-                  </Route>
-                  <Route exact path="/three-goals-help">
-                    <ThreeGoalsHelp />
                   </Route>
                   <Route exact path="/settings">
                     <Settings />
