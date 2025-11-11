@@ -10,6 +10,7 @@ import './services/themeService'; // Initialize theme service
 import Home from './pages/Home';
 import Review from './pages/Review';
 import Intro from './pages/Intro';
+import DaySchedule from './pages/DaySchedule';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -61,6 +62,9 @@ const App: React.FC = () => (
                 <IonRouterOutlet>
                   <Route exact path="/intro">
                     <Intro />
+                  </Route>
+                  <Route exact path="/day-schedule">
+                    <DaySchedule />
                   </Route>
                   <Route exact path="/home">
                     <Home />

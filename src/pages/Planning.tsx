@@ -33,35 +33,7 @@ const Planning: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
-  // Get current time rounded to next hour in HH:MM format
-  const getRoundedNextHourTime = (): string => {
-    const now = new Date();
-    const nextHour = now.getHours() + 1;
-    return `${String(nextHour).padStart(2, '0')}:00`;
-  };
-
-  // State for earliest end time
-  const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
-  const [minTime, setMinTime] = useState<string>(getRoundedNextHourTime());
-  const [consistentEndOfDay, setConsistentEndOfDay] = useState<boolean>(false);
   const [showThreeGoalsModal, setShowThreeGoalsModal] = useState<boolean>(false);
-
-  // Handle time input change
-  const handleTimeChange = (value: string) => {
-    if (!value) return;
-    setEarliestEndTime(value);
-  };
-
-  // Validate time when user finishes selecting
-  const handleTimeBlur = () => {
-    if (earliestEndTime < minTime) {
-      setEarliestEndTime(minTime);
-      Toast.show({
-        text: 'Time adjusted to next available hour',
-        duration: 'short'
-      });
-    }
-  };
 
   // State for 3 tasks
   const [task1Title, setTask1Title] = useState<string>('');
@@ -73,15 +45,6 @@ const Planning: React.FC = () => {
   const [task3Title, setTask3Title] = useState<string>('');
   const [task3Description, setTask3Description] = useState<string>('');
 
-  // Update minimum time every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMinTime(getRoundedNextHourTime());
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, []);
-
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = (): string => {
     const today = new Date();
@@ -91,20 +54,9 @@ const Planning: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Load earliest end time and incomplete tasks from previous day on mount
+  // Load incomplete tasks from previous day on mount
   useEffect(() => {
     const loadInitialData = async () => {
-      // Load consistent end of day setting
-      const consistent = await PreferencesService.getConsistentEndOfDay();
-      setConsistentEndOfDay(consistent);
-
-      // Load earliest end time from preferences
-      const previousTime = await PreferencesService.getEarliestEndTime();
-      const roundedNextHour = getRoundedNextHourTime();
-
-      // Use maximum of previous time and rounded next hour
-      const initialTime = previousTime > roundedNextHour ? previousTime : roundedNextHour;
-      setEarliestEndTime(initialTime);
 
       // Load incomplete tasks from previous days
       try {
@@ -152,19 +104,7 @@ const Planning: React.FC = () => {
   }, []);
 
   const handleSubmit = async () => {
-    // Validate earliest end time
-    if (!earliestEndTime || !earliestEndTime.trim()) {
-      Toast.show({
-        text: 'Earliest end time is required',
-        duration: 'long'
-      });
-      return;
-    }
-
     try {
-      // Save earliest end time to preferences
-      await PreferencesService.setEarliestEndTime(earliestEndTime.trim());
-
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
 
@@ -253,28 +193,6 @@ const Planning: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        {/* Working Day End Time - only shown when NOT using consistent end of day */}
-        {!consistentEndOfDay && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle>Working Day Schedule</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <IonItem>
-                <IonLabel position="stacked">Working day ends at *</IonLabel>
-                <IonInput
-                  type="time"
-                  value={earliestEndTime}
-                  min={minTime}
-                  onIonChange={(e) => handleTimeChange(e.detail.value!)}
-                  onIonBlur={handleTimeBlur}
-                  placeholder="HH:MM"
-                />
-              </IonItem>
-            </IonCardContent>
-          </IonCard>
-        )}
-
         {/* Task 1 */}
         <IonCard>
           <IonCardHeader>

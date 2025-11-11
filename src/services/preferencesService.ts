@@ -3,12 +3,14 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 export interface IPreferencesService {
     getEarliestEndTime(): Promise<string>
     setEarliestEndTime(time: string): Promise<void>
+    getDayStartTime(): Promise<string>
+    setDayStartTime(time: string): Promise<void>
+    getDayScheduleConfigured(): Promise<boolean>
+    setDayScheduleConfigured(configured: boolean): Promise<void>
     getLastPlanningDate(): Promise<string | null>
     setLastPlanningDate(date: string): Promise<void>
     getLastOverdueMarkedDate(): Promise<string | null>
     setLastOverdueMarkedDate(date: string): Promise<void>
-    getConsistentEndOfDay(): Promise<boolean>
-    setConsistentEndOfDay(enabled: boolean): Promise<void>
     getThemePreference(): Promise<ThemePreference>
     setThemePreference(theme: ThemePreference): Promise<void>
     getPushNotificationsEnabled(): Promise<boolean>
@@ -19,13 +21,15 @@ export interface IPreferencesService {
 
 class PreferencesService implements IPreferencesService {
     private readonly EARLIEST_END_TIME_KEY = 'earliestEndTime';
+    private readonly DAY_START_TIME_KEY = 'dayStartTime';
+    private readonly DAY_SCHEDULE_CONFIGURED_KEY = 'dayScheduleConfigured';
     private readonly LAST_PLANNING_DATE_KEY = 'lastPlanningDate';
     private readonly LAST_OVERDUE_MARKED_DATE_KEY = 'lastOverdueMarkedDate';
-    private readonly CONSISTENT_END_OF_DAY_KEY = 'consistentEndOfDay';
     private readonly THEME_PREFERENCE_KEY = 'themePreference';
     private readonly PUSH_NOTIFICATIONS_ENABLED_KEY = 'pushNotificationsEnabled';
     private readonly INTRO_SHOWN_KEY = 'introShown';
     private readonly DEFAULT_END_TIME = '22:00';
+    private readonly DEFAULT_START_TIME = '09:00';
 
     async getEarliestEndTime(): Promise<string> {
         try {
@@ -84,25 +88,6 @@ class PreferencesService implements IPreferencesService {
         }
     }
 
-    async getConsistentEndOfDay(): Promise<boolean> {
-        try {
-            const value = localStorage.getItem(this.CONSISTENT_END_OF_DAY_KEY);
-            return value === 'true';
-        } catch (error) {
-            console.error('Error reading consistent end of day from preferences:', error);
-            return false;
-        }
-    }
-
-    async setConsistentEndOfDay(enabled: boolean): Promise<void> {
-        try {
-            localStorage.setItem(this.CONSISTENT_END_OF_DAY_KEY, enabled.toString());
-        } catch (error) {
-            console.error('Error saving consistent end of day to preferences:', error);
-            throw error;
-        }
-    }
-
     async getThemePreference(): Promise<ThemePreference> {
         try {
             const value = localStorage.getItem(this.THEME_PREFERENCE_KEY) as ThemePreference;
@@ -156,6 +141,44 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.INTRO_SHOWN_KEY, shown.toString());
         } catch (error) {
             console.error('Error saving intro shown flag to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getDayStartTime(): Promise<string> {
+        try {
+            const value = localStorage.getItem(this.DAY_START_TIME_KEY);
+            return value || this.DEFAULT_START_TIME;
+        } catch (error) {
+            console.error('Error reading day start time from preferences:', error);
+            return this.DEFAULT_START_TIME;
+        }
+    }
+
+    async setDayStartTime(time: string): Promise<void> {
+        try {
+            localStorage.setItem(this.DAY_START_TIME_KEY, time);
+        } catch (error) {
+            console.error('Error saving day start time to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getDayScheduleConfigured(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.DAY_SCHEDULE_CONFIGURED_KEY);
+            return value === 'true';
+        } catch (error) {
+            console.error('Error reading day schedule configured from preferences:', error);
+            return false;
+        }
+    }
+
+    async setDayScheduleConfigured(configured: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.DAY_SCHEDULE_CONFIGURED_KEY, configured.toString());
+        } catch (error) {
+            console.error('Error saving day schedule configured to preferences:', error);
             throw error;
         }
     }

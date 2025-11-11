@@ -69,12 +69,12 @@ const Intro: React.FC = () => {
 
   const handleGetStarted = async () => {
     await PreferencesService.setIntroShown(true);
-    history.replace('/home');
+    history.replace('/day-schedule');
   };
 
   const handleSkip = async () => {
     await PreferencesService.setIntroShown(true);
-    history.replace('/home');
+    history.replace('/day-schedule');
   };
 
   const slide = slides[currentSlide];

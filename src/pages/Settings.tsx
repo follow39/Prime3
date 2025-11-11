@@ -26,34 +26,34 @@ import ThemeService from '../services/themeService';
 
 const Settings: React.FC = () => {
   const history = useHistory();
-  const [consistentEndOfDay, setConsistentEndOfDay] = useState<boolean>(false);
-  const [endOfDayTime, setEndOfDayTime] = useState<string>('22:00');
+  const [dayStartTime, setDayStartTime] = useState<string>('09:00');
+  const [dayEndTime, setDayEndTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const loadSettings = async () => {
-      const consistent = await PreferencesService.getConsistentEndOfDay();
-      const time = await PreferencesService.getEarliestEndTime();
+      const startTime = await PreferencesService.getDayStartTime();
+      const endTime = await PreferencesService.getEarliestEndTime();
       const theme = await PreferencesService.getThemePreference();
       const pushEnabled = await PreferencesService.getPushNotificationsEnabled();
-      setConsistentEndOfDay(consistent);
-      setEndOfDayTime(time);
+      setDayStartTime(startTime);
+      setDayEndTime(endTime);
       setThemePreference(theme);
       setPushNotificationsEnabled(pushEnabled);
     };
     loadSettings();
   }, []);
 
-  const handleToggleChange = async (checked: boolean) => {
-    setConsistentEndOfDay(checked);
-    await PreferencesService.setConsistentEndOfDay(checked);
+  const handleStartTimeChange = async (value: string) => {
+    const timeValue = value || '09:00';
+    setDayStartTime(timeValue);
+    await PreferencesService.setDayStartTime(timeValue);
   };
 
-  const handleTimeChange = async (value: string) => {
-    // If value is cleared, set to default 22:00
+  const handleEndTimeChange = async (value: string) => {
     const timeValue = value || '22:00';
-    setEndOfDayTime(timeValue);
+    setDayEndTime(timeValue);
     await PreferencesService.setEarliestEndTime(timeValue);
   };
 
@@ -80,29 +80,28 @@ const Settings: React.FC = () => {
       <IonContent className="ion-padding">
         <IonCard>
           <IonCardHeader>
-            <IonCardTitle>Planning Settings</IonCardTitle>
+            <IonCardTitle>Day Schedule</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <IonList>
               <IonItem>
-                <IonLabel>Consistent end of a day</IonLabel>
-                <IonToggle
+                <IonLabel>Day starts at</IonLabel>
+                <IonInput
                   slot="end"
-                  checked={consistentEndOfDay}
-                  onIonChange={(e) => handleToggleChange(e.detail.checked)}
+                  type="time"
+                  value={dayStartTime}
+                  onIonChange={(e) => handleStartTimeChange(e.detail.value!)}
                 />
               </IonItem>
-              {consistentEndOfDay && (
-                <IonItem>
-                  <IonLabel>End of a day time</IonLabel>
-                  <IonInput
-                    slot="end"
-                    type="time"
-                    value={endOfDayTime}
-                    onIonChange={(e) => handleTimeChange(e.detail.value!)}
-                  />
-                </IonItem>
-              )}
+              <IonItem>
+                <IonLabel>Day ends at</IonLabel>
+                <IonInput
+                  slot="end"
+                  type="time"
+                  value={dayEndTime}
+                  onIonChange={(e) => handleEndTimeChange(e.detail.value!)}
+                />
+              </IonItem>
             </IonList>
           </IonCardContent>
         </IonCard>
