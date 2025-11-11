@@ -82,6 +82,15 @@ const Planning: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Load earliest end time and incomplete tasks from previous day on mount
   useEffect(() => {
     const loadInitialData = async () => {
@@ -97,7 +106,7 @@ const Planning: React.FC = () => {
       const initialTime = previousTime > roundedNextHour ? previousTime : roundedNextHour;
       setEarliestEndTime(initialTime);
 
-      // Load incomplete tasks from the most recent date
+      // Load incomplete tasks from previous days
       try {
         const dbName = storageServ.getDatabaseName();
         const isConn = await sqliteServ.isConnection(dbName, false);
@@ -113,43 +122,34 @@ const Planning: React.FC = () => {
           // Get tasks from that date
           const recentTasks = await storageServ.getTasksByDate(mostRecentDate);
 
-          // Filter incomplete tasks (not Done)
-          const incompleteTasks = recentTasks.filter(
-            obj => obj.status !== TaskStatus.Done
+          // Filter only Open tasks (skip Overdue and Done)
+          const openTasks = recentTasks.filter(
+            obj => obj.status === TaskStatus.Open
           );
 
-          // Prefill the fields with incomplete tasks (up to 3)
-          if (incompleteTasks.length > 0 && incompleteTasks[0]) {
-            setTask1Title(incompleteTasks[0].title);
-            setTask1Description(incompleteTasks[0].description || '');
+          // Prefill the fields with open tasks (up to 3)
+          if (openTasks.length > 0 && openTasks[0]) {
+            setTask1Title(openTasks[0].title);
+            setTask1Description(openTasks[0].description || '');
           }
 
-          if (incompleteTasks.length > 1 && incompleteTasks[1]) {
-            setTask2Title(incompleteTasks[1].title);
-            setTask2Description(incompleteTasks[1].description || '');
+          if (openTasks.length > 1 && openTasks[1]) {
+            setTask2Title(openTasks[1].title);
+            setTask2Description(openTasks[1].description || '');
           }
 
-          if (incompleteTasks.length > 2 && incompleteTasks[2]) {
-            setTask3Title(incompleteTasks[2].title);
-            setTask3Description(incompleteTasks[2].description || '');
+          if (openTasks.length > 2 && openTasks[2]) {
+            setTask3Title(openTasks[2].title);
+            setTask3Description(openTasks[2].description || '');
           }
         }
       } catch (error) {
-        console.error('Error loading incomplete tasks:', error);
+        console.error('Error loading open tasks:', error);
       }
     };
 
     loadInitialData();
   }, []);
-
-  // Helper function to get today's date in YYYY-MM-DD format
-  const getTodayDate = (): string => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   const handleSubmit = async () => {
     // Validate earliest end time
@@ -173,6 +173,13 @@ const Planning: React.FC = () => {
       }
 
       const todayDate = getTodayDate();
+
+      // Mark all incomplete tasks from previous dates as overdue
+      try {
+        await storageServ.markPreviousIncompleteTasksAsOverdue(todayDate);
+      } catch (error) {
+        console.error('Error marking previous incomplete tasks as overdue:', error);
+      }
 
       // Create tasks for each non-empty title
       const tasksToCreate: Task[] = [];

@@ -27,30 +27,30 @@ const Intro: React.FC = () => {
   const slides = [
     {
       icon: checkmarkCircleOutline,
-      title: 'Welcome to Time Left',
+      title: 'Welcome to Trium',
       description:
-        'A simple and effective app to help you stay focused on what matters most each day.',
+        'Every day is an opportunity to make meaningful progress. Trium helps you transform intention into action by focusing on what truly matters.',
       color: 'primary',
     },
     {
       icon: listOutline,
-      title: 'Plan Your Day',
+      title: 'Three Goals, One Day',
       description:
-        'Start each day by choosing your 3 most important goals. Focus on what truly matters and avoid overwhelming yourself.',
+        'Each morning, choose your 3 most important goals. Not everything, just what matters most. This is the secret to sustainable achievement without burnout.',
       color: 'secondary',
     },
     {
       icon: timeOutline,
-      title: 'Track Your Progress',
+      title: 'Make It Happen',
       description:
-        'Work on your tasks throughout the day. Mark them as done when completed or defer them to another day.',
+        'Watch your day unfold with clarity and purpose. Every completed goal builds momentum. Every lesson learned makes tomorrow better.',
       color: 'tertiary',
     },
     {
       icon: statsChartOutline,
-      title: 'Review & Improve',
+      title: 'Build Your Success Story',
       description:
-        'Use the review page to see your completed tasks and track your progress over time. Learn from your patterns.',
+        'See your progress accumulate. Celebrate your wins. Understand your patterns. Small daily victories compound into extraordinary results.',
       color: 'success',
     },
   ];
@@ -113,7 +113,7 @@ const Intro: React.FC = () => {
                   onClick={() => setShowThreeGoalsModal(true)}
                   style={{ marginTop: '10px' }}
                 >
-                  Why exactly 3 goals?
+                  Why is 3 the magic number?
                 </IonButton>
               )}
             </IonCardContent>

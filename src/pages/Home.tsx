@@ -69,13 +69,6 @@ const Home: React.FC = () => {
 
       const todayDate = getTodayDate();
 
-      // Mark all incomplete tasks from previous dates as overdue
-      try {
-        await storageServ.markPreviousIncompleteTasksAsOverdue(todayDate);
-      } catch (error) {
-        console.error('Error marking previous incomplete tasks as overdue:', error);
-      }
-
       // Check if today has any tasks
       const todayTasks = await storageServ.getTasksByDate(todayDate);
       setTodayHasTasks(todayTasks.length > 0);
@@ -126,24 +119,6 @@ const Home: React.FC = () => {
         // If time is up, stop at 00:00:00
         setHeaderTimeLeft("00:00:00");
         setIsTimeUp(true);
-
-        // Mark today's incomplete tasks as overdue (only once per day)
-        const todayDate = getTodayDate();
-        const lastOverdueMarkedDate = await PreferencesService.getLastOverdueMarkedDate();
-
-        if (lastOverdueMarkedDate !== todayDate) {
-          try {
-            const overdueCount = await storageServ.markIncompleteTasksForDateAsOverdue(todayDate);
-            if (overdueCount > 0) {
-              await PreferencesService.setLastOverdueMarkedDate(todayDate);
-              // Refresh the tasks list to show updated statuses
-              await readTasks();
-            }
-          } catch (error) {
-            console.error('Error marking tasks as overdue:', error);
-          }
-        }
-
         return true; // Signal to stop the interval
       } else {
         const timeLeftResult = TimeLeft(earliestEndTime);

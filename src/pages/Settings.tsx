@@ -153,7 +153,7 @@ const Settings: React.FC = () => {
               expand="block"
               fill="outline"
               onClick={() => {
-                window.location.href = 'mailto:feedback@example.com?subject=Time Left Feedback';
+                window.location.href = 'mailto:feedback@example.com?subject=Trium Feedback';
               }}
               style={{ marginTop: '10px' }}
             >
