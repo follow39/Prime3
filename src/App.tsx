@@ -42,6 +42,7 @@ import './theme/variables.css';
 import Task from './pages/Task';
 import Planning from './pages/Planning';
 import ThreeGoalsHelp from './pages/ThreeGoalsHelp';
+import Settings from './pages/Settings';
 import Debug from './pages/Debug';
 
 export const SqliteServiceContext = React.createContext(SqliteService);
@@ -75,6 +76,9 @@ const App: React.FC = () => (
                   </Route>
                   <Route exact path="/three-goals-help">
                     <ThreeGoalsHelp />
+                  </Route>
+                  <Route exact path="/settings">
+                    <Settings />
                   </Route>
                   <Route exact path="/debug">
                     <Debug />

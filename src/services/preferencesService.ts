@@ -5,12 +5,15 @@ export interface IPreferencesService {
     setLastPlanningDate(date: string): Promise<void>
     getLastOverdueMarkedDate(): Promise<string | null>
     setLastOverdueMarkedDate(date: string): Promise<void>
+    getConsistentEndOfDay(): Promise<boolean>
+    setConsistentEndOfDay(enabled: boolean): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
     private readonly EARLIEST_END_TIME_KEY = 'earliestEndTime';
     private readonly LAST_PLANNING_DATE_KEY = 'lastPlanningDate';
     private readonly LAST_OVERDUE_MARKED_DATE_KEY = 'lastOverdueMarkedDate';
+    private readonly CONSISTENT_END_OF_DAY_KEY = 'consistentEndOfDay';
     private readonly DEFAULT_END_TIME = '22:00';
 
     async getEarliestEndTime(): Promise<string> {
@@ -66,6 +69,25 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.LAST_OVERDUE_MARKED_DATE_KEY, date);
         } catch (error) {
             console.error('Error saving last overdue marked date to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getConsistentEndOfDay(): Promise<boolean> {
+        try {
+            const value = localStorage.getItem(this.CONSISTENT_END_OF_DAY_KEY);
+            return value === 'true';
+        } catch (error) {
+            console.error('Error reading consistent end of day from preferences:', error);
+            return false;
+        }
+    }
+
+    async setConsistentEndOfDay(enabled: boolean): Promise<void> {
+        try {
+            localStorage.setItem(this.CONSISTENT_END_OF_DAY_KEY, enabled.toString());
+        } catch (error) {
+            console.error('Error saving consistent end of day to preferences:', error);
             throw error;
         }
     }

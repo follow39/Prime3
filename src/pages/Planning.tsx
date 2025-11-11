@@ -42,6 +42,7 @@ const Planning: React.FC = () => {
   // State for earliest end time
   const [earliestEndTime, setEarliestEndTime] = useState<string>('22:00');
   const [minTime, setMinTime] = useState<string>(getRoundedNextHourTime());
+  const [consistentEndOfDay, setConsistentEndOfDay] = useState<boolean>(false);
 
   // Handle time input change
   const handleTimeChange = (value: string) => {
@@ -82,6 +83,10 @@ const Planning: React.FC = () => {
   // Load earliest end time and incomplete tasks from previous day on mount
   useEffect(() => {
     const loadInitialData = async () => {
+      // Load consistent end of day setting
+      const consistent = await PreferencesService.getConsistentEndOfDay();
+      setConsistentEndOfDay(consistent);
+
       // Load earliest end time from preferences
       const previousTime = await PreferencesService.getEarliestEndTime();
       const roundedNextHour = getRoundedNextHourTime();
@@ -239,25 +244,27 @@ const Planning: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        {/* Working Day End Time */}
-        <IonCard>
-          <IonCardHeader>
-            <IonCardTitle>Working Day Schedule</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <IonItem>
-              <IonLabel position="stacked">Working day ends at *</IonLabel>
-              <IonInput
-                type="time"
-                value={earliestEndTime}
-                min={minTime}
-                onIonChange={(e) => handleTimeChange(e.detail.value!)}
-                onIonBlur={handleTimeBlur}
-                placeholder="HH:MM"
-              />
-            </IonItem>
-          </IonCardContent>
-        </IonCard>
+        {/* Working Day End Time - only shown when NOT using consistent end of day */}
+        {!consistentEndOfDay && (
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>Working Day Schedule</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonItem>
+                <IonLabel position="stacked">Working day ends at *</IonLabel>
+                <IonInput
+                  type="time"
+                  value={earliestEndTime}
+                  min={minTime}
+                  onIonChange={(e) => handleTimeChange(e.detail.value!)}
+                  onIonBlur={handleTimeBlur}
+                  placeholder="HH:MM"
+                />
+              </IonItem>
+            </IonCardContent>
+          </IonCard>
+        )}
 
         {/* Task 1 */}
         <IonCard>

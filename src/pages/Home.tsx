@@ -7,7 +7,7 @@ import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
-import { bug } from 'ionicons/icons';
+import { bug, settings } from 'ionicons/icons';
 
 const Home: React.FC = () => {
   const router = useIonRouter();
@@ -227,6 +227,9 @@ const Home: React.FC = () => {
           <IonButtons slot="end">
             <IonButton onClick={() => router.push('/debug', 'forward')}>
               <IonIcon icon={bug} />
+            </IonButton>
+            <IonButton onClick={() => router.push('/settings', 'forward')}>
+              <IonIcon icon={settings} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
