@@ -55,8 +55,8 @@ const DaySchedule: React.FC = () => {
       console.error('Error setting up notifications:', error);
     }
 
-    // Navigate to home
-    history.replace('/home');
+    // Navigate to paywall
+    history.replace('/paywall');
   };
 
   return (

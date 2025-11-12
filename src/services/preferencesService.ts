@@ -1,4 +1,5 @@
 export type ThemePreference = 'system' | 'light' | 'dark';
+export type PremiumTier = 'annual' | 'lifetime' | null;
 
 export interface IPreferencesService {
     getEarliestEndTime(): Promise<string>
@@ -21,6 +22,8 @@ export interface IPreferencesService {
     setAutoCopyIncompleteTasks(enabled: boolean): Promise<void>
     getIsPremium(): Promise<boolean>
     setIsPremium(isPremium: boolean): Promise<void>
+    getPremiumTier(): Promise<PremiumTier>
+    setPremiumTier(tier: PremiumTier): Promise<void>
 }
 
 class PreferencesService implements IPreferencesService {
@@ -34,6 +37,7 @@ class PreferencesService implements IPreferencesService {
     private readonly INTRO_SHOWN_KEY = 'introShown';
     private readonly AUTO_COPY_INCOMPLETE_TASKS_KEY = 'autoCopyIncompleteTasks';
     private readonly IS_PREMIUM_KEY = 'isPremium';
+    private readonly PREMIUM_TIER_KEY = 'premiumTier';
     private readonly DEFAULT_END_TIME = '22:00';
     private readonly DEFAULT_START_TIME = '09:00';
 
@@ -224,6 +228,32 @@ class PreferencesService implements IPreferencesService {
             localStorage.setItem(this.IS_PREMIUM_KEY, isPremium.toString());
         } catch (error) {
             console.error('Error saving premium status to preferences:', error);
+            throw error;
+        }
+    }
+
+    async getPremiumTier(): Promise<PremiumTier> {
+        try {
+            const value = localStorage.getItem(this.PREMIUM_TIER_KEY);
+            if (value === 'annual' || value === 'lifetime') {
+                return value;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error reading premium tier from preferences:', error);
+            return null;
+        }
+    }
+
+    async setPremiumTier(tier: PremiumTier): Promise<void> {
+        try {
+            if (tier === null) {
+                localStorage.removeItem(this.PREMIUM_TIER_KEY);
+            } else {
+                localStorage.setItem(this.PREMIUM_TIER_KEY, tier);
+            }
+        } catch (error) {
+            console.error('Error saving premium tier to preferences:', error);
             throw error;
         }
     }

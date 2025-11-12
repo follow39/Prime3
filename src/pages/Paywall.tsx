@@ -1,12 +1,12 @@
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
-  IonModal,
+  IonPage,
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
   IonButton,
-  IonButtons,
   IonIcon,
   IonCard,
   IonCardContent,
@@ -15,19 +15,14 @@ import {
   IonLabel,
   IonText
 } from '@ionic/react';
-import { close, checkmarkCircle } from 'ionicons/icons';
+import { checkmarkCircle } from 'ionicons/icons';
 import PreferencesService from '../services/preferencesService';
-import './PaywallModal.css';
+import '../components/PaywallModal.css';
 
 type PricingTier = 'annual' | 'lifetime';
 
-interface PaywallModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onPurchaseComplete: () => void;
-}
-
-const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchaseComplete }) => {
+const Paywall: React.FC = () => {
+  const history = useHistory();
   const [selectedTier, setSelectedTier] = useState<PricingTier>('lifetime');
 
   const handlePurchase = async () => {
@@ -35,20 +30,19 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
     // For now, just unlock the feature
     await PreferencesService.setIsPremium(true);
     await PreferencesService.setPremiumTier(selectedTier);
-    onPurchaseComplete();
-    onClose();
+    history.replace('/home');
+  };
+
+  const handleMaybeLater = () => {
+    // Continue to home even if not purchasing
+    history.replace('/home');
   };
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose}>
+    <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonTitle>Transform Your Life</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={onClose}>
-              <IonIcon icon={close} />
-            </IonButton>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
@@ -164,7 +158,7 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
             onClick={handlePurchase}
             style={{ marginTop: '20px', fontWeight: 'bold' }}
           >
-            {selectedTier === 'annual' ? 'Start My Transformation' : 'Unlock My Full Potential Forever'}
+{selectedTier === 'annual' ? 'Start My Transformation' : 'Unlock My Full Potential Forever'}
           </IonButton>
 
           <div style={{ textAlign: 'center', margin: '16px 0', fontSize: '13px', color: 'var(--ion-color-medium)' }}>
@@ -177,15 +171,15 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
             expand="block"
             fill="clear"
             size="small"
-            onClick={onClose}
+            onClick={handleMaybeLater}
             className="maybe-later-button"
           >
             I'll Stay Limited For Now
           </IonButton>
         </div>
       </IonContent>
-    </IonModal>
+    </IonPage>
   );
 };
 
-export default PaywallModal;
+export default Paywall;

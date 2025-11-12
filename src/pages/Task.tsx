@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { Task as TaskModel, TaskStatus } from '../models/Task';
 import { StorageServiceContext } from '../App';
 import HeaderTimeLeft from '../components/HeaderTimeLeft';
+import NotificationService from '../services/notificationService';
 
 const Task: React.FC = () => {
     const location = useLocation<{ task: TaskModel }>();
@@ -63,6 +64,16 @@ const Task: React.FC = () => {
 
             await storageServ.updateTask(updatedTask);
             setTask(updatedTask);
+
+            // Check if all tasks are now complete
+            const today = new Date().toISOString().split('T')[0];
+            const todaysTasks = await storageServ.getTasksByDate(today);
+            const allComplete = todaysTasks.length > 0 && todaysTasks.every(t => t.status === TaskStatus.Done);
+
+            if (allComplete) {
+                // All tasks complete - switch to review mode
+                await NotificationService.switchToReviewMode();
+            }
 
             // Navigate back to home page
             router.push('/home', 'back');
