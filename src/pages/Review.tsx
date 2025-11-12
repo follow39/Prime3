@@ -4,6 +4,7 @@ import {
   IonContent,
   IonHeader,
   IonPage,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -546,9 +547,11 @@ const Review: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="/home" />
-          </IonButtons>
+          {isPremium && (
+            <IonButtons slot="start">
+              <IonBackButton defaultHref="/home" />
+            </IonButtons>
+          )}
           {isPremium && (
             <IonSegment value={selectedView} onIonChange={(e) => setSelectedView(e.detail.value as string)}>
               <IonSegmentButton value="charts">
@@ -565,6 +568,9 @@ const Review: React.FC = () => {
                 <IonIcon icon={shareOutline} />
               </IonButton>
             </IonButtons>
+          )}
+          {!isPremium && (
+            <IonTitle>Review</IonTitle>
           )}
         </IonToolbar>
       </IonHeader>

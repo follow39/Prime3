@@ -280,6 +280,7 @@ const Home: React.FC = () => {
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
         onPurchaseComplete={() => setIsPremium(true)}
+        routeAfterPurchase="/review"
       />
     </IonPage>
   );

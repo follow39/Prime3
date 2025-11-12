@@ -13,12 +13,14 @@ import {
 } from '@ionic/react';
 import PreferencesService from '../services/preferencesService';
 import NotificationService from '../services/notificationService';
+import PaywallModal from '../components/PaywallModal';
 import { Toast } from '@capacitor/toast';
 
 const DaySchedule: React.FC = () => {
   const history = useHistory();
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('22:00');
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
 
   const handleContinue = async () => {
     // Validate times
@@ -55,8 +57,14 @@ const DaySchedule: React.FC = () => {
       console.error('Error setting up notifications:', error);
     }
 
-    // Navigate to paywall
-    history.replace('/paywall');
+    // Show paywall modal
+    setShowPaywall(true);
+  };
+
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
+    // Navigate to home after closing paywall (whether purchased or not)
+    history.replace('/home');
   };
 
   return (
@@ -122,6 +130,12 @@ const DaySchedule: React.FC = () => {
           </IonCard>
         </div>
       </IonContent>
+
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={handlePaywallClose}
+        routeAfterPurchase="/home"
+      />
     </IonPage>
   );
 };

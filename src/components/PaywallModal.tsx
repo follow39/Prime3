@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonModal,
   IonHeader,
@@ -6,7 +7,6 @@ import {
   IonTitle,
   IonContent,
   IonButton,
-  IonButtons,
   IonIcon,
   IonCard,
   IonCardContent,
@@ -15,7 +15,7 @@ import {
   IonLabel,
   IonText
 } from '@ionic/react';
-import { close, checkmarkCircle } from 'ionicons/icons';
+import { checkmarkCircle } from 'ionicons/icons';
 import PreferencesService from '../services/preferencesService';
 import './PaywallModal.css';
 
@@ -24,19 +24,32 @@ type PricingTier = 'annual' | 'lifetime';
 interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPurchaseComplete: () => void;
+  onPurchaseComplete?: () => void;
+  routeAfterPurchase?: string; // Optional route to navigate to after purchase
 }
 
-const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchaseComplete }) => {
+const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchaseComplete, routeAfterPurchase }) => {
   const [selectedTier, setSelectedTier] = useState<PricingTier>('lifetime');
+  const history = useHistory();
 
   const handlePurchase = async () => {
     // TODO: Integrate with actual in-app purchase system
     // For now, just unlock the feature
     await PreferencesService.setIsPremium(true);
     await PreferencesService.setPremiumTier(selectedTier);
-    onPurchaseComplete();
+
+    // Call the completion callback if provided
+    if (onPurchaseComplete) {
+      onPurchaseComplete();
+    }
+
+    // Close the modal first
     onClose();
+
+    // Route to destination if provided
+    if (routeAfterPurchase) {
+      history.push(routeAfterPurchase);
+    }
   };
 
   return (
@@ -49,11 +62,6 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
       <IonHeader>
         <IonToolbar>
           <IonTitle>Transform Your Life</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={onClose}>
-              <IonIcon icon={close} />
-            </IonButton>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
