@@ -20,6 +20,7 @@ import {
   IonToggle,
   useIonPicker
 } from '@ionic/react';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
@@ -191,6 +192,80 @@ const Debug: React.FC = () => {
     }
   };
 
+  const sendTestNotification = async (type: string) => {
+    try {
+      // Request permissions if needed
+      const permission = await LocalNotifications.requestPermissions();
+      if (permission.display !== 'granted') {
+        Toast.show({
+          text: 'Notification permission not granted',
+          duration: 'long'
+        });
+        return;
+      }
+
+      let notificationId: number;
+      let title: string;
+      let body: string;
+
+      switch (type) {
+        case 'startOfDay':
+          notificationId = 1;
+          title = '🌅 Good Morning!';
+          body = 'A new day, a new opportunity. What are your three most important goals today?';
+          break;
+        case 'endOfDay':
+          notificationId = 2;
+          title = '🌙 Day Complete';
+          body = 'Time to rest and recharge. Reflect on what you accomplished today.';
+          break;
+        case 'oneHourBefore':
+          notificationId = 3;
+          title = '⏰ One Hour Left';
+          body = 'The day is almost over. Make this final hour count!';
+          break;
+        case 'intermediate':
+          notificationId = 4;
+          title = '💪 Keep Going!';
+          body = 'You\'re doing great. Stay focused on your three goals.';
+          break;
+        case 'review':
+          notificationId = 100;
+          title = '🎉 All Goals Complete!';
+          body = 'Amazing work! You crushed all three goals. See how far you\'ve come.';
+          break;
+        default:
+          return;
+      }
+
+      // Schedule notification for immediate delivery (1 second from now)
+      const now = new Date();
+      now.setSeconds(now.getSeconds() + 1);
+
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: notificationId,
+          title: title,
+          body: body,
+          schedule: {
+            at: now
+          }
+        }]
+      });
+
+      Toast.show({
+        text: `${type} notification sent!`,
+        duration: 'short'
+      });
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      Toast.show({
+        text: `Error: ${error}`,
+        duration: 'long'
+      });
+    }
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -235,6 +310,53 @@ const Debug: React.FC = () => {
                     onIonChange={(e) => handlePremiumToggle(e.detail.checked)}
                   />
                 </IonItem>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>Test Notifications</IonCardTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <p style={{ marginBottom: '12px', fontSize: '14px', opacity: 0.7 }}>
+                  Send test notifications to preview all message types
+                </p>
+                <IonButton
+                  expand="block"
+                  onClick={() => sendTestNotification('startOfDay')}
+                  style={{ marginBottom: '8px' }}
+                >
+                  🌅 Start of Day
+                </IonButton>
+                <IonButton
+                  expand="block"
+                  onClick={() => sendTestNotification('intermediate')}
+                  style={{ marginBottom: '8px' }}
+                >
+                  💪 Intermediate
+                </IonButton>
+                <IonButton
+                  expand="block"
+                  onClick={() => sendTestNotification('oneHourBefore')}
+                  style={{ marginBottom: '8px' }}
+                >
+                  ⏰ One Hour Before
+                </IonButton>
+                <IonButton
+                  expand="block"
+                  onClick={() => sendTestNotification('review')}
+                  color="success"
+                  style={{ marginBottom: '8px' }}
+                >
+                  🎉 Review (Premium)
+                </IonButton>
+                <IonButton
+                  expand="block"
+                  onClick={() => sendTestNotification('endOfDay')}
+                  style={{ marginBottom: '8px' }}
+                >
+                  🌙 End of Day
+                </IonButton>
               </IonCardContent>
             </IonCard>
 

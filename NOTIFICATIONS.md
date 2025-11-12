@@ -54,7 +54,10 @@ The system has **5 distinct notification categories**, each with 40-60 unique me
   - "🏆 Perfect Score! Three for three! Take a moment to see your progress."
   - "🎯 Hat Trick! Three goals scored! Watch the highlights."
 - **Notification ID**: 100
-- **Key Feature**: Celebratory messages with subtle prompts to reflect on progress (e.g., "See how far...", "Look at...", "Check out...")
+- **Key Features**:
+  - Celebratory messages with subtle prompts to reflect on progress (e.g., "See how far...", "Look at...", "Check out...")
+  - **Tapping the notification routes to Review page**
+  - Review page is **protected with paywall** (premium feature)
 
 ---
 
@@ -113,6 +116,8 @@ Review Mode automatically activates when:
 4. **Result**: User receives celebration message instead of productivity reminders
 
 ### Code Integration
+
+#### Task Completion Detection
 Located in `src/pages/Task.tsx`:
 
 ```typescript
@@ -123,6 +128,36 @@ const allComplete = todaysTasks.every(t => t.status === TaskStatus.Done);
 if (allComplete) {
     await NotificationService.switchToReviewMode(); // ⭐ Triggers transition
 }
+```
+
+#### Notification Click Handling
+Located in `src/App.tsx`:
+
+```typescript
+// Listen for notification taps
+LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+  // Review notification (ID 100) routes to /review
+  if (notification.notification.id === 100) {
+    history.push('/review');
+  }
+});
+```
+
+#### Paywall Protection
+Located in `src/pages/Review.tsx`:
+
+```typescript
+// Check premium status on page load
+const checkPremiumStatus = async () => {
+  const premium = await PreferencesService.getIsPremium();
+  setIsPremium(premium);
+
+  if (!premium) {
+    setShowPaywall(true); // Show paywall modal
+  } else {
+    loadStatistics(); // Load review data
+  }
+};
 ```
 
 ---
@@ -242,6 +277,8 @@ Checks if notification permissions are currently granted.
 - **Platform**: iOS and Android native notifications
 - **Scheduling**: Time-based (not geofence or other triggers)
 - **Storage**: localStorage for tracking used messages
+- **Click Handling**: Notification tap listener in `App.tsx` routes to appropriate pages
+- **Paywall**: Review page protected by premium check with PaywallModal
 
 ### Notification Structure
 ```typescript
@@ -356,6 +393,9 @@ interface NotificationMessage {
 | `src/pages/Task.tsx` | Triggers Review Mode when task completed |
 | `src/pages/DaySchedule.tsx` | Initial notification setup during onboarding |
 | `src/pages/Settings.tsx` | Notification preferences and rescheduling |
+| `src/App.tsx` | Notification click handler, routes to Review page |
+| `src/pages/Review.tsx` | Review page with paywall protection |
+| `src/components/PaywallModal.tsx` | Paywall modal for premium features |
 | `NOTIFICATIONS.md` | This documentation file |
 
 ---

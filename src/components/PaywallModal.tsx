@@ -40,7 +40,12 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
   };
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose}>
+    <IonModal
+      isOpen={isOpen}
+      onDidDismiss={onClose}
+      backdropDismiss={true}
+      canDismiss={true}
+    >
       <IonHeader>
         <IonToolbar>
           <IonTitle>Transform Your Life</IonTitle>

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Redirect, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Redirect, Route, useHistory } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import SqliteService from './services/sqliteService';
 import DbVersionService from './services/dbVersionService';
 import StorageService from './services/storageService';
@@ -53,6 +54,67 @@ export const StorageServiceContext = React.createContext(new StorageService(Sqli
 
 setupIonicReact();
 
+const AppContent: React.FC = () => {
+  const history = useHistory();
+
+  useEffect(() => {
+    // Set up notification click listener
+    const setupNotificationListeners = async () => {
+      await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+        console.log('Notification clicked:', notification);
+
+        // Check if this is the review notification (ID 100)
+        if (notification.notification.id === 100) {
+          // Navigate to review page
+          history.push('/review');
+        }
+      });
+    };
+
+    setupNotificationListeners();
+
+    // Cleanup listener on unmount
+    return () => {
+      LocalNotifications.removeAllListeners();
+    };
+  }, [history]);
+
+  return (
+    <IonRouterOutlet>
+      <Route exact path="/intro">
+        <Intro />
+      </Route>
+      <Route exact path="/paywall">
+        <Paywall />
+      </Route>
+      <Route exact path="/day-schedule">
+        <DaySchedule />
+      </Route>
+      <Route exact path="/home">
+        <Home />
+      </Route>
+      <Route exact path="/">
+        <Redirect to="/home" />
+      </Route>
+      <Route exact path="/review">
+        <Review />
+      </Route>
+      <Route exact path="/task">
+        <Task />
+      </Route>
+      <Route exact path="/planning">
+        <Planning />
+      </Route>
+      <Route exact path="/settings">
+        <Settings />
+      </Route>
+      <Route exact path="/debug">
+        <Debug />
+      </Route>
+    </IonRouterOutlet>
+  );
+};
+
 const App: React.FC = () => (
     <SqliteServiceContext.Provider value={SqliteService}>
       <DbVersionServiceContext.Provider value={DbVersionService}>
@@ -60,38 +122,7 @@ const App: React.FC = () => (
           <AppInitializer>
             <IonApp>
               <IonReactRouter>
-                <IonRouterOutlet>
-                  <Route exact path="/intro">
-                    <Intro />
-                  </Route>
-                  <Route exact path="/paywall">
-                    <Paywall />
-                  </Route>
-                  <Route exact path="/day-schedule">
-                    <DaySchedule />
-                  </Route>
-                  <Route exact path="/home">
-                    <Home />
-                  </Route>
-                  <Route exact path="/">
-                    <Redirect to="/home" />
-                  </Route>
-                  <Route exact path="/review">
-                    <Review />
-                  </Route>
-                  <Route exact path="/task">
-                    <Task />
-                  </Route>
-                  <Route exact path="/planning">
-                    <Planning />
-                  </Route>
-                  <Route exact path="/settings">
-                    <Settings />
-                  </Route>
-                  <Route exact path="/debug">
-                    <Debug />
-                  </Route>
-                </IonRouterOutlet>
+                <AppContent />
               </IonReactRouter>
             </IonApp>
           </AppInitializer>
