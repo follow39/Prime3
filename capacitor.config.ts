@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.trium.app',
+  appId: 'com.prime3.app',
   appName: 'Prime3',
   webDir: 'dist',
   plugins: {

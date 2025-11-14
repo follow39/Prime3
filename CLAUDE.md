@@ -198,7 +198,7 @@ When using Capacitor plugins:
 ## Capacitor Configuration
 
 App configuration in `capacitor.config.ts`:
-- **App ID**: `com.trium.app`
+- **App ID**: `com.prime3.app`
 - **App Name**: Prime3
 - **Web Dir**: `dist`
 - **SQLite Plugin**: Configured for iOS with encryption enabled and biometric options

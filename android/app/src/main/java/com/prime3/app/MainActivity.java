@@ -1,4 +1,4 @@
-package com.trium.app;
+package com.prime3.app;
 
 import com.getcapacitor.BridgeActivity;
 
