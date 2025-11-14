@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Trium app uses a sophisticated notification system to keep users engaged throughout their day. The system adapts dynamically based on task completion status and ensures variety by never repeating the same message within a single day.
+The Prime3 app uses a sophisticated notification system to keep users engaged throughout their day. The system adapts dynamically based on task completion status and ensures variety by never repeating the same message within a single day.
 
 ## Notification Categories
 
@@ -361,7 +361,7 @@ interface NotificationMessage {
 ## Troubleshooting
 
 ### Notifications not firing
-1. Check permissions: Settings → Trium → Notifications → Enabled
+1. Check permissions: Settings → Prime3 → Notifications → Enabled
 2. Verify push enabled: In-app Settings → Push Notifications toggle
 3. Check device Do Not Disturb mode
 4. Confirm day start/end times are configured

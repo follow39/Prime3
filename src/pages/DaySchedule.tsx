@@ -89,7 +89,7 @@ const DaySchedule: React.FC = () => {
               <IonText color="medium">
                 <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
                   When does your productive day typically start and end?
-                  This helps Trium calculate your available time and keep you focused.
+                  This helps Prime3 calculate your available time and keep you focused.
                 </p>
               </IonText>
 

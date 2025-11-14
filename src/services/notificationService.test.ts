@@ -303,8 +303,8 @@ describe('NotificationService', () => {
       const startNotif = notifications.find((n: any) => n.id === 1);
 
       expect(startNotif).toBeDefined();
-      expect(startNotif.schedule.on.hour).toBe(8);
-      expect(startNotif.schedule.on.minute).toBe(30);
+      expect(startNotif!.schedule!.on!.hour).toBe(8);
+      expect(startNotif!.schedule!.on!.minute).toBe(30);
     });
 
     it('should schedule end of day at configured time', async () => {
@@ -316,8 +316,8 @@ describe('NotificationService', () => {
       const endNotif = notifications.find((n: any) => n.id === 2);
 
       expect(endNotif).toBeDefined();
-      expect(endNotif.schedule.on.hour).toBe(21);
-      expect(endNotif.schedule.on.minute).toBe(45);
+      expect(endNotif!.schedule!.on!.hour).toBe(21);
+      expect(endNotif!.schedule!.on!.minute).toBe(45);
     });
 
     it('should schedule one-hour-before notification correctly', async () => {
@@ -329,8 +329,8 @@ describe('NotificationService', () => {
       const oneHourBeforeNotif = notifications.find((n: any) => n.id === 3);
 
       expect(oneHourBeforeNotif).toBeDefined();
-      expect(oneHourBeforeNotif.schedule.on.hour).toBe(21); // One hour before 22:00
-      expect(oneHourBeforeNotif.schedule.on.minute).toBe(0);
+      expect(oneHourBeforeNotif!.schedule!.on!.hour).toBe(21); // One hour before 22:00
+      expect(oneHourBeforeNotif!.schedule!.on!.minute).toBe(0);
     });
   });
 });

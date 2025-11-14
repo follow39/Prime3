@@ -234,7 +234,7 @@ const Settings: React.FC = () => {
               expand="block"
               fill="outline"
               onClick={() => {
-                window.location.href = 'mailto:feedback@example.com?subject=Trium Feedback';
+                window.location.href = 'mailto:feedback@example.com?subject=Prime3 Feedback';
               }}
               style={{ marginTop: '10px' }}
             >

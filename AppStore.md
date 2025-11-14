@@ -1,18 +1,18 @@
-# Trium - App Store Marketing Materials
+# Prime3 - App Store Marketing Materials
 
 ## App Name
-**Trium**
+**Prime3**
 
 ## Subtitle
 Three Goals. One Day. Real Progress.
 
 ## App Store Description
 
-**Stop drowning in endless to-do lists. Start making real progress with Trium.**
+**Stop drowning in endless to-do lists. Start making real progress with Prime3.**
 
 Every evening, you look at your packed to-do list and feel defeated. You worked hard all day, but somehow that list only grew longer. Sound familiar?
 
-Trium takes a different approach: instead of trying to do everything, focus on doing what matters most.
+Prime3 takes a different approach: instead of trying to do everything, focus on doing what matters most.
 
 **The Power of Three**
 
@@ -23,11 +23,11 @@ Research shows that focusing on three meaningful goals per day leads to:
 - Greater sense of accomplishment
 - Better work-life balance
 
-Trium helps you identify and complete your three most important goals each day. That's it. No complexity, no overwhelm—just clear focus on what truly matters.
+Prime3 helps you identify and complete your three most important goals each day. That's it. No complexity, no overwhelm—just clear focus on what truly matters.
 
 **How It Works**
 
-Each morning, Trium guides you through a simple ritual:
+Each morning, Prime3 guides you through a simple ritual:
 1. Choose your three most important goals for today
 2. See your time countdown—motivation at a glance
 3. Work through your day with clarity and purpose
@@ -46,14 +46,14 @@ Each morning, Trium guides you through a simple ritual:
 
 **The Science of Small Wins**
 
-Trium is built on the principle that small daily victories compound into extraordinary results. By consistently completing three meaningful goals, you'll:
+Prime3 is built on the principle that small daily victories compound into extraordinary results. By consistently completing three meaningful goals, you'll:
 - Build unstoppable momentum
 - Develop a sustainable achievement habit
 - Eliminate the guilt of unfinished lists
 - Make visible progress toward bigger dreams
 - Finish each day feeling accomplished, not exhausted
 
-**Who Is Trium For?**
+**Who Is Prime3 For?**
 
 Perfect for anyone who feels overwhelmed by traditional task management:
 - Professionals juggling multiple responsibilities
@@ -68,9 +68,9 @@ All your goals and progress stay on your device. We don't collect, analyze, or s
 
 **Start Your Journey Today**
 
-Download Trium and discover what happens when you stop trying to do everything and start focusing on what truly matters. Three goals. One day. Real progress.
+Download Prime3 and discover what happens when you stop trying to do everything and start focusing on what truly matters. Three goals. One day. Real progress.
 
-Transform intention into action. Download Trium now.
+Transform intention into action. Download Prime3 now.
 
 ---
 
@@ -97,7 +97,7 @@ productivity, goals, daily planner, focus, task manager, to-do list, habit track
 **Bug Fixes**
 - [Bug fix description]
 
-We're constantly working to make Trium better for you. Have feedback? We'd love to hear from you at [feedback email].
+We're constantly working to make Prime3 better for you. Have feedback? We'd love to hear from you at [feedback email].
 
 ---
 
@@ -116,7 +116,7 @@ We're constantly working to make Trium better for you. Have feedback? We'd love 
 
 **Data Storage**: All your tasks, goals, and progress are stored locally on your device using secure local storage.
 
-**No Account Required**: Trium works completely offline. No sign-up, no login, no cloud sync required.
+**No Account Required**: Prime3 works completely offline. No sign-up, no login, no cloud sync required.
 
 **No Data Collection**: We do not collect, transmit, or analyze any of your personal data or task information.
 
@@ -124,7 +124,7 @@ We're constantly working to make Trium better for you. Have feedback? We'd love 
 
 **Analytics**: We do not use any analytics or tracking services.
 
-**Your Privacy**: Your goals and achievements are private. We cannot see them, we don't want to see them, and we've designed Trium to keep it that way.
+**Your Privacy**: Your goals and achievements are private. We cannot see them, we don't want to see them, and we've designed Prime3 to keep it that way.
 
 ---
 
@@ -166,7 +166,7 @@ We're constantly working to make Trium better for you. Have feedback? We'd love 
 **[0-5s]** Morning scene, person overwhelmed by long to-do list
 **Text**: "Tired of endless to-do lists?"
 
-**[6-10s]** Show Trium app opening, planning screen
+**[6-10s]** Show Prime3 app opening, planning screen
 **Text**: "What if you focused on just three goals?"
 
 **[11-15s]** Show countdown timer ticking, tasks being completed
@@ -179,35 +179,35 @@ We're constantly working to make Trium better for you. Have feedback? We'd love 
 **Text**: "Sustainable achievement without burnout"
 
 **[26-30s]** App logo and tagline
-**Text**: "Trium. Three Goals. One Day. Real Progress."
+**Text**: "Prime3. Three Goals. One Day. Real Progress."
 
 ---
 
 ## Review Response Templates
 
 ### Positive Review Response
-"Thank you for your kind words! We're thrilled that Trium is helping you make meaningful progress. Keep up the great work with those three daily goals! 🎯"
+"Thank you for your kind words! We're thrilled that Prime3 is helping you make meaningful progress. Keep up the great work with those three daily goals! 🎯"
 
 ### Constructive Feedback Response
-"Thank you for taking the time to share your feedback. We're always working to improve Trium, and suggestions like yours help us make the app better for everyone. We'll consider this for future updates!"
+"Thank you for taking the time to share your feedback. We're always working to improve Prime3, and suggestions like yours help us make the app better for everyone. We'll consider this for future updates!"
 
 ### Bug Report Response
 "We're sorry you experienced this issue. We take bugs seriously and would love to help resolve this. Could you please email us at [support email] with more details? We'll work to fix this as quickly as possible."
 
 ### Feature Request Response
-"Great suggestion! We love hearing ideas from our users. While we can't promise every feature will make it into the app, we're keeping track of all requests and will consider this for future development. Thank you for being part of the Trium community!"
+"Great suggestion! We love hearing ideas from our users. While we can't promise every feature will make it into the app, we're keeping track of all requests and will consider this for future development. Thank you for being part of the Prime3 community!"
 
 ---
 
 ## Social Media Copy
 
 ### Twitter/X (280 characters)
-"Stop drowning in endless to-do lists. Trium helps you focus on 3 goals per day—the ones that truly matter. Sustainable progress without burnout. Download now: [link]"
+"Stop drowning in endless to-do lists. Prime3 helps you focus on 3 goals per day—the ones that truly matter. Sustainable progress without burnout. Download now: [link]"
 
 ### Instagram Caption
 "What if the secret to productivity isn't doing more, but doing what matters most? 🎯
 
-Trium challenges the endless to-do list culture. Instead: three meaningful goals per day. That's it.
+Prime3 challenges the endless to-do list culture. Instead: three meaningful goals per day. That's it.
 
 The result? Real progress. Less stress. Sustainable achievement.
 
@@ -222,7 +222,7 @@ We pack our lists with 20+ tasks, feel overwhelmed all day, and end up accomplis
 
 What if there's a better way?
 
-Trium is built on a simple principle: identify your three most important goals each day and focus relentlessly on completing them.
+Prime3 is built on a simple principle: identify your three most important goals each day and focus relentlessly on completing them.
 
 Not 20 tasks. Not 10. Just three that truly matter.
 
@@ -234,7 +234,7 @@ The results speak for themselves:
 
 It's time to stop trying to do everything and start focusing on what matters most.
 
-Download Trium: [link]
+Download Prime3: [link]
 
 #productivity #goalcommunity #worklifebalance #productivitytools"
 
@@ -244,13 +244,13 @@ Download Trium: [link]
 
 **FOR IMMEDIATE RELEASE**
 
-**Trium: New Productivity App Challenges Endless To-Do List Culture with Three Daily Goals Approach**
+**Prime3: New Productivity App Challenges Endless To-Do List Culture with Three Daily Goals Approach**
 
-[CITY, DATE] – Trium, a new productivity application for iOS and Android, is taking a radically different approach to task management by limiting users to just three goals per day.
+[CITY, DATE] – Prime3, a new productivity application for iOS and Android, is taking a radically different approach to task management by limiting users to just three goals per day.
 
-In an era of overwhelming to-do lists and productivity guilt, Trium simplifies goal-setting with a research-backed approach: focus on three meaningful objectives each day rather than attempting to juggle dozens of tasks.
+In an era of overwhelming to-do lists and productivity guilt, Prime3 simplifies goal-setting with a research-backed approach: focus on three meaningful objectives each day rather than attempting to juggle dozens of tasks.
 
-"The average person's to-do list has become a source of stress rather than a tool for achievement," says [Founder Name]. "Trium returns to the fundamentals: what are the three most important things you need to accomplish today? Everything else is noise."
+"The average person's to-do list has become a source of stress rather than a tool for achievement," says [Founder Name]. "Prime3 returns to the fundamentals: what are the three most important things you need to accomplish today? Everything else is noise."
 
 Key features include:
 - Daily planning ritual for selecting three priorities
@@ -259,7 +259,7 @@ Key features include:
 - Visual progress tracking and achievement calendar
 - Complete privacy with local-only data storage
 
-Trium is available now as a free download on the [App Store/Play Store].
+Prime3 is available now as a free download on the [App Store/Play Store].
 
 For more information, visit [website] or contact [email].
 
@@ -271,19 +271,19 @@ For more information, visit [website] or contact [email].
 A: Research shows that limiting daily goals leads to higher completion rates and reduces decision fatigue. Three goals is the sweet spot between ambitious progress and realistic achievement.
 
 **Q: Can I add more than three goals?**
-A: Trium is designed around the principle of focused achievement. While you can't add more than three goals per day, you can update and refine your goals throughout the day as priorities shift.
+A: Prime3 is designed around the principle of focused achievement. While you can't add more than three goals per day, you can update and refine your goals throughout the day as priorities shift.
 
 **Q: Is my data private?**
 A: Absolutely. All your goals and progress are stored locally on your device. We don't collect, transmit, or analyze any of your personal information.
 
-**Q: Does Trium work offline?**
-A: Yes! Trium works completely offline. No internet connection required.
+**Q: Does Prime3 work offline?**
+A: Yes! Prime3 works completely offline. No internet connection required.
 
 **Q: Can I sync across devices?**
-A: Currently, Trium stores all data locally on your device. Cross-device sync is being considered for future updates.
+A: Currently, Prime3 stores all data locally on your device. Cross-device sync is being considered for future updates.
 
-**Q: How much does Trium cost?**
+**Q: How much does Prime3 cost?**
 A: [Adjust based on your pricing model - free, freemium, paid, etc.]
 
-**Q: What makes Trium different from other to-do apps?**
-A: Most task managers encourage you to capture every possible task, leading to overwhelming lists. Trium forces you to choose: what are the three things that matter most today? This constraint creates clarity and focus that other apps can't match.
+**Q: What makes Prime3 different from other to-do apps?**
+A: Most task managers encourage you to capture every possible task, leading to overwhelming lists. Prime3 forces you to choose: what are the three things that matter most today? This constraint creates clarity and focus that other apps can't match.

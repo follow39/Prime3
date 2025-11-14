@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Trium is an Ionic React mobile application for iOS and Android that helps users manage daily tasks using a "three goals" productivity methodology. The app uses Capacitor for native functionality and SQLite for local data persistence.
+Prime3 is an Ionic React mobile application for iOS and Android that helps users manage daily tasks using a "three goals" productivity methodology. The app uses Capacitor for native functionality and SQLite for local data persistence.
 
 ## Technology Stack
 
@@ -199,6 +199,6 @@ When using Capacitor plugins:
 
 App configuration in `capacitor.config.ts`:
 - **App ID**: `com.trium.app`
-- **App Name**: Trium
+- **App Name**: Prime3
 - **Web Dir**: `dist`
 - **SQLite Plugin**: Configured for iOS with encryption enabled and biometric options

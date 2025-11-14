@@ -27,9 +27,9 @@ const Intro: React.FC = () => {
   const slides = [
     {
       icon: checkmarkCircleOutline,
-      title: 'Welcome to Trium',
+      title: 'Welcome to Prime3',
       description:
-        'Every day is an opportunity to make meaningful progress. Trium helps you transform intention into action by focusing on what truly matters.',
+        'Every day is an opportunity to make meaningful progress. Prime3 helps you transform intention into action by focusing on what truly matters.',
       color: 'primary',
     },
     {
