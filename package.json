@@ -1,8 +1,11 @@
 {
   "name": "prime3",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Prime3 - Focus on three essential goals each day. Sustainable productivity without burnout.",
+  "author": "YOUR_NAME <YOUR_EMAIL>",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -64,6 +67,5 @@
   },
   "overrides": {
     "rollup": "4.44.0"
-  },
-  "description": "An Ionic project"
+  }
 }

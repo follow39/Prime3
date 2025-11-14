@@ -1,0 +1,27 @@
+PROPRIETARY LICENSE
+
+Copyright (c) [YEAR] [YOUR_COMPANY_NAME]. All rights reserved.
+
+This software and associated documentation files (the "Software") are proprietary
+and confidential to [YOUR_COMPANY_NAME].
+
+NOTICE: All information contained herein is, and remains the property of
+[YOUR_COMPANY_NAME]. The intellectual and technical concepts contained herein
+are proprietary to [YOUR_COMPANY_NAME] and may be covered by patents, patents
+in process, and are protected by trade secret or copyright law.
+
+Dissemination of this information or reproduction of this material is strictly
+forbidden unless prior written permission is obtained from [YOUR_COMPANY_NAME].
+
+Unauthorized copying of the Software, via any medium, is strictly prohibited.
+
+For licensing inquiries, contact: [YOUR_SUPPORT_EMAIL]
+
+---
+
+Note: If you wish to use an open-source license instead, consider:
+- MIT License (permissive)
+- Apache 2.0 (permissive with patent grant)
+- GPL v3 (copyleft)
+
+Replace this file content with your chosen license text.
