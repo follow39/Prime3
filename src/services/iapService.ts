@@ -81,10 +81,23 @@ class IAPService {
         const productId = receipt.products[0]?.id;
         if (productId) {
           const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
+
+          // For annual subscription, calculate expiration (1 year from now)
+          // For lifetime, no expiration
+          const expirationDate = tier === 'annual'
+            ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+            : null;
+
           localStorage.setItem('isPremium', 'true');
           localStorage.setItem('premiumTier', tier);
           localStorage.setItem('purchaseDate', new Date().toISOString());
           localStorage.setItem('productId', productId);
+
+          if (expirationDate) {
+            localStorage.setItem('premiumExpiration', expirationDate);
+          } else {
+            localStorage.removeItem('premiumExpiration');
+          }
         }
       });
 
@@ -101,6 +114,41 @@ class IAPService {
     } catch (error) {
       console.error('Failed to initialize IAP store:', error);
     }
+  }
+
+  /**
+   * Check if localStorage premium status is still valid
+   * Handles subscription expiration for offline scenarios
+   */
+  private isLocalStoragePremiumValid(): boolean {
+    const isPremium = localStorage.getItem('isPremium') === 'true';
+    if (!isPremium) return false;
+
+    const tier = localStorage.getItem('premiumTier');
+    const expirationStr = localStorage.getItem('premiumExpiration');
+
+    // Lifetime purchases never expire
+    if (tier === 'lifetime') return true;
+
+    // Annual subscriptions: check expiration
+    if (tier === 'annual' && expirationStr) {
+      const expiration = new Date(expirationStr);
+      const now = new Date();
+
+      if (now > expiration) {
+        // Expired! Clear localStorage
+        console.log('Subscription expired, clearing localStorage');
+        localStorage.removeItem('isPremium');
+        localStorage.removeItem('premiumTier');
+        localStorage.removeItem('premiumExpiration');
+        return false;
+      }
+
+      return true; // Still valid
+    }
+
+    // No expiration date set (old data) - assume valid but should refresh from store
+    return isPremium;
   }
 
   /**
@@ -121,8 +169,8 @@ class IAPService {
         return hasAnnual || hasLifetime || false;
       } catch (error) {
         console.error('Error checking premium status:', error);
-        // Fall back to localStorage
-        return localStorage.getItem('isPremium') === 'true';
+        // Fall back to localStorage with expiration check
+        return this.isLocalStoragePremiumValid();
       }
     }
 
@@ -268,10 +316,22 @@ class IAPService {
     try {
       const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
 
+      // For annual subscription, calculate expiration (1 year from now)
+      // For lifetime, no expiration
+      const expirationDate = tier === 'annual'
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
       localStorage.setItem('isPremium', 'true');
       localStorage.setItem('premiumTier', tier);
       localStorage.setItem('purchaseDate', new Date().toISOString());
       localStorage.setItem('productId', productId);
+
+      if (expirationDate) {
+        localStorage.setItem('premiumExpiration', expirationDate);
+      } else {
+        localStorage.removeItem('premiumExpiration');
+      }
 
       return {
         success: true,
@@ -309,9 +369,21 @@ class IAPService {
           const productId = hasLifetime ? SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME : SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL;
           const tier = hasLifetime ? 'lifetime' : 'annual';
 
+          // For annual subscription, calculate expiration (1 year from now)
+          // For lifetime, no expiration
+          const expirationDate = tier === 'annual'
+            ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+            : null;
+
           localStorage.setItem('isPremium', 'true');
           localStorage.setItem('premiumTier', tier);
           localStorage.setItem('productId', productId);
+
+          if (expirationDate) {
+            localStorage.setItem('premiumExpiration', expirationDate);
+          } else {
+            localStorage.removeItem('premiumExpiration');
+          }
 
           return {
             success: true,

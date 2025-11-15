@@ -3,23 +3,23 @@
 ## Critical - Required for App Store Submission
 
 ### Privacy Policy & Terms of Service
-- [ ] **Host Privacy Policy**
-  - File: `PRIVACY_POLICY.md` (template ready)
-  - Action: Convert to HTML and host online
-  - Options: GitHub Pages, Netlify, Vercel
-  - **REQUIRED**: Apple requires accessible Privacy Policy URL
-  - Update URL in: `AppStore.md`, App Store Connect listing
+- [x] **Host Privacy Policy** ✅
+  - File: `docs/privacy-policy.html` (complete)
+  - Hosted at: https://follow39.github.io/Prime3/privacy-policy.html
+  - Linked in app: Settings → Support
+  - Ready for App Store Connect listing
 
-- [ ] **Host Terms of Service (Optional but Recommended)**
-  - File: `TERMS_OF_SERVICE.md` (template ready)
-  - Action: Convert to HTML and host online
-  - Update URL in: `AppStore.md`, App Store Connect listing
+- [x] **Host Terms of Service** ✅
+  - File: `docs/terms-of-service.html` (complete)
+  - Hosted at: https://follow39.github.io/Prime3/terms-of-service.html
+  - Linked in app: Settings → Support
+  - Ready for App Store Connect listing
 
-- [ ] **Review legal documents with attorney**
-  - Privacy Policy needs legal review
-  - Terms of Service needs legal review
-  - Add jurisdiction for governing law clause
-  - Update `[INSERT_DATE]` placeholders
+- [ ] **Review legal documents with attorney (optional)**
+  - Privacy Policy complete with all required sections (GDPR, CCPA, etc.)
+  - Terms of Service complete with subscription terms
+  - Governing law: United States (specified)
+  - Last updated: November 15, 2025
 
 ### App Store Marketing Materials
 
@@ -48,17 +48,19 @@
   - Age Rating: 4+
 
 - [ ] **Configure in-app purchases in App Store Connect**
-  - Reference: `PRODUCTS_REFERENCE.md`
+  - Reference: `APP_STORE_PRODUCT_METADATA.md` (complete metadata ready)
   - Product 1: `com.prime3.app.premium.annual` ($15.48/year)
   - Product 2: `com.prime3.app.premium.lifetime` ($14.99 one-time)
-  - Add product descriptions and localized pricing
+  - Privacy Policy URL: https://follow39.github.io/Prime3/privacy-policy.html
 
-- [ ] **Implement StoreKit integration**
-  - File: `src/services/iapService.ts` has TODOs
-  - Replace localStorage with actual StoreKit calls
-  - Implement receipt validation
-  - Implement restore purchases
-  - Test in sandbox environment
+- [x] **Implement StoreKit integration** ✅
+  - File: `src/services/iapService.ts` (implemented with cordova-plugin-purchase)
+  - Uses CdvPurchase for real StoreKit calls
+  - Receipt validation implemented
+  - Restore purchases implemented
+  - Development mode enabled (localStorage fallback for testing)
+  - Ready for sandbox testing (see `IAP_TESTING_GUIDE.md`)
+  - StoreKit Configuration File: `ios/App/App/Prime3Products.storekit`
 
 - [ ] **Add App Store description**
   - Copy from `AppStore.md` lines 9-74
@@ -80,9 +82,10 @@
 
 - [ ] **Test full app flow on physical device**
   - Onboarding → Task creation → Completion → Review
-  - Verify SQLite encryption working
+  - Verify SQLite data persistence (encryption disabled - using iOS Data Protection)
   - Test premium paywall
   - Test data persistence across app restarts
+  - Test export/import (JSON backup)
 
 - [x] **Run full test suite** ✅
   - Unit tests: `npm run test.unit` - 123/123 tests passing
@@ -151,26 +154,36 @@
 - ✅ Contact email configured: `prime3.app@mailbox.org`
 - ✅ Company name set to "Artem Ivanov"
 - ✅ Android platform removed (iOS only)
-- ✅ RevenueCat dependency removed (native StoreKit)
+- ✅ RevenueCat dependency removed (native StoreKit with cordova-plugin-purchase)
 - ✅ Encryption export compliance declared in Info.plist (ITSAppUsesNonExemptEncryption = false)
+- ✅ Database encryption disabled (`iosIsEncryption: false` in capacitor.config.ts)
+- ✅ Security model simplified: iOS Data Protection (AES-256-XTS) only
 
 ### Documentation
-- ✅ Privacy Policy template created
-- ✅ Terms of Service template created
+- ✅ Privacy Policy: HTML version hosted at GitHub Pages
+  - File: `docs/privacy-policy.html`
+  - URL: https://follow39.github.io/Prime3/privacy-policy.html
+  - Complete with GDPR, CCPA, IAP sections
+- ✅ Terms of Service: HTML version hosted at GitHub Pages
+  - File: `docs/terms-of-service.html`
+  - URL: https://follow39.github.io/Prime3/terms-of-service.html
+  - Complete with subscription terms, liability disclaimers
+- ✅ Landing page for legal docs: `docs/index.html`
+- ✅ App Store product metadata guide: `APP_STORE_PRODUCT_METADATA.md`
+- ✅ IAP testing guide: `IAP_TESTING_GUIDE.md`
+- ✅ StoreKit Configuration File: `ios/App/App/Prime3Products.storekit`
+- ✅ Security documentation updated: `ENCRYPTION.md` (iOS Data Protection only)
 - ✅ App Store marketing materials prepared
 - ✅ Product reference guide created
-- ✅ Payment implementation guide created
-- ✅ Encryption security documentation (including export compliance)
 - ✅ Notifications implementation documented
 - ✅ Contact information centralized
 - ✅ AppStore.md placeholders filled (founder name, version 1.0.0 "What's New")
 - ✅ All Android references removed from documentation
-- ✅ Duplicate/outdated documentation files removed
-- ✅ All website references removed (not needed - only Privacy Policy URL required)
+- ✅ Duplicate/outdated documentation files removed (GITHUB_PAGES_SETUP.md, etc.)
 - ✅ iCloud backup behavior documented correctly (automatic via iOS device backup)
 
 ### Code
-- ✅ SQLite encryption implemented
+- ✅ SQLite database implemented (encryption disabled, relies on iOS Data Protection)
 - ✅ Biometric authentication implemented
 - ✅ Local notifications implemented
 - ✅ Task management (CRUD) implemented
@@ -181,6 +194,9 @@
 - ✅ Settings page with all preferences
 - ✅ Review page with analytics
 - ✅ All Android-specific code removed (biometricService.ts, permissions config)
+- ✅ Export/import simplified to JSON only (removed encryption complexity)
+- ✅ Privacy Policy and Terms links added to Settings → Support
+- ✅ StoreKit integration with cordova-plugin-purchase (real IAP implementation)
 
 ### Testing & Code Quality
 - ✅ Unit tests passing (123/123 tests)
@@ -198,13 +214,17 @@
 
 Before submitting to App Store, verify:
 
-1. [ ] Privacy Policy URL is live and accessible
-2. [ ] Terms of Service URL is live and accessible (recommended)
+1. [x] Privacy Policy URL is live and accessible ✅
+   - https://follow39.github.io/Prime3/privacy-policy.html
+2. [x] Terms of Service URL is live and accessible ✅
+   - https://follow39.github.io/Prime3/terms-of-service.html
 3. [ ] All screenshots created and uploaded
 4. [ ] In-app purchases configured in App Store Connect
+   - Use metadata from `APP_STORE_PRODUCT_METADATA.md`
 5. [ ] StoreKit implementation tested in sandbox
+   - Follow guide: `IAP_TESTING_GUIDE.md`
 6. [ ] App tested on physical iOS device
-7. [ ] All tests passing (`npm run test.unit`, `npm run lint`)
+7. [x] All tests passing (`npm run test.unit`, `npm run lint`) ✅
 8. [ ] Code signing configured correctly
 9. [ ] Production build created and uploaded
 10. [ ] App Store Connect listing complete with all metadata
