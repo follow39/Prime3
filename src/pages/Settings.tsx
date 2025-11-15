@@ -376,6 +376,26 @@ const Settings: React.FC = () => {
             >
               Send Feedback
             </IonButton>
+            <IonButton
+              expand="block"
+              fill="outline"
+              onClick={() => {
+                window.open('https://follow39.github.io/Prime3/privacy-policy.html', '_blank');
+              }}
+              style={{ marginTop: '10px' }}
+            >
+              Privacy Policy
+            </IonButton>
+            <IonButton
+              expand="block"
+              fill="outline"
+              onClick={() => {
+                window.open('https://follow39.github.io/Prime3/terms-of-service.html', '_blank');
+              }}
+              style={{ marginTop: '10px' }}
+            >
+              Terms of Service
+            </IonButton>
           </IonCardContent>
         </IonCard>
 
