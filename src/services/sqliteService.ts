@@ -37,8 +37,8 @@ class SQLiteService implements ISQLiteService {
     async openDatabase(dbName: string, loadToVersion: number,
         readOnly: boolean): Promise<SQLiteDBConnection> {
         this.dbNameVersionDict.set(dbName, loadToVersion);
-        const encrypted = true;
-        const mode = encrypted ? "secret" : "no-encryption";
+        const encrypted = false;
+        const mode = "no-encryption";
         try {
             let db: SQLiteDBConnection;
             const retCC = (await this.sqliteConnection.checkConnectionsConsistency()).result;

@@ -51,12 +51,12 @@ class StorageService implements IStorageService {
                 upgrade: this.versionUpgrades
             });
             this.db = await this.sqliteServ.openDatabase(this.database, this.loadToVersion, false);
-            
+
             // Verify database is properly opened
             if (!this.db) {
                 throw new Error('Database connection is null');
             }
-            
+
             const isData = await this.db.query("select * from sqlite_sequence");
             if (isData.values!.length === 0) {
                 // create database initial cards if any
@@ -65,9 +65,9 @@ class StorageService implements IStorageService {
 
             this.dbVerServ.setDbVersion(this.database, this.loadToVersion);
             this.isInitCompleted.next(true);
-        } catch (error: any) {
-            const msg = error.message ? error.message : error;
-            throw new Error(`storageService.initializeDatabase: ${msg}`);
+        } catch (error: unknown) {
+            const errorMessage = (error as Error).message || String(error);
+            throw new Error(`storageService.initializeDatabase: ${errorMessage}`);
         }
     }
     async getTasks(): Promise<Task[]> {

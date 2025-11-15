@@ -7,12 +7,7 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorSQLite: {
       iosDatabaseLocation: 'Library/CapacitorDatabase',
-      iosIsEncryption: true,
-      iosKeychainPrefix: 'angular-sqlite-app-starter',
-      iosBiometric: {
-        biometricAuth: false,
-        biometricTitle: "Biometric login for capacitor sqlite"
-      }
+      iosIsEncryption: false
     }
   }
 };

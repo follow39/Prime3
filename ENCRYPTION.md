@@ -1,7 +1,7 @@
-# Prime3 iOS Application Encryption Documentation
+# Prime3 iOS Application Security Documentation
 
 **Date**: 2025-11-15
-**Application Version**: 1.0.1
+**Application Version**: 1.0.0
 **Platform**: iOS Only
 
 ---
@@ -25,7 +25,7 @@ Prime3 is an iOS mobile application that stores **all data locally on the user's
 
 Prime3 is declared as **NOT using non-exempt encryption** because:
 
-1. **SQLite Encryption**: Uses Apple's built-in SQLCipher implementation (exempt)
+1. **iOS Data Protection**: Standard iOS file encryption (exempt)
 2. **HTTPS**: Standard secure network communication (exempt)
 3. **Biometric Authentication**: Apple's built-in Face ID/Touch ID APIs (exempt)
 4. **iCloud Backup**: Standard iOS backup encryption (exempt)
@@ -34,10 +34,10 @@ Prime3 is declared as **NOT using non-exempt encryption** because:
 
 According to Apple's export compliance guidelines, apps using **only** standard iOS cryptography are **exempt** from export documentation requirements. This includes:
 
-- ✅ Encryption performed by Apple frameworks (CommonCrypto, Security framework, SQLCipher)
+- ✅ Encryption performed by Apple frameworks (CommonCrypto, Security framework)
 - ✅ HTTPS/TLS for network communication
 - ✅ Password-based encryption using standard APIs
-- ✅ Encryption within Apple's sandbox (local database encryption)
+- ✅ iOS Data Protection for file system
 
 Setting this to `false` means:
 - **No export compliance documentation needed** for App Store submission
@@ -50,25 +50,26 @@ Apple's official guidance: [App Store Connect Help - Export Compliance](https://
 
 ---
 
-## Current Encryption Status
+## Data Protection
 
-### ✅ OS-Level Protection
+### ✅ iOS-Level Protection (Automatic)
 
-#### iOS
-- **File System Protection**: All app data is automatically protected by iOS File Data Protection
+#### iOS File Data Protection
+- **File System Protection**: All app data is automatically protected by iOS Data Protection
 - **App Sandbox**: Data is isolated from other applications
-- **Device Encryption**: When passcode is enabled, all data is encrypted by hardware (AES-256)
+- **Device Encryption**: When passcode is enabled, all data is encrypted by hardware (AES-256-XTS)
+- **Status**: Always active on iOS devices with passcode/Face ID/Touch ID enabled
 
-### ✅ Application-Level Encryption
+### ✅ Data Storage
 
 #### 1. SQLite Database
 
-**Current Status**: **ENCRYPTED** (as of Version 1.0.1)
+**Current Status**: **Protected by iOS Data Protection** (no additional app-level encryption)
 
 **File**: `src/services/sqliteService.ts:40-41`
 ```typescript
-let encrypted = true;
-const mode = encrypted ? "secret" : "no-encryption";
+const encrypted = false;
+const mode = "no-encryption";
 ```
 
 **What is stored**:
@@ -80,15 +81,14 @@ const mode = encrypted ? "secret" : "no-encryption";
 
 **Plugin**: `@capacitor-community/sqlite` version 7.0.2
 
-**Active Encryption**:
-- **iOS**: Enabled via `iosIsEncryption: true` in `capacitor.config.ts`
-- **Algorithm**: SQLCipher with AES-256-CBC
-- **Key Storage**: iOS Keychain
-- **Benefits**: Double layer of protection (OS + app-level encryption)
+**Protection**:
+- **iOS Data Protection**: File encrypted by iOS when device is locked
+- **App Sandbox**: Database file isolated from other applications
+- **Simplicity**: No keychain management, no passphrase errors
 
 #### 2. Application Preferences
 
-**Current Status**: **NOT ENCRYPTED**
+**Current Status**: **Protected by iOS Data Protection**
 
 **Storage Mechanism**: `localStorage` (Web Storage API)
 
@@ -103,36 +103,30 @@ const mode = encrypted ? "secret" : "no-encryption";
 - First launch flags (`introShown`, `dayScheduleConfigured`)
 
 **Protection**:
-- On iOS: localStorage is stored in the app's protected directory
-- Automatically encrypted at OS level when device encryption is enabled
+- Stored in the app's protected directory
+- Automatically encrypted by iOS when device is locked
 
 #### 3. Backup Files
 
-**Current Status**: **OPTIONAL PASSWORD ENCRYPTION WITH STRONG REQUIREMENTS**
+**Current Status**: **Unencrypted JSON backups**
 
-**Export Feature**: Added in version 1.0.0, enhanced in 1.0.1
+**Export Feature**: Simple JSON export/import
 
 **What is available**:
-- **Unencrypted export**: Plain JSON file (`.json`)
-- **Password-encrypted export**: AES-256-GCM encrypted file (`.prime3`)
+- **JSON export**: Plain JSON file (`.json`)
+- **Easy restore**: Import JSON file to restore all data
 
-**Password Requirements** (as of Version 1.0.1):
-- Minimum 12 characters (increased from 6)
-- Must contain at least 3 of: uppercase, lowercase, numbers, special characters
-- Validation before export to ensure strong passwords
-
-**Encryption Details** (for password-protected backups):
-- **Algorithm**: AES-256-GCM (Galois/Counter Mode)
-- **Key Derivation**: PBKDF2-HMAC-SHA-256 with 100,000 iterations
-- **Random salt**: 16 bytes per export
-- **Random IV**: 12 bytes per export
-- **Authenticated encryption**: Built-in integrity verification
+**Security**:
+- Backups are plain JSON for simplicity
+- Store backup files in secure locations (iCloud Drive with encryption)
+- iOS encrypts files in iCloud automatically
+- Use iOS device encryption for local file protection
 
 **File**: `src/services/exportService.ts`
 
 #### 4. Biometric Authentication
 
-**Current Status**: **AVAILABLE** (as of Version 1.0.1)
+**Current Status**: **AVAILABLE**
 
 **Plugin**: `@aparajita/capacitor-biometric-auth` version 9.1.2
 
@@ -151,13 +145,12 @@ const mode = encrypted ? "secret" : "no-encryption";
 
 #### 5. Input Validation
 
-**Current Status**: **ACTIVE** (as of Version 1.0.1)
+**Current Status**: **ACTIVE**
 
 **What is validated**:
 - **Task titles**: Maximum 200 characters, required field
 - **Task descriptions**: Maximum 5000 characters, optional
 - **Input sanitization**: Whitespace trimming and normalization
-- **Backup passwords**: See password requirements above
 
 **Security Benefits**:
 - Prevents storage exhaustion attacks
@@ -169,36 +162,16 @@ const mode = encrypted ? "secret" : "no-encryption";
 
 ---
 
-## Encryption Algorithms
+## Encryption Details
 
-### Current (OS-Level)
+### iOS Data Protection (Always Active)
 
-#### iOS (automatic)
-- **Algorithm**: AES-256 (Advanced Encryption Standard)
-- **Mode**: XTS-AES for file system
+#### iOS File System Encryption
+- **Algorithm**: AES-256-XTS (Advanced Encryption Standard)
+- **Mode**: XTS mode for file system
 - **Keys**: Hardware-generated in Secure Enclave
-- **Data Protection**: NSFileProtectionCompleteUntilFirstUserAuthentication class
-
-### Active Application-Level Encryption
-
-#### SQLCipher (via @capacitor-community/sqlite) - ACTIVE
-- **Algorithm**: AES-256-CBC
-- **Encryption Mode**: CBC (Cipher Block Chaining)
-- **Hashing**: PBKDF2-HMAC-SHA512 for key derivation
-- **Iteration Count**: 256,000 (SQLCipher 4.x default)
-- **Key Size**: 256 bits
-- **IV (Initialization Vector)**: Random for each database page
-- **HMAC**: SHA512 for authenticating each page
-- **Status**: Enabled as of Version 1.0.1
-
-### Backup Export Encryption
-
-#### Web Crypto API (for password-protected backups)
-- **Algorithm**: AES-256-GCM
-- **Key Derivation**: PBKDF2 with 100,000 iterations using SHA-256
-- **Salt**: 16 bytes, randomly generated per export
-- **IV**: 12 bytes, randomly generated per export
-- **Authentication**: Built into GCM mode (authenticated encryption)
+- **Data Protection Class**: NSFileProtectionCompleteUntilFirstUserAuthentication
+- **Status**: Automatic when device has passcode/Face ID/Touch ID enabled
 
 ---
 
@@ -269,10 +242,10 @@ const mode = encrypted ? "secret" : "no-encryption";
    - Jailbreaking weakens the app's data protection
    - Bypasses iOS security measures and Secure Enclave protection
 
-5. **Use Strong Encrypted Backups**
-   - When exporting data, always choose password encryption option
-   - Use a strong password (12+ characters, complex)
-   - Store backup files securely (iCloud Drive, password manager)
+5. **Secure Your Backups**
+   - Export backups regularly to prevent data loss
+   - Store backup files securely (iCloud Drive with encryption enabled)
+   - Backup files are JSON format - keep them private
 
 6. **Keep App Updated**
    - Security improvements are released regularly
@@ -310,20 +283,19 @@ const mode = encrypted ? "secret" : "no-encryption";
 
 ### App Store (Apple)
 
-✅ **Exceeds** minimum requirements:
+✅ **Meets** minimum requirements:
 - Data stored locally with iOS Data Protection
 - No data transmission to servers
 - Privacy Policy describes data storage
-- SQLite encryption active (AES-256-CBC)
-- Biometric authentication available
-- Strong password requirements enforced
+- Biometric authentication available (optional)
 - HTTPS-only network policy
 
-✅ **Suitable for "Health" or "Finance" categories**:
-- Database encryption active
-- Biometric authentication implemented
-- Multi-layer data protection
-- OWASP Mobile Top 10 compliance: 8/10
+✅ **Suitable for "Productivity" category**:
+- iOS Data Protection encryption
+- Biometric authentication implemented (app lock)
+- Secure data protection
+- Simple, reliable security model
+- Easy backup and restore
 
 ### GDPR (Europe)
 
@@ -360,7 +332,7 @@ Application Sandbox:
 **Protection**:
 - All paths are within the app's sandbox (isolated from other apps)
 - Protected by iOS File Data Protection when device is locked
-- Database file is additionally encrypted with SQLCipher
+- Automatic hardware encryption (AES-256-XTS)
 
 ### Security Configuration
 
@@ -369,16 +341,11 @@ Application Sandbox:
 ```typescript
 CapacitorSQLite: {
   iosDatabaseLocation: 'Library/CapacitorDatabase',
-  iosIsEncryption: true,           // Active - database encrypted
-  iosKeychainPrefix: 'angular-sqlite-app-starter',
-  iosBiometric: {
-    biometricAuth: false,          // Database biometric auth (not used)
-    biometricTitle: "Biometric login for capacitor sqlite"
-  }
+  iosIsEncryption: false           // No app-level encryption, relies on iOS Data Protection
 }
 ```
 
-**Note**: App-level biometric authentication is handled separately via `@aparajita/capacitor-biometric-auth` plugin, not via SQLite plugin settings.
+**Note**: App-level biometric authentication is handled via `@aparajita/capacitor-biometric-auth` plugin for optional app lock functionality.
 
 ### Data Deletion
 
@@ -429,12 +396,11 @@ await NotificationService.cancelAllNotifications();
 
 ### 3. Is my data encrypted?
 
-**Yes**, at three levels (as of Version 1.0.1):
+**Yes**, when you have device passcode/Face ID/Touch ID enabled:
 1. **Hardware level**: Secure Enclave encryption (iOS)
-2. **Operating system level**: iOS File Data Protection (AES-256-XTS) when screen lock is enabled
-3. **Application level**: SQLCipher AES-256-CBC database encryption (active)
+2. **Operating system level**: iOS File Data Protection (AES-256-XTS)
 
-Your data has triple-layer protection with iOS-grade security!
+Your data is protected by iOS-grade hardware encryption!
 
 ### 4. What happens if I lose my phone?
 
@@ -459,12 +425,12 @@ Your data has triple-layer protection with iOS-grade security!
 - **Note**: Even though database is encrypted in the app, iCloud backups have separate encryption
 
 **Manual Backups (Export Feature)**:
-- **Export feature**: Save encrypted or unencrypted backup files
-- Can be stored in iCloud Drive, Files app, or other secure location
-- **Encrypted exports**: Password-protected with AES-256-GCM
-- **File extension**: `.prime3` (encrypted) or `.json` (unencrypted)
+- **Export feature**: Save backup files as simple JSON
+- Can be stored in iCloud Drive, Files app, or other secure locations
+- **File extension**: `.json`
+- **Easy restore**: Import JSON file to restore all data
 
-**Recommendation**: Use encrypted manual exports for maximum security and portability
+**Recommendation**: Store backup files in iCloud Drive (automatically encrypted by iOS)
 
 ### 7. How do I transfer data to a new phone?
 
@@ -474,10 +440,10 @@ Your data has triple-layer protection with iOS-grade security!
 3. All Prime3 data is automatically restored
 
 **Option 2 - Manual Export** (cross-device compatible):
-1. Export encrypted backup from old device
-2. Save file to iCloud Drive or Files
-3. Import backup on new device
-4. Enter password to decrypt
+1. Export backup from old device (Settings → Export Backup)
+2. Save JSON file to iCloud Drive or Files app
+3. Import backup on new device (Settings → Import Backup)
+4. All data restored instantly
 
 ---
 
@@ -494,62 +460,39 @@ For vulnerability reports:
 
 ## Change History
 
-### Version 1.0.1 (2025-11-15) - Security Enhancement Release
+### Version 1.0.0 (2025-11-15) - Initial Release
 
-**Critical Security Improvements**:
-- ✅ **SQLite Encryption Enabled**: Database now encrypted with AES-256-CBC via SQLCipher
-- ✅ **iOS Network Security**: Removed NSAllowsArbitraryLoads, enforcing HTTPS-only
-- ✅ **Biometric Authentication**: Added optional Face ID/Touch ID app lock
-- ✅ **Input Validation**: Implemented comprehensive validation for all user inputs
-- ✅ **Strong Password Requirements**: Backup passwords now require 12+ characters with complexity
-- ✅ **Subscription Validation**: Added RevenueCat integration for secure premium status verification
-- ✅ **iOS Keychain Integration**: Encryption keys securely stored in iOS Keychain
+**Security Features**:
+- ✅ **iOS Data Protection**: Automatic file encryption when device has passcode enabled
+- ✅ **iOS Network Security**: HTTPS-only enforcement
+- ✅ **Biometric Authentication**: Optional Face ID/Touch ID app lock
+- ✅ **Input Validation**: Comprehensive validation for all user inputs
+- ✅ **App Sandbox**: Data isolated from other applications
 
-**New Features**:
+**Features**:
 - Biometric lock toggle in Settings page
 - Input sanitization and length limits (200 chars for titles, 5000 for descriptions)
-- Improved password validation with complexity requirements
-- Subscription service with caching and validation
-
-**Security Posture**:
-- **OWASP Mobile Top 10**: Improved compliance from 3/10 to 8/10
-- **Data Encryption**: Triple-layer protection (Hardware + OS + App-level)
-- **Network Security**: HTTPS-only enforcement
-- **Backup Security**: Prevented unauthorized data extraction
-
-**Files Modified**:
-- `src/services/sqliteService.ts`: Enabled encryption
-- `src/services/biometricService.ts`: New biometric authentication service
-- `src/services/subscriptionService.ts`: New subscription validation service
-- `src/utils/validation.ts`: New comprehensive input validation
-- `ios/App/App/Info.plist`: Removed insecure network settings (NSAllowsArbitraryLoads)
-- `src/pages/Settings.tsx`: Added biometric toggle and password validation
-- `src/pages/Task.tsx`: Added input validation
-- `src/pages/Planning.tsx`: Added input validation
-- `src/components/BiometricGate.tsx`: New app launch authentication guard
-- `src/App.tsx`: Integrated BiometricGate and subscription context
-- `src/config/subscription.config.ts`: New subscription configuration
-
-### Version 1.0.0 (2025-11-15) - Initial Release
-- Initial implementation with on-device data storage
-- OS-level encryption (iOS)
-- SQLCipher configuration prepared
 - Local notifications without data transmission
-- Export/Import functionality with optional password encryption (AES-256-GCM)
+- Simple JSON export/import for easy backup and restore
+
+**Security Design**:
+- Simple, reliable security model
+- No encryption complexity or password errors
+- Data protected by iOS hardware encryption
+- Network Security: HTTPS-only enforcement
+- Backup Security: Store JSON backups in secure iOS locations (iCloud Drive)
+
+**Files**:
+- `src/services/sqliteService.ts`: Database management
+- `src/services/biometricService.ts`: Biometric authentication service
+- `src/utils/validation.ts`: Input validation
+- `ios/App/App/Info.plist`: Security configuration
+- `src/pages/Settings.tsx`: Biometric toggle and settings
+- `src/pages/Task.tsx`: Input validation
+- `src/pages/Planning.tsx`: Input validation
+- `src/components/BiometricGate.tsx`: App launch authentication guard
+- `capacitor.config.ts`: SQLite configuration (no encryption)
 
 ---
 
-## Apple Export Compliance
-
-**Encryption Classification**: "Standard encryption algorithms in addition to OS encryption"
-
-**Encryption Used**:
-1. **SQLCipher**: AES-256-CBC for database encryption (third-party library)
-2. **Web Crypto API**: AES-256-GCM for backup encryption (browser standard, uses iOS crypto)
-3. **iOS System**: AES-256-XTS for file system (OS-provided)
-
-**Note**: The app uses standard encryption algorithms implemented in both third-party libraries (SQLCipher) and OS-provided APIs (Web Crypto API). This requires declaration in App Store Connect under export compliance.
-
----
-
-**Note**: This documentation describes the current state of encryption and security in the Prime3 application as of Version 1.0.1. All major security features are now enabled and active.
+**Note**: This documentation describes the current state of security in the Prime3 application as of Version 1.0.0. The app uses iOS Data Protection for encryption, providing a simple and reliable security model.

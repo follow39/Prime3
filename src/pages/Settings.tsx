@@ -31,7 +31,6 @@ import NotificationService from '../services/notificationService';
 import BiometricService from '../services/biometricService';
 import { StorageServiceContext } from '../App';
 import ExportService from '../services/exportService';
-import { validateBackupPassword } from '../utils/validation';
 import PaywallModal from '../components/PaywallModal';
 
 const Settings: React.FC = () => {
@@ -46,14 +45,8 @@ const Settings: React.FC = () => {
   const [autoCopyIncompleteTasks, setAutoCopyIncompleteTasks] = useState<boolean>(true);
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [showClearDataAlert, setShowClearDataAlert] = useState<boolean>(false);
-  const [showExportOptions, setShowExportOptions] = useState<boolean>(false);
-  const [showExportPasswordPrompt, setShowExportPasswordPrompt] = useState<boolean>(false);
-  const [showImportPasswordPrompt, setShowImportPasswordPrompt] = useState<boolean>(false);
-  const [exportPassword, setExportPassword] = useState<string>('');
-  const [importPassword, setImportPassword] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string>('');
   const [showToast, setShowToast] = useState<boolean>(false);
-  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -161,53 +154,20 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleExportData = async (encrypted: boolean) => {
+  const handleExportData = async () => {
     try {
       if (!storageService) {
         setToastMessage('Storage service not available');
-        setShowToast(true);
-        return;
-      }
-
-      if (encrypted) {
-        setShowExportPasswordPrompt(true);
-      } else {
-        const backup = await ExportService.exportData(storageService);
-        await ExportService.downloadBackup(backup, false);
-        setToastMessage('Backup exported successfully');
-        setShowToast(true);
-      }
-    } catch (error) {
-      setToastMessage('Error exporting data: ' + (error as Error).message);
-      setShowToast(true);
-    }
-  };
-
-  const handleExportWithPassword = async () => {
-    try {
-      if (!storageService) {
-        setToastMessage('Storage service not available');
-        setShowToast(true);
-        return;
-      }
-
-      const passwordValidation = validateBackupPassword(exportPassword);
-      if (!passwordValidation.isValid) {
-        setToastMessage(passwordValidation.error || 'Invalid password');
         setShowToast(true);
         return;
       }
 
       const backup = await ExportService.exportData(storageService);
-      const encryptedBackup = await ExportService.encryptBackup(backup, exportPassword);
-      await ExportService.downloadBackup(encryptedBackup, true);
-
-      setExportPassword('');
-      setShowExportPasswordPrompt(false);
-      setToastMessage('Encrypted backup exported successfully');
+      await ExportService.downloadBackup(backup);
+      setToastMessage('Backup exported successfully');
       setShowToast(true);
     } catch (error) {
-      setToastMessage('Error exporting encrypted data: ' + (error as Error).message);
+      setToastMessage('Error exporting data: ' + (error as Error).message);
       setShowToast(true);
     }
   };
@@ -228,22 +188,14 @@ const Settings: React.FC = () => {
       }
 
       const backup = await ExportService.readBackupFile(file);
+      await ExportService.importData(storageService, backup);
+      setToastMessage('Data imported successfully');
+      setShowToast(true);
 
-      if (ExportService.isEncrypted(backup)) {
-        // Encrypted backup - ask for password
-        setPendingImportFile(file);
-        setShowImportPasswordPrompt(true);
-      } else {
-        // Unencrypted backup - import directly
-        await ExportService.importData(storageService, backup);
-        setToastMessage('Data imported successfully');
-        setShowToast(true);
-
-        // Reload the page to reflect changes
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      }
+      // Reload the page to reflect changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Error importing data:', error);
       setToastMessage('Error importing data: ' + (error as Error).message);
@@ -253,48 +205,6 @@ const Settings: React.FC = () => {
     // Reset file input
     if (event.target) {
       event.target.value = '';
-    }
-  };
-
-  const handleImportWithPassword = async () => {
-    try {
-      if (!storageService || !pendingImportFile) {
-        setToastMessage('Storage service not available or no file selected');
-        setShowToast(true);
-        return;
-      }
-
-      if (!importPassword) {
-        setToastMessage('Please enter the password');
-        setShowToast(true);
-        return;
-      }
-
-      const encryptedBackup = await ExportService.readBackupFile(pendingImportFile);
-
-      if (!ExportService.isEncrypted(encryptedBackup)) {
-        setToastMessage('File is not encrypted');
-        setShowToast(true);
-        return;
-      }
-
-      const backup = await ExportService.decryptBackup(encryptedBackup, importPassword);
-      await ExportService.importData(storageService, backup);
-
-      setImportPassword('');
-      setPendingImportFile(null);
-      setShowImportPasswordPrompt(false);
-      setToastMessage('Encrypted data imported successfully');
-      setShowToast(true);
-
-      // Reload the page to reflect changes
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    } catch (error) {
-      console.error('Error importing encrypted data:', error);
-      setToastMessage('Error: ' + (error as Error).message);
-      setShowToast(true);
     }
   };
 
@@ -492,7 +402,7 @@ const Settings: React.FC = () => {
                   fill="outline"
                   color="primary"
                   size="small"
-                  onClick={() => setShowExportOptions(true)}
+                  onClick={handleExportData}
                 >
                   Export
                 </IonButton>
@@ -545,7 +455,7 @@ const Settings: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".json,.prime3"
+              accept=".json"
               style={{ display: 'none' }}
               onChange={handleFileSelected}
             />
@@ -572,100 +482,6 @@ const Settings: React.FC = () => {
             text: 'Clear All Data',
             role: 'destructive',
             handler: handleClearAllData
-          }
-        ]}
-      />
-
-      <IonAlert
-        isOpen={showExportOptions}
-        onDidDismiss={() => setShowExportOptions(false)}
-        header="Export Backup"
-        message="Choose whether to encrypt your backup with a password."
-        buttons={[
-          {
-            text: 'Cancel',
-            role: 'cancel'
-          },
-          {
-            text: 'Export without encryption',
-            handler: () => handleExportData(false)
-          },
-          {
-            text: 'Export with password',
-            handler: () => handleExportData(true)
-          }
-        ]}
-      />
-
-      <IonAlert
-        isOpen={showExportPasswordPrompt}
-        onDidDismiss={() => {
-          setShowExportPasswordPrompt(false);
-          setExportPassword('');
-        }}
-        header="Encrypt Backup"
-        message="Enter a password to encrypt your backup. You'll need this password to restore the data."
-        inputs={[
-          {
-            name: 'password',
-            type: 'password',
-            placeholder: 'Enter password (min 6 characters)',
-            value: exportPassword,
-            attributes: {
-              minlength: 6
-            }
-          }
-        ]}
-        buttons={[
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            handler: () => {
-              setExportPassword('');
-            }
-          },
-          {
-            text: 'Export',
-            handler: (data) => {
-              setExportPassword(data.password);
-              setTimeout(() => handleExportWithPassword(), 100);
-            }
-          }
-        ]}
-      />
-
-      <IonAlert
-        isOpen={showImportPasswordPrompt}
-        onDidDismiss={() => {
-          setShowImportPasswordPrompt(false);
-          setImportPassword('');
-          setPendingImportFile(null);
-        }}
-        header="Decrypt Backup"
-        message="This backup is encrypted. Enter the password to restore your data."
-        inputs={[
-          {
-            name: 'password',
-            type: 'password',
-            placeholder: 'Enter password',
-            value: importPassword
-          }
-        ]}
-        buttons={[
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            handler: () => {
-              setImportPassword('');
-              setPendingImportFile(null);
-            }
-          },
-          {
-            text: 'Import',
-            handler: (data) => {
-              setImportPassword(data.password);
-              setTimeout(() => handleImportWithPassword(), 100);
-            }
           }
         ]}
       />
