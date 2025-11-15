@@ -1,6 +1,4 @@
 PODS:
-  - AparajitaCapacitorBiometricAuth (9.1.2):
-    - Capacitor
   - Capacitor (7.4.4):
     - CapacitorCordova
   - CapacitorApp (7.1.0):
@@ -38,7 +36,6 @@ PODS:
   - ZIPFoundation (0.9.20)
 
 DEPENDENCIES:
-  - "AparajitaCapacitorBiometricAuth (from `../../node_modules/@aparajita/capacitor-biometric-auth`)"
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCommunitySqlite (from `../../node_modules/@capacitor-community/sqlite`)"
@@ -60,8 +57,6 @@ SPEC REPOS:
     - ZIPFoundation
 
 EXTERNAL SOURCES:
-  AparajitaCapacitorBiometricAuth:
-    :path: "../../node_modules/@aparajita/capacitor-biometric-auth"
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
@@ -90,7 +85,6 @@ EXTERNAL SOURCES:
     :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
-  AparajitaCapacitorBiometricAuth: c7edb43d80486150b81224d3ff7e950b37a3c2f1
   Capacitor: 358dd1c3fdd71d969547b17e159fd8a7736cb45f
   CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
   CapacitorCommunitySqlite: a57c58e1c37f4bc250ef01e66b0055cb6ddd775e
@@ -108,6 +102,6 @@ SPEC CHECKSUMS:
   SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 23a762f84f52c327a22c7caeb2df9bb7620fe5ab
+PODFILE CHECKSUM: 6cc6e8f0f307716f1a86ebd19db920b337f3f8ef
 
 COCOAPODS: 1.16.2
