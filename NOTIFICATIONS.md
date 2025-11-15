@@ -274,7 +274,7 @@ Checks if notification permissions are currently granted.
 
 ### Technology
 - **Framework**: Capacitor Local Notifications Plugin (`@capacitor/local-notifications`)
-- **Platform**: iOS and Android native notifications
+- **Platform**: iOS native notifications
 - **Scheduling**: Time-based (not geofence or other triggers)
 - **Storage**: localStorage for tracking used messages
 - **Click Handling**: Notification tap listener in `App.tsx` routes to appropriate pages

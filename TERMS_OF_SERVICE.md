@@ -12,9 +12,8 @@ By downloading, installing, or using Prime3 ("the App"), you agree to be bound b
 
 ## Developer Information
 
-**Developer**: [YOUR_COMPANY_NAME]
-**Email**: [YOUR_SUPPORT_EMAIL]
-**Website**: [YOUR_WEBSITE]
+**Developer**: Artem Ivanov
+**Email**: prime3.app@mailbox.org
 
 ## License to Use
 
@@ -50,10 +49,10 @@ Premium features may be available through:
 - Lifetime purchase
 
 ### Payment Terms
-- Payments are processed through Apple App Store or Google Play Store
+- Payments are processed through Apple App Store
 - Subscriptions automatically renew unless cancelled 24 hours before renewal
 - You can manage or cancel subscriptions in your device settings
-- Refunds are subject to Apple/Google policies
+- Refunds are subject to Apple policies
 - We do not have access to your payment information
 
 ### Changes to Pricing
@@ -89,7 +88,7 @@ We do not guarantee:
 
 ## Limitation of Liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, [YOUR_COMPANY_NAME] SHALL NOT BE LIABLE FOR:
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, Artem Ivanov SHALL NOT BE LIABLE FOR:
 - Indirect, incidental, special, consequential, or punitive damages
 - Loss of profits, data, or other intangible losses
 - Damages resulting from your use or inability to use the App
@@ -106,14 +105,12 @@ You are responsible for backing up your data. Prime3 stores data locally on your
 
 ## Intellectual Property
 
-Prime3 and all related trademarks, logos, and content are the property of [YOUR_COMPANY_NAME]. All rights reserved.
+Prime3 and all related trademarks, logos, and content are the property of Artem Ivanov. All rights reserved.
 
 ## Third-Party Services
 
 ### App Store Platforms
-Your use of Prime3 is also subject to:
-- Apple App Store Terms of Service
-- Google Play Store Terms of Service
+Your use of Prime3 is also subject to Apple App Store Terms of Service.
 
 ### Third-Party Content
 Prime3 may display or reference third-party content. We are not responsible for such content.
@@ -141,7 +138,7 @@ Prime3 is suitable for ages 4+. Users under 13 should obtain parental consent be
 
 ## Changes to Terms
 
-We may modify these Terms at any time. Changes will be posted in the App and on our website with an updated "Last Updated" date. Continued use of the App after changes constitutes acceptance of new Terms.
+We may modify these Terms at any time. Changes will be posted in the App with an updated "Last Updated" date. Continued use of the App after changes constitutes acceptance of new Terms.
 
 ## Governing Law
 
@@ -150,7 +147,7 @@ These Terms are governed by the laws of [YOUR_JURISDICTION], without regard to c
 ## Dispute Resolution
 
 ### Informal Resolution
-Before filing any legal action, you agree to attempt to resolve disputes informally by contacting us at [YOUR_SUPPORT_EMAIL].
+Before filing any legal action, you agree to attempt to resolve disputes informally by contacting us at prime3.app@mailbox.org.
 
 ### Arbitration (Optional - Consult Legal Counsel)
 [You may include arbitration clauses here if desired. This should be reviewed by legal counsel.]
@@ -161,14 +158,13 @@ If any provision of these Terms is found unenforceable, the remaining provisions
 
 ## Entire Agreement
 
-These Terms, along with our Privacy Policy, constitute the entire agreement between you and [YOUR_COMPANY_NAME] regarding Prime3.
+These Terms, along with our Privacy Policy, constitute the entire agreement between you and Artem Ivanov regarding Prime3.
 
 ## Contact Us
 
 Questions about these Terms?
 
-**Email**: [YOUR_SUPPORT_EMAIL]
-**Website**: [YOUR_WEBSITE]
+**Email**: prime3.app@mailbox.org
 
 ---
 
@@ -184,6 +180,7 @@ By using Prime3, you acknowledge that you have read, understood, and agree to be
 3. Specify your jurisdiction for governing law
 4. Have this reviewed by a legal professional familiar with app store requirements
 5. Consider adding arbitration clauses if appropriate for your jurisdiction
-6. Host this on your website at the URL specified in app store listings
-7. Update the URL in AppStore.md and app store listings
-8. Ensure compliance with Apple App Store Review Guidelines and Google Play policies
+6. Convert to HTML and host online (GitHub Pages, Netlify, or Vercel) - optional
+7. Update the URL in AppStore.md and App Store Connect listing if hosting
+8. Ensure compliance with Apple App Store Review Guidelines
+9. Note: Terms of Service is optional for App Store submission

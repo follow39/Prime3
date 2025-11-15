@@ -5,6 +5,8 @@ import { Task as TaskModel, TaskStatus } from '../models/Task';
 import { StorageServiceContext } from '../App';
 import HeaderTimeLeft from '../components/HeaderTimeLeft';
 import NotificationService from '../services/notificationService';
+import { validateAndSanitizeTitle, validateAndSanitizeDescription } from '../utils/validation';
+import { Toast } from '@capacitor/toast';
 
 const Task: React.FC = () => {
     const location = useLocation<{ task: TaskModel }>();
@@ -27,25 +29,47 @@ const Task: React.FC = () => {
     }, [location.state]);
 
     const handleSave = async () => {
-        if (!title.trim()) {
+        if (!task) return;
+
+        // Validate and sanitize title
+        const titleResult = validateAndSanitizeTitle(title);
+        if (!titleResult.validation.isValid) {
+            await Toast.show({
+                text: titleResult.validation.error || 'Invalid title',
+                duration: 'long'
+            });
             return;
         }
 
-        if (!task) return;
+        // Validate and sanitize description
+        const descResult = validateAndSanitizeDescription(description);
+        if (!descResult.validation.isValid) {
+            await Toast.show({
+                text: descResult.validation.error || 'Invalid description',
+                duration: 'long'
+            });
+            return;
+        }
 
         try {
             const updatedTask: TaskModel = {
                 ...task,
-                title: title.trim(),
-                description: description.trim()
+                title: titleResult.sanitized,
+                description: descResult.sanitized
             };
 
             await storageServ.updateTask(updatedTask);
             setTask(updatedTask);
+            setTitle(titleResult.sanitized);
+            setDescription(descResult.sanitized);
             setIsEditing(false);
         } catch (error) {
             const msg = `Error updating task: ${error}`;
             console.error(msg);
+            await Toast.show({
+                text: 'Failed to save task',
+                duration: 'long'
+            });
         }
     };
 

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Prime3 - Focus on three essential goals each day. Sustainable productivity without burnout.",
-  "author": "YOUR_NAME <YOUR_EMAIL>",
+  "author": "Prime3 <prime3.app@mailbox.org>",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
@@ -15,8 +15,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^9.1.2",
     "@capacitor-community/sqlite": "^7.0.2",
-    "@capacitor/android": "7.4.4",
     "@capacitor/app": "7.1.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/core": "7.4.4",

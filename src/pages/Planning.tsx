@@ -12,7 +12,6 @@ import {
   IonLabel,
   IonInput,
   IonTextarea,
-  IonList,
   IonFooter,
   IonIcon,
   IonCard,
@@ -27,6 +26,7 @@ import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import PreferencesService from '../services/preferencesService';
 import ThreeGoalsHelpModal from '../components/ThreeGoalsHelpModal';
+import { validateAndSanitizeTitle, validateAndSanitizeDescription } from '../utils/validation';
 
 const Planning: React.FC = () => {
   const router = useIonRouter();
@@ -128,36 +128,70 @@ const Planning: React.FC = () => {
         console.error('Error marking previous incomplete tasks as overdue:', error);
       }
 
+      // Validate and sanitize all tasks
+      const task1TitleResult = validateAndSanitizeTitle(task1Title);
+      const task1DescResult = validateAndSanitizeDescription(task1Description);
+      const task2TitleResult = validateAndSanitizeTitle(task2Title);
+      const task2DescResult = validateAndSanitizeDescription(task2Description);
+      const task3TitleResult = validateAndSanitizeTitle(task3Title);
+      const task3DescResult = validateAndSanitizeDescription(task3Description);
+
+      // Check for validation errors
+      if (!task1TitleResult.validation.isValid) {
+        await Toast.show({ text: `Task 1: ${task1TitleResult.validation.error}`, duration: 'long' });
+        return;
+      }
+      if (!task1DescResult.validation.isValid) {
+        await Toast.show({ text: `Task 1 description: ${task1DescResult.validation.error}`, duration: 'long' });
+        return;
+      }
+      if (!task2TitleResult.validation.isValid) {
+        await Toast.show({ text: `Task 2: ${task2TitleResult.validation.error}`, duration: 'long' });
+        return;
+      }
+      if (!task2DescResult.validation.isValid) {
+        await Toast.show({ text: `Task 2 description: ${task2DescResult.validation.error}`, duration: 'long' });
+        return;
+      }
+      if (!task3TitleResult.validation.isValid) {
+        await Toast.show({ text: `Task 3: ${task3TitleResult.validation.error}`, duration: 'long' });
+        return;
+      }
+      if (!task3DescResult.validation.isValid) {
+        await Toast.show({ text: `Task 3 description: ${task3DescResult.validation.error}`, duration: 'long' });
+        return;
+      }
+
       // Create tasks for each non-empty title
       const tasksToCreate: Task[] = [];
 
-      if (task1Title.trim()) {
+      if (task1TitleResult.sanitized) {
         tasksToCreate.push({
           id: 0,
-          title: task1Title.trim(),
-          description: task1Description.trim(),
+          title: task1TitleResult.sanitized,
+          description: task1DescResult.sanitized,
           status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (task2Title.trim()) {
+      if (task2TitleResult.sanitized) {
         tasksToCreate.push({
           id: 0,
-          title: task2Title.trim(),
-          description: task2Description.trim(),
+          title: task2TitleResult.sanitized,
+          description: task2DescResult.sanitized,
           status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1
         });
       }
 
-      if (task3Title.trim()) {
+      if (task3TitleResult.sanitized) {
         tasksToCreate.push({
           id: 0,
-          title: task3Title.trim(),
-          description: task3Description.trim(),
+          title: task3TitleResult.sanitized,
+          description: task3DescResult.sanitized,
           status: TaskStatus.Open,
           creation_date: todayDate,
           active: 1

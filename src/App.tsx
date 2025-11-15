@@ -7,6 +7,7 @@ import SqliteService from './services/sqliteService';
 import DbVersionService from './services/dbVersionService';
 import StorageService from './services/storageService';
 import AppInitializer from './components/AppInitializer';
+import BiometricGate from './components/BiometricGate';
 import './services/themeService'; // Initialize theme service
 import Home from './pages/Home';
 import Review from './pages/Review';
@@ -117,9 +118,11 @@ const App: React.FC = () => (
         <StorageServiceContext.Provider value={new StorageService(SqliteService, DbVersionService)}>
           <AppInitializer>
             <IonApp>
-              <IonReactRouter>
-                <AppContent />
-              </IonReactRouter>
+              <BiometricGate>
+                <IonReactRouter>
+                  <AppContent />
+                </IonReactRouter>
+              </BiometricGate>
             </IonApp>
           </AppInitializer>
         </StorageServiceContext.Provider>

@@ -10,9 +10,6 @@ import {
   IonIcon,
   IonCard,
   IonCardContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonText
 } from '@ionic/react';
 import { checkmarkCircle } from 'ionicons/icons';

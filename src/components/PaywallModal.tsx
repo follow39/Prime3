@@ -10,13 +10,11 @@ import {
   IonIcon,
   IonCard,
   IonCardContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonText
 } from '@ionic/react';
 import { checkmarkCircle } from 'ionicons/icons';
-import PreferencesService from '../services/preferencesService';
+import { Toast } from '@capacitor/toast';
+import IAPService from '../services/iapService';
 import './PaywallModal.css';
 
 type PricingTier = 'annual' | 'lifetime';
@@ -33,22 +31,44 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
   const history = useHistory();
 
   const handlePurchase = async () => {
-    // TODO: Integrate with actual in-app purchase system
-    // For now, just unlock the feature
-    await PreferencesService.setIsPremium(true);
-    await PreferencesService.setPremiumTier(selectedTier);
+    try {
+      // Get the product ID based on selected tier
+      const productId = selectedTier === 'annual'
+        ? 'com.prime3.app.premium.annual'
+        : 'com.prime3.app.premium.lifetime';
 
-    // Call the completion callback if provided
-    if (onPurchaseComplete) {
-      onPurchaseComplete();
-    }
+      // Attempt purchase via IAP service
+      const result = await IAPService.purchaseProduct(productId);
 
-    // Close the modal first
-    onClose();
+      if (result.success) {
+        await Toast.show({
+          text: 'Premium unlocked! Enjoy all features.',
+          duration: 'long'
+        });
 
-    // Route to destination if provided
-    if (routeAfterPurchase) {
-      history.push(routeAfterPurchase);
+        // Call the completion callback if provided
+        if (onPurchaseComplete) {
+          onPurchaseComplete();
+        }
+
+        // Close the modal first
+        onClose();
+
+        // Route to destination if provided
+        if (routeAfterPurchase) {
+          history.push(routeAfterPurchase);
+        }
+      } else {
+        await Toast.show({
+          text: result.error || 'Purchase failed. Please try again.',
+          duration: 'long'
+        });
+      }
+    } catch (error: unknown) {
+      await Toast.show({
+        text: (error as Error).message || 'Purchase failed. Please try again.',
+        duration: 'long'
+      });
     }
   };
 
@@ -189,6 +209,43 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
 
           <IonButton
             expand="block"
+            fill="outline"
+            size="small"
+            onClick={async () => {
+              try {
+                const result = await IAPService.restorePurchases();
+
+                if (result.success) {
+                  await Toast.show({
+                    text: 'Purchases restored successfully!',
+                    duration: 'long'
+                  });
+
+                  if (onPurchaseComplete) {
+                    onPurchaseComplete();
+                  }
+
+                  onClose();
+                } else {
+                  await Toast.show({
+                    text: result.error || 'No purchases to restore.',
+                    duration: 'long'
+                  });
+                }
+              } catch {
+                await Toast.show({
+                  text: 'Failed to restore purchases.',
+                  duration: 'long'
+                });
+              }
+            }}
+            style={{ marginTop: '8px' }}
+          >
+            Restore Purchases
+          </IonButton>
+
+          <IonButton
+            expand="block"
             fill="clear"
             size="small"
             onClick={onClose}
@@ -196,6 +253,10 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
           >
             I'll Stay Limited For Now
           </IonButton>
+
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--ion-color-medium)' }}>
+            <p style={{ margin: '4px 0' }}>Questions? Contact prime3.app@mailbox.org</p>
+          </div>
         </div>
       </IonContent>
     </IonModal>

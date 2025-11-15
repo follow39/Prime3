@@ -84,9 +84,35 @@ productivity, goals, daily planner, focus, task manager, to-do list, habit track
 
 ---
 
-## What's New (Version Template)
+## What's New
 
-### Version X.X.X
+### Version 1.0.0 - Initial Release
+
+Welcome to Prime3! This is our first release.
+
+**Features**
+- Focus on three essential goals each day
+- Live countdown timer showing remaining productive hours
+- Smart daily notifications to keep you motivated
+- Visual progress calendar with streak tracking
+- Customizable day schedule (set your workday hours)
+- Complete task history and review analytics
+- Face ID/Touch ID security for your goals
+- Beautiful dark mode that follows system preferences
+- Completely offline - all data stays private on your device
+
+**Premium Features**
+- Advanced analytics and insights
+- Extended goal history
+- Detailed progress tracking
+- Annual subscription: $15.48/year (just $1.29/month)
+- Lifetime access: $14.99 one-time purchase
+
+Thank you for trying Prime3! We'd love to hear your feedback at prime3.app@mailbox.org.
+
+---
+
+### Future Updates Template
 
 **New Features**
 - [Feature description]
@@ -97,7 +123,7 @@ productivity, goals, daily planner, focus, task manager, to-do list, habit track
 **Bug Fixes**
 - [Bug fix description]
 
-We're constantly working to make Prime3 better for you. Have feedback? We'd love to hear from you at [feedback email].
+We're constantly working to make Prime3 better for you. Have feedback? We'd love to hear from you at prime3.app@mailbox.org.
 
 ---
 
@@ -114,11 +140,13 @@ We're constantly working to make Prime3 better for you. Have feedback? We'd love
 
 ## Privacy Policy Summary
 
-**Data Storage**: All your tasks, goals, and progress are stored locally on your device using secure local storage.
+**Data Storage**: All your tasks, goals, and progress are stored locally on your device using secure local storage. Your data is automatically included in standard iOS device backups (if iCloud Backup is enabled).
 
-**No Account Required**: Prime3 works completely offline. No sign-up, no login, no cloud sync required.
+**No Account Required**: Prime3 works completely offline. No sign-up, no login, no custom cloud sync required.
 
 **No Data Collection**: We do not collect, transmit, or analyze any of your personal data or task information.
+
+**Automatic Backup**: Your data is backed up via standard iOS backup to iCloud (if enabled in device settings). This ensures your data persists across app reinstalls while maintaining privacy - your backup is stored in your personal iCloud account, not on our servers.
 
 **Notifications**: Optional local notifications are sent from your device to help you stay motivated. These are generated locally and no data leaves your device.
 
@@ -130,10 +158,9 @@ We're constantly working to make Prime3 better for you. Have feedback? We'd love
 
 ## Support Information
 
-**Support Email**: [Your support email]
-**Website**: [Your website]
-**Privacy Policy**: [Privacy policy URL]
-**Terms of Service**: [Terms URL]
+**Support Email**: prime3.app@mailbox.org
+**Privacy Policy**: TBD (required for App Store - see PRIVACY_POLICY.md template)
+**Terms of Service**: TBD (optional - see TERMS_OF_SERVICE.md template)
 
 ---
 
@@ -192,7 +219,7 @@ We're constantly working to make Prime3 better for you. Have feedback? We'd love
 "Thank you for taking the time to share your feedback. We're always working to improve Prime3, and suggestions like yours help us make the app better for everyone. We'll consider this for future updates!"
 
 ### Bug Report Response
-"We're sorry you experienced this issue. We take bugs seriously and would love to help resolve this. Could you please email us at [support email] with more details? We'll work to fix this as quickly as possible."
+"We're sorry you experienced this issue. We take bugs seriously and would love to help resolve this. Could you please email us at prime3.app@mailbox.org with more details? We'll work to fix this as quickly as possible."
 
 ### Feature Request Response
 "Great suggestion! We love hearing ideas from our users. While we can't promise every feature will make it into the app, we're keeping track of all requests and will consider this for future development. Thank you for being part of the Prime3 community!"
@@ -246,11 +273,11 @@ Download Prime3: [link]
 
 **Prime3: New Productivity App Challenges Endless To-Do List Culture with Three Daily Goals Approach**
 
-[CITY, DATE] – Prime3, a new productivity application for iOS and Android, is taking a radically different approach to task management by limiting users to just three goals per day.
+[CITY, DATE] – Prime3, a new productivity application for iOS, is taking a radically different approach to task management by limiting users to just three goals per day.
 
 In an era of overwhelming to-do lists and productivity guilt, Prime3 simplifies goal-setting with a research-backed approach: focus on three meaningful objectives each day rather than attempting to juggle dozens of tasks.
 
-"The average person's to-do list has become a source of stress rather than a tool for achievement," says [Founder Name]. "Prime3 returns to the fundamentals: what are the three most important things you need to accomplish today? Everything else is noise."
+"The average person's to-do list has become a source of stress rather than a tool for achievement," says Artem Ivanov, creator of Prime3. "Prime3 returns to the fundamentals: what are the three most important things you need to accomplish today? Everything else is noise."
 
 Key features include:
 - Daily planning ritual for selecting three priorities
@@ -259,9 +286,9 @@ Key features include:
 - Visual progress tracking and achievement calendar
 - Complete privacy with local-only data storage
 
-Prime3 is available now as a free download on the [App Store/Play Store].
+Prime3 is available now as a free download on the App Store.
 
-For more information, visit [website] or contact [email].
+For more information, contact prime3.app@mailbox.org.
 
 ---
 
@@ -280,10 +307,12 @@ A: Absolutely. All your goals and progress are stored locally on your device. We
 A: Yes! Prime3 works completely offline. No internet connection required.
 
 **Q: Can I sync across devices?**
-A: Currently, Prime3 stores all data locally on your device. Cross-device sync is being considered for future updates.
+A: Prime3 stores all data locally on your device and backs it up via standard iOS backup to iCloud. Your data will automatically restore when you reinstall the app on the same device. True cross-device sync (accessing the same data on multiple devices simultaneously) is being considered for future updates.
 
 **Q: How much does Prime3 cost?**
-A: [Adjust based on your pricing model - free, freemium, paid, etc.]
+A: Prime3 is free to download with core features included. Premium analytics and insights are available through:
+- Annual Subscription: $15.48/year (just $1.29/month)
+- Lifetime Access: $14.99 one-time purchase (40% off sale)
 
 **Q: What makes Prime3 different from other to-do apps?**
 A: Most task managers encourage you to capture every possible task, leading to overwhelming lists. Prime3 forces you to choose: what are the three things that matter most today? This constraint creates clarity and focus that other apps can't match.

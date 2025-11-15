@@ -1,3 +1,5 @@
+import IAPService from './iapService';
+
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type PremiumTier = 'annual' | 'lifetime' | null;
 
@@ -215,10 +217,10 @@ class PreferencesService implements IPreferencesService {
 
     async getIsPremium(): Promise<boolean> {
         try {
-            const value = localStorage.getItem(this.IS_PREMIUM_KEY);
-            return value === 'true';
+            // Use IAP service (checks production mode internally)
+            return await IAPService.isPremium();
         } catch (error) {
-            console.error('Error reading premium status from preferences:', error);
+            console.error('Error reading premium status:', error);
             return false;
         }
     }
@@ -234,13 +236,14 @@ class PreferencesService implements IPreferencesService {
 
     async getPremiumTier(): Promise<PremiumTier> {
         try {
-            const value = localStorage.getItem(this.PREMIUM_TIER_KEY);
-            if (value === 'annual' || value === 'lifetime') {
-                return value;
+            // Use IAP service (checks production mode internally)
+            const tier = await IAPService.getPremiumTier();
+            if (tier === 'annual' || tier === 'lifetime') {
+                return tier;
             }
             return null;
         } catch (error) {
-            console.error('Error reading premium tier from preferences:', error);
+            console.error('Error reading premium tier:', error);
             return null;
         }
     }

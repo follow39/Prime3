@@ -20,6 +20,9 @@ const AppInitializer: FC<AppInitializerProps> = ({ children }) => {
             try {
                 const appInit = await initializeAppService.initializeApp();
 
+                // Note: IAP service doesn't require initialization
+                // It handles production vs development mode internally
+
                 // Initialize notifications if enabled
                 const notificationsEnabled = await PreferencesService.getPushNotificationsEnabled();
                 if (notificationsEnabled) {

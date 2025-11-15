@@ -24,12 +24,15 @@ import {
   IonIcon,
   IonToast
 } from '@ionic/react';
-import { trashOutline, downloadOutline, cloudUploadOutline } from 'ionicons/icons';
+import { trashOutline, downloadOutline, cloudUploadOutline, starOutline } from 'ionicons/icons';
 import PreferencesService, { ThemePreference } from '../services/preferencesService';
 import ThemeService from '../services/themeService';
 import NotificationService from '../services/notificationService';
+import BiometricService from '../services/biometricService';
 import { StorageServiceContext } from '../App';
 import ExportService from '../services/exportService';
+import { validateBackupPassword } from '../utils/validation';
+import PaywallModal from '../components/PaywallModal';
 
 const Settings: React.FC = () => {
   const history = useHistory();
@@ -38,6 +41,8 @@ const Settings: React.FC = () => {
   const [dayEndTime, setDayEndTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(false);
+  const [biometricEnabled, setBiometricEnabled] = useState<boolean>(false);
+  const [biometricAvailable, setBiometricAvailable] = useState<boolean>(false);
   const [autoCopyIncompleteTasks, setAutoCopyIncompleteTasks] = useState<boolean>(true);
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [showClearDataAlert, setShowClearDataAlert] = useState<boolean>(false);
@@ -49,6 +54,7 @@ const Settings: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>('');
   const [showToast, setShowToast] = useState<boolean>(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,12 +63,16 @@ const Settings: React.FC = () => {
       const endTime = await PreferencesService.getEarliestEndTime();
       const theme = await PreferencesService.getThemePreference();
       const pushEnabled = await PreferencesService.getPushNotificationsEnabled();
+      const bioEnabled = await BiometricService.isEnabled();
+      const bioAvailable = await BiometricService.isAvailable();
       const autoCopy = await PreferencesService.getAutoCopyIncompleteTasks();
       const premium = await PreferencesService.getIsPremium();
       setDayStartTime(startTime);
       setDayEndTime(endTime);
       setThemePreference(theme);
       setPushNotificationsEnabled(pushEnabled);
+      setBiometricEnabled(bioEnabled);
+      setBiometricAvailable(bioAvailable);
       setAutoCopyIncompleteTasks(autoCopy);
       setIsPremium(premium);
     };
@@ -116,6 +126,21 @@ const Settings: React.FC = () => {
     await PreferencesService.setAutoCopyIncompleteTasks(checked);
   };
 
+  const handleBiometricChange = async (checked: boolean) => {
+    try {
+      await BiometricService.setEnabled(checked);
+      setBiometricEnabled(checked);
+      setToastMessage(checked ? 'Biometric lock enabled' : 'Biometric lock disabled');
+      setShowToast(true);
+    } catch (error: any) {
+      // Revert toggle if enabling failed
+      setBiometricEnabled(false);
+      const msg = error.message || 'Failed to enable biometric lock';
+      setToastMessage(msg);
+      setShowToast(true);
+    }
+  };
+
   const handleClearAllData = async () => {
     try {
       // Delete all tasks from database
@@ -166,8 +191,9 @@ const Settings: React.FC = () => {
         return;
       }
 
-      if (!exportPassword || exportPassword.length < 6) {
-        setToastMessage('Password must be at least 6 characters');
+      const passwordValidation = validateBackupPassword(exportPassword);
+      if (!passwordValidation.isValid) {
+        setToastMessage(passwordValidation.error || 'Invalid password');
         setShowToast(true);
         return;
       }
@@ -272,6 +298,13 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handlePurchaseComplete = async () => {
+    // Reload premium status
+    const premium = await PreferencesService.getIsPremium();
+    setIsPremium(premium);
+    setShowPaywallModal(false);
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -345,7 +378,7 @@ const Settings: React.FC = () => {
                 </IonLabel>
               </IonItem>
             </IonList>
-            {isPremium && (
+            {isPremium ? (
               <div style={{ marginTop: '15px', padding: '10px', background: 'var(--ion-color-light)', borderRadius: '8px' }}>
                 <p style={{ margin: 0, fontSize: '14px', color: 'var(--ion-color-medium)' }}>
                   You have access to:
@@ -357,6 +390,16 @@ const Settings: React.FC = () => {
                   <li>Motivational Insights</li>
                 </ul>
               </div>
+            ) : (
+              <IonButton
+                expand="block"
+                color="primary"
+                style={{ marginTop: '15px' }}
+                onClick={() => setShowPaywallModal(true)}
+              >
+                <IonIcon slot="start" icon={starOutline} />
+                Obtain Premium
+              </IonButton>
             )}
           </IonCardContent>
         </IonCard>
@@ -387,6 +430,16 @@ const Settings: React.FC = () => {
                   onIonChange={(e) => handlePushNotificationsChange(e.detail.checked)}
                 />
               </IonItem>
+              {biometricAvailable && (
+                <IonItem>
+                  <IonLabel>Biometric lock</IonLabel>
+                  <IonToggle
+                    slot="end"
+                    checked={biometricEnabled}
+                    onIonChange={(e) => handleBiometricChange(e.detail.checked)}
+                  />
+                </IonItem>
+              )}
             </IonList>
           </IonCardContent>
         </IonCard>
@@ -407,7 +460,7 @@ const Settings: React.FC = () => {
               expand="block"
               fill="outline"
               onClick={() => {
-                window.location.href = 'mailto:feedback@example.com?subject=Prime3 Feedback';
+                window.location.href = 'mailto:prime3.app@mailbox.org?subject=Prime3 Feedback';
               }}
               style={{ marginTop: '10px' }}
             >
@@ -623,6 +676,12 @@ const Settings: React.FC = () => {
         message={toastMessage}
         duration={3000}
         position="bottom"
+      />
+
+      <PaywallModal
+        isOpen={showPaywallModal}
+        onClose={() => setShowPaywallModal(false)}
+        onPurchaseComplete={handlePurchaseComplete}
       />
     </IonPage>
   );

@@ -378,7 +378,7 @@ class NotificationService {
 
       // 3. One hour before end notification
       let oneHourBeforeHour = endHour - 1;
-      let oneHourBeforeMinute = endMinute;
+      const oneHourBeforeMinute = endMinute;
       if (oneHourBeforeHour < 0) {
         oneHourBeforeHour = 23;
       }
@@ -487,7 +487,7 @@ class NotificationService {
 
       // Schedule review 1 hour before end of day
       let reviewHour = endHour - 1;
-      let reviewMinute = endMinute;
+      const reviewMinute = endMinute;
       if (reviewHour < 0) {
         reviewHour = 23;
       }

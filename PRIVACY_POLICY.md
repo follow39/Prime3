@@ -8,7 +8,7 @@
 
 ## Introduction
 
-[YOUR_COMPANY_NAME] ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This privacy policy explains how Prime3 ("the App") handles your information.
+Artem Ivanov ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This privacy policy explains how Prime3 ("the App") handles your information.
 
 ## Data Collection
 
@@ -67,9 +67,9 @@ Prime3 uses local notifications to remind you about your daily goals:
 ## In-App Purchases (If Applicable)
 
 If you make an in-app purchase:
-- Payment processing is handled by Apple App Store or Google Play Store
+- Payment processing is handled by Apple App Store
 - We do not collect or store your payment information
-- Purchase receipts are validated with Apple/Google servers
+- Purchase receipts are validated with Apple servers
 - We only receive confirmation of purchase, not payment details
 
 ## Your Rights
@@ -84,11 +84,18 @@ All your data is already under your complete control on your device.
 
 ## Data Deletion
 
-To delete all Prime3 data:
-1. Uninstall the app from your device
-2. All local data will be permanently deleted
+Prime3 data is automatically backed up to iCloud as part of your device backup (if iCloud Backup is enabled in your device settings). This means your data will be restored if you reinstall the app.
 
-Alternatively, use the "Clear All Data" option in app settings (if available).
+To completely delete all Prime3 data:
+1. Use the "Clear All Data" option in app settings
+2. Uninstall the app from your device
+3. Delete the app data from your iCloud backup:
+   - Go to Settings → [Your Name] → iCloud → Manage Storage → Backups
+   - Select your device → Show All Apps
+   - Turn off Prime3 to remove it from future backups
+   - Or delete the entire device backup to remove all app data
+
+Note: Data is stored locally on your device and backed up via standard iOS iCloud backup. No separate cloud sync service is used.
 
 ## Children's Privacy
 
@@ -96,7 +103,7 @@ Prime3 does not knowingly collect data from children under 13. The app does not 
 
 ## Changes to This Policy
 
-We may update this privacy policy from time to time. Changes will be posted in the app and on our website with an updated "Last Updated" date.
+We may update this privacy policy from time to time. Changes will be posted in the app with an updated "Last Updated" date.
 
 ## International Users
 
@@ -118,16 +125,15 @@ Prime3 is GDPR-compliant by design:
 
 If you have questions about this privacy policy:
 
-**Email**: [YOUR_SUPPORT_EMAIL]
-**Website**: [YOUR_WEBSITE]
+**Email**: prime3.app@mailbox.org
 
 ---
 
 ## Developer Information
 
-**Developer**: [YOUR_COMPANY_NAME]
+**Developer**: Artem Ivanov
 **App Name**: Prime3
-**App ID**: com.trium.app
+**App ID**: com.prime3.app
 
 ---
 
@@ -135,5 +141,6 @@ If you have questions about this privacy policy:
 1. Replace all [PLACEHOLDER] values
 2. Add current date to "Last Updated"
 3. Have this reviewed by a legal professional
-4. Host this on your website at the URL specified in app store listings
-5. Update the URL in AppStore.md and app store listings
+4. Convert to HTML and host online (GitHub Pages, Netlify, or Vercel)
+5. Update the URL in AppStore.md and App Store Connect listing
+6. Note: You don't need a full website - just this single HTML file is sufficient

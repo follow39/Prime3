@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Prime3 is an Ionic React mobile application for iOS and Android that helps users manage daily tasks using a "three goals" productivity methodology. The app uses Capacitor for native functionality and SQLite for local data persistence.
+Prime3 is an Ionic React mobile application for iOS that helps users manage daily tasks using a "three goals" productivity methodology. The app uses Capacitor for native functionality and SQLite for local data persistence.
 
 ## Technology Stack
 
 - **Framework**: Ionic React (v8.5.0) with React 19
 - **Build Tool**: Vite (v7.2.1) with TypeScript
-- **Mobile**: Capacitor (v7.4.4) for iOS and Android
+- **Mobile**: Capacitor (v7.4.4) for iOS
 - **Database**: @capacitor-community/sqlite with versioned schema migrations
 - **Testing**: Vitest for unit tests, Cypress for e2e tests
 - **Charts**: Chart.js with react-chartjs-2
@@ -33,14 +33,11 @@ npm run lint             # Run ESLint
 
 ### Capacitor (Mobile Development)
 ```bash
-npx cap sync             # Sync web assets and update native projects
-npx cap sync ios         # Sync iOS only
-npx cap sync android     # Sync Android only
+npx cap sync ios         # Sync web assets and update iOS project
 npx cap open ios         # Open iOS project in Xcode
-npx cap open android     # Open Android project in Android Studio
 ```
 
-After building (`npm run build`), always run `npx cap sync` to update native projects with the latest web assets from the `dist` directory.
+After building (`npm run build`), always run `npx cap sync ios` to update the iOS project with the latest web assets from the `dist` directory.
 
 ## Architecture
 
@@ -185,9 +182,9 @@ This prevents the entire dependency tree from being bundled into a single chunk.
 
 When using Capacitor plugins:
 1. Import from `@capacitor/*` packages
-2. Check platform support (many plugins work differently on iOS vs Android vs web)
-3. After changes, rebuild and sync: `npm run build && npx cap sync`
-4. Test on actual devices or simulators via Xcode/Android Studio
+2. Check platform support for iOS
+3. After changes, rebuild and sync: `npm run build && npx cap sync ios`
+4. Test on actual devices or simulators via Xcode
 
 ### Theme Customization
 

@@ -2,7 +2,7 @@
 
 **Focus on three essential goals each day. Sustainable productivity without burnout.**
 
-Prime3 is a mobile productivity application for iOS and Android that helps users achieve meaningful progress by limiting daily focus to just three essential goals. Built with Ionic React and Capacitor.
+Prime3 is a mobile productivity application for iOS that helps users achieve meaningful progress by limiting daily focus to just three essential goals. Built with Ionic React and Capacitor.
 
 ## Features
 
@@ -12,14 +12,15 @@ Prime3 is a mobile productivity application for iOS and Android that helps users
 - **Progress Calendar**: Visual history of completed goals and streaks
 - **Flexible Day Schedule**: Customize your workday start and end times
 - **Offline-First**: All data stored locally with SQLite
-- **Privacy-Focused**: No cloud sync, no tracking, no data collection
+- **Privacy-Focused**: No custom cloud sync, no tracking, no data collection
+- **iCloud Backup**: Data automatically backed up via iOS device backup (if enabled)
 - **Dark Mode**: Automatic theme switching based on system preference
 
 ## Technology Stack
 
 - **Framework**: Ionic React 8.5.0 with React 19
 - **Build Tool**: Vite 7.2.1 with TypeScript
-- **Mobile**: Capacitor 7.4.4 for iOS and Android
+- **Mobile**: Capacitor 7.4.4 for iOS
 - **Database**: @capacitor-community/sqlite with versioned migrations
 - **Testing**: Vitest (unit tests) + Cypress (e2e tests)
 - **Charts**: Chart.js with react-chartjs-2
@@ -28,7 +29,6 @@ Prime3 is a mobile productivity application for iOS and Android that helps users
 
 - Node.js 18+ and npm
 - For iOS development: Xcode 14+ and CocoaPods
-- For Android development: Android Studio with SDK 33+
 
 ## Installation
 
@@ -67,17 +67,14 @@ The dev server runs at `http://localhost:5173`
 # Build web assets
 npm run build
 
-# Sync with native projects
-npx cap sync
+# Sync with iOS project
+npx cap sync ios
 
-# Open in Xcode (iOS)
+# Open in Xcode
 npx cap open ios
-
-# Open in Android Studio (Android)
-npx cap open android
 ```
 
-**Important**: Always run `npm run build && npx cap sync` after making changes to sync with native projects.
+**Important**: Always run `npm run build && npx cap sync ios` after making changes to sync with the iOS project.
 
 ## Testing
 
@@ -96,7 +93,6 @@ npm run lint
 
 ```
 prime3/
-├── android/              # Android native project
 ├── ios/                  # iOS native project
 ├── public/               # Static assets
 ├── src/
@@ -163,19 +159,11 @@ Migrations are defined in `src/upgrades/task.upgrade.statements.ts`
 4. Configure signing in Xcode
 5. Archive and upload to App Store Connect
 
-### Android
-
-1. Build web assets: `npm run build`
-2. Sync to Android: `npx cap sync android`
-3. Open in Android Studio: `npx cap open android`
-4. Generate signed APK/Bundle via Build > Generate Signed Bundle
-5. Upload to Google Play Console
-
 ## Configuration
 
 ### App Identity
 
-- **App ID**: `com.trium.app` (do not change - would break existing installs)
+- **App ID**: `com.prime3.app`
 - **App Name**: Prime3
 - **Version**: Defined in `package.json` and native projects
 
@@ -222,7 +210,7 @@ npx cap sync
 
 - Ensure TypeScript has no errors: `npx tsc --noEmit`
 - Clear node_modules: `rm -rf node_modules package-lock.json && npm install`
-- Clear native builds: Clean build folders in Xcode/Android Studio
+- Clear native builds: Clean build folders in Xcode
 
 ### Database Issues
 
@@ -246,7 +234,7 @@ This is a proprietary project. Contributions are not currently accepted.
 
 ## Support
 
-For bug reports and feature requests, please contact: **YOUR_EMAIL**
+For bug reports and feature requests, please contact: **prime3.app@mailbox.org**
 
 ## Acknowledgments
 

@@ -10,27 +10,34 @@ This file centralizes all contact information for the Prime3 app. Update these v
 
 ### Support & Feedback
 ```
-Support Email: YOUR_SUPPORT_EMAIL@example.com
-Feedback Email: YOUR_FEEDBACK_EMAIL@example.com
+Support Email: prime3.app@mailbox.org
+Feedback Email: prime3.app@mailbox.org
 ```
 
-### Web Presence
+### Legal Document Hosting
 ```
-Website: https://YOUR_WEBSITE.com
-Privacy Policy URL: https://YOUR_WEBSITE.com/privacy
-Terms of Service URL: https://YOUR_WEBSITE.com/terms
+Privacy Policy URL: TBD (REQUIRED for App Store)
+Terms of Service URL: TBD (recommended but optional)
+
+NOTE: You don't need a full website - just host the Privacy Policy HTML file.
+Apple requires Privacy Policy URL for App Store submission.
+
+Quick setup:
+1. Convert PRIVACY_POLICY.md to HTML
+2. Host on GitHub Pages, Netlify, or Vercel (free)
+3. Example URL: https://[username].github.io/prime3-privacy.html
 ```
 
 ### Company Information
 ```
-Company/Developer Name: YOUR_NAME or YOUR_COMPANY_NAME
-Founder Name: YOUR_FOUNDER_NAME (for press releases)
+Company/Developer Name: Artem Ivanov
+Founder Name: Artem Ivanov
 ```
 
 ### App Store Links
 ```
 Apple App Store: https://apps.apple.com/app/YOUR_APP_ID
-Google Play Store: https://play.google.com/store/apps/details?id=com.trium.app
+Note: This is iOS-only app, no Google Play Store listing
 ```
 
 ### Social Media (Optional)
@@ -47,43 +54,40 @@ LinkedIn: https://linkedin.com/company/YOUR_COMPANY
 Once you've filled in the information above, update these files:
 
 ### Critical Updates
-1. **src/pages/Settings.tsx:237**
-   - Replace `feedback@example.com` with your feedback email
+1. **src/pages/Settings.tsx:444** ✅ DONE
+   - Updated to `prime3.app@mailbox.org`
 
-2. **package.json:7**
-   - Replace `YOUR_NAME <YOUR_EMAIL>` with your actual name and email
+2. **package.json:7** ✅ DONE
+   - Updated to `Prime3 <prime3.app@mailbox.org>`
 
-3. **README.md**
-   - Replace `YOUR_EMAIL` in Support section
-   - Replace `<repository-url>` if you have a git repository
+3. **README.md** ✅ DONE
+   - Updated to `prime3.app@mailbox.org`
 
-### App Store Marketing (AppStore.md)
-4. **AppStore.md** - Replace all placeholders:
-   - Line 100: `[feedback email]`
-   - Line 133: `[Your support email]`
-   - Line 134: `[Your website]`
-   - Line 135: `[Privacy policy URL]`
-   - Line 136: `[Terms of Service URL]`
-   - Line 195: `[support email]`
-   - Line 205, 214, 237: `[link]` or `[link in bio]`
-   - Line 249: `[CITY, DATE]`
-   - Line 253: `[Founder Name]`
-   - Line 262: `[App Store/Play Store]`
-   - Line 264: `[website]` and `[email]`
-   - Line 286: Define pricing model
+### App Store Marketing (AppStore.md) ✅ DONE
+4. **AppStore.md** - Updated with:
+   - Support email: `prime3.app@mailbox.org`
+   - Privacy & Terms URLs marked as TBD (need to be hosted before submission)
 
 ---
 
 ## Quick Find & Replace Guide
 
-Use your editor's find & replace feature:
+✅ **Email addresses updated** to `prime3.app@mailbox.org`
+✅ **Company information updated** to `Artem Ivanov`
 
-1. Find: `YOUR_SUPPORT_EMAIL@example.com` → Replace with your actual support email
-2. Find: `YOUR_FEEDBACK_EMAIL@example.com` → Replace with your actual feedback email
-3. Find: `YOUR_WEBSITE.com` → Replace with your actual website domain
-4. Find: `YOUR_NAME` → Replace with your name
-5. Find: `YOUR_COMPANY_NAME` → Replace with your company name
-6. Find: `YOUR_FOUNDER_NAME` → Replace with founder name
+⚠️ **REQUIRED FOR APP STORE SUBMISSION:**
+- Privacy Policy URL (Apple requires this)
+- Optional: Terms of Service URL
+
+**Quick Solution:**
+1. Convert PRIVACY_POLICY.md to HTML
+2. Host on GitHub Pages (free): https://pages.github.com
+3. URL will be: https://[your-username].github.io/prime3-privacy
+4. Update AppStore.md with the URL
+
+Still need (optional):
+- `YOUR_COMPANY_ADDRESS` (only if required for legal compliance)
+- `YOUR_JURISDICTION` (for governing law clause in terms)
 
 ---
 
@@ -92,11 +96,9 @@ Use your editor's find & replace feature:
 Before launching, verify all these are updated:
 
 - [ ] Support email configured in Settings page
-- [ ] Privacy policy URL is accessible
-- [ ] Terms of service URL is accessible
-- [ ] Website is live and functional
+- [ ] Privacy policy URL is accessible (REQUIRED)
+- [ ] Terms of service URL is accessible (optional)
 - [ ] App Store Connect listing has correct contact info
-- [ ] Google Play Console listing has correct contact info
 - [ ] All AppStore.md placeholders filled in
 - [ ] package.json author field is correct
 - [ ] README.md contact section is correct
