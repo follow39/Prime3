@@ -152,6 +152,7 @@
 - ✅ Company name set to "Artem Ivanov"
 - ✅ Android platform removed (iOS only)
 - ✅ RevenueCat dependency removed (native StoreKit)
+- ✅ Encryption export compliance declared in Info.plist (ITSAppUsesNonExemptEncryption = false)
 
 ### Documentation
 - ✅ Privacy Policy template created
@@ -159,12 +160,14 @@
 - ✅ App Store marketing materials prepared
 - ✅ Product reference guide created
 - ✅ Payment implementation guide created
-- ✅ Encryption security documentation
+- ✅ Encryption security documentation (including export compliance)
 - ✅ Notifications implementation documented
 - ✅ Contact information centralized
 - ✅ AppStore.md placeholders filled (founder name, version 1.0.0 "What's New")
 - ✅ All Android references removed from documentation
 - ✅ Duplicate/outdated documentation files removed
+- ✅ All website references removed (not needed - only Privacy Policy URL required)
+- ✅ iCloud backup behavior documented correctly (automatic via iOS device backup)
 
 ### Code
 - ✅ SQLite encryption implemented
@@ -172,6 +175,7 @@
 - ✅ Local notifications implemented
 - ✅ Task management (CRUD) implemented
 - ✅ Premium paywall UI created
+- ✅ "Obtain Premium" button added to Settings page
 - ✅ Dark mode support
 - ✅ Onboarding flow
 - ✅ Settings page with all preferences

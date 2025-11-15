@@ -12,6 +12,44 @@ Prime3 is an iOS mobile application that stores **all data locally on the user's
 
 ---
 
+## Export Compliance Declaration
+
+**File**: `ios/App/App/Info.plist:48-49`
+
+```xml
+<key>ITSAppUsesNonExemptEncryption</key>
+<false/>
+```
+
+### What This Means
+
+Prime3 is declared as **NOT using non-exempt encryption** because:
+
+1. **SQLite Encryption**: Uses Apple's built-in SQLCipher implementation (exempt)
+2. **HTTPS**: Standard secure network communication (exempt)
+3. **Biometric Authentication**: Apple's built-in Face ID/Touch ID APIs (exempt)
+4. **iCloud Backup**: Standard iOS backup encryption (exempt)
+
+### Why Set to `false`?
+
+According to Apple's export compliance guidelines, apps using **only** standard iOS cryptography are **exempt** from export documentation requirements. This includes:
+
+- ✅ Encryption performed by Apple frameworks (CommonCrypto, Security framework, SQLCipher)
+- ✅ HTTPS/TLS for network communication
+- ✅ Password-based encryption using standard APIs
+- ✅ Encryption within Apple's sandbox (local database encryption)
+
+Setting this to `false` means:
+- **No export compliance documentation needed** for App Store submission
+- **No separate encryption registration** required
+- **Faster App Store review process** (no encryption questionnaire)
+
+### Reference
+
+Apple's official guidance: [App Store Connect Help - Export Compliance](https://developer.apple.com/documentation/security/complying_with_encryption_export_regulations)
+
+---
+
 ## Current Encryption Status
 
 ### ✅ OS-Level Protection
