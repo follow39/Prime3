@@ -38,54 +38,23 @@ export interface Product {
 
 class IAPService {
   private storeInitialized = false;
-  private productsReady = false;
-  private initializationPromise: Promise<void> | null = null;
-  private readyPromise: Promise<void> | null = null;
 
   constructor() {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
-      this.initializationPromise = this.initializeStore();
-    }
-  }
-
-  /**
-   * Wait for store and products to be ready with timeout
-   */
-  private async ensureStoreReady(): Promise<void> {
-    if (!this.initializationPromise || !this.readyPromise) return;
-
-    // Add a 15 second timeout to prevent indefinite waiting
-    const timeout = new Promise<void>((_, reject) => {
-      setTimeout(() => reject(new Error('Store ready timeout')), 15000);
-    });
-
-    try {
-      // Wait for initialization first
-      await Promise.race([this.initializationPromise, timeout]);
-
-      // Then wait for products to be ready
-      await Promise.race([this.readyPromise, timeout]);
-    } catch {
-      // Continue anyway - methods will use fallbacks
+      this.initializeStore();
     }
   }
 
   /**
    * Initialize the in-app purchase store
    */
-  private async initializeStore(): Promise<void> {
+  private initializeStore(): void {
     if (this.storeInitialized) return;
 
     try {
       const { store, ProductType, Platform } = CdvPurchase;
 
-      // Create promise that resolves when products are ready
-      this.readyPromise = new Promise<void>((resolve) => {
-        store.ready(() => {
-          this.productsReady = true;
-          resolve();
-        });
-      });
+      alert(`[IAP] Starting initialization...`);
 
       // Register products with exact IDs
       store.register([
@@ -101,53 +70,72 @@ class IAPService {
         }
       ]);
 
-      // Set verbosity for debugging (can be removed in production)
-      store.verbosity = store.DEBUG;
+      alert(`[IAP] Products registered: ${SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL}, ${SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME}`);
 
-      // Handle approved transactions
-      store.when().approved((transaction: any) => {
+      // Use when() for specific products instead of general error handler
+      store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL).approved((transaction: any) => {
+        alert(`[IAP] Annual approved: ${transaction.id}`);
         transaction.verify();
       });
 
-      // Handle verified transactions
-      store.when().verified((receipt: any) => {
-        receipt.finish();
-
-        // Grant premium access
-        const productId = receipt.products[0]?.id;
-        if (productId) {
-          const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
-
-          // For annual subscription, calculate expiration (1 year from now)
-          // For lifetime, no expiration
-          const expirationDate = tier === 'annual'
-            ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-            : null;
-
-          localStorage.setItem('isPremium', 'true');
-          localStorage.setItem('premiumTier', tier);
-          localStorage.setItem('purchaseDate', new Date().toISOString());
-          localStorage.setItem('productId', productId);
-
-          if (expirationDate) {
-            localStorage.setItem('premiumExpiration', expirationDate);
-          } else {
-            localStorage.removeItem('premiumExpiration');
-          }
-        }
+      store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME).approved((transaction: any) => {
+        alert(`[IAP] Lifetime approved: ${transaction.id}`);
+        transaction.verify();
       });
 
-      // Handle errors
-      store.when().error(() => {
-        // Error handled silently
+      store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL).verified((receipt: any) => {
+        alert(`[IAP] Annual verified`);
+        receipt.finish();
+        this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+      });
+
+      store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME).verified((receipt: any) => {
+        alert(`[IAP] Lifetime verified`);
+        receipt.finish();
+        this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+      });
+
+      // Store ready callback
+      store.ready(() => {
+        const productCount = store.products?.length || 0;
+        const productIds = store.products?.map((p: any) => p.id).join(', ') || 'none';
+        alert(`[IAP] Store ready! Products loaded: ${productCount} (${productIds})`);
       });
 
       // Initialize the store
-      await store.initialize([Platform.APPLE_APPSTORE]);
+      alert(`[IAP] Calling store.initialize()...`);
+      store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
-    } catch {
-      // Store initialization failed
+      alert(`[IAP] Store initialized successfully`);
+    } catch (error: any) {
+      alert(`[IAP] Failed to initialize: ${error.message || error}`);
     }
+  }
+
+  /**
+   * Grant premium access after successful purchase
+   */
+  private grantPremium(productId: string): void {
+    const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
+
+    // For annual subscription, calculate expiration (1 year from now)
+    // For lifetime, no expiration
+    const expirationDate = tier === 'annual'
+      ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
+    localStorage.setItem('isPremium', 'true');
+    localStorage.setItem('premiumTier', tier);
+    localStorage.setItem('purchaseDate', new Date().toISOString());
+    localStorage.setItem('productId', productId);
+
+    if (expirationDate) {
+      localStorage.setItem('premiumExpiration', expirationDate);
+    } else {
+      localStorage.removeItem('premiumExpiration');
+    }
+
+    alert(`[IAP] Premium granted: ${tier}`);
   }
 
   /**
@@ -191,9 +179,6 @@ class IAPService {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       // Production: Check store receipts
       try {
-        // Wait for store and products to be ready
-        await this.ensureStoreReady();
-
         const { store } = CdvPurchase;
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
@@ -219,9 +204,6 @@ class IAPService {
   async getPremiumTier(): Promise<string | null> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store and products to be ready
-        await this.ensureStoreReady();
-
         const { store } = CdvPurchase;
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
@@ -245,15 +227,15 @@ class IAPService {
   async getProducts(): Promise<Product[]> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store and products to be ready
-        await this.ensureStoreReady();
-
         const { store } = CdvPurchase;
+
+        alert(`[IAP] Getting products...`);
 
         const products: Product[] = [];
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
         if (annualProduct) {
+          alert(`[IAP] Found annual product: ${annualProduct.title}`);
           products.push({
             id: annualProduct.id,
             title: annualProduct.title || 'Premium Annual',
@@ -261,10 +243,13 @@ class IAPService {
             price: annualProduct.pricing?.price || '$1.29/mo',
             priceAmount: annualProduct.pricing?.priceMicros ? annualProduct.pricing.priceMicros / 1000000 : 15.48
           });
+        } else {
+          alert(`[IAP] Annual product NOT found: ${SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL}`);
         }
 
         const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
         if (lifetimeProduct) {
+          alert(`[IAP] Found lifetime product: ${lifetimeProduct.title}`);
           products.push({
             id: lifetimeProduct.id,
             title: lifetimeProduct.title || 'Premium Lifetime',
@@ -272,14 +257,24 @@ class IAPService {
             price: lifetimeProduct.pricing?.price || '$14.99',
             priceAmount: lifetimeProduct.pricing?.priceMicros ? lifetimeProduct.pricing.priceMicros / 1000000 : 14.99
           });
+        } else {
+          alert(`[IAP] Lifetime product NOT found: ${SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME}`);
         }
 
-        return products.length > 0 ? products : this.getMockProducts();
-      } catch {
+        if (products.length === 0) {
+          alert(`[IAP] No products loaded, returning mock products`);
+          return this.getMockProducts();
+        }
+
+        alert(`[IAP] Returning ${products.length} real products`);
+        return products;
+      } catch (error: any) {
+        alert(`[IAP] Error getting products: ${error.message || error}`);
         return this.getMockProducts();
       }
     }
 
+    alert(`[IAP] Production IAP disabled, returning mock products`);
     return this.getMockProducts();
   }
 
@@ -313,30 +308,42 @@ class IAPService {
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store and products to be ready
-        await this.ensureStoreReady();
-
         const { store } = CdvPurchase;
+
+        alert(`[IAP] Attempting to purchase: ${productId}`);
+
+        // Debug: Show all available products
+        const allProducts = store.products || [];
+        const allProductIds = allProducts.map((p: any) => p.id).join(', ');
+        alert(`[IAP] Available products in store: ${allProducts.length} (${allProductIds || 'none'})`);
 
         const product = store.get(productId);
         if (!product) {
+          alert(`[IAP] Product NOT FOUND: ${productId}`);
           return {
             success: false,
             error: 'Product not found. Please ensure products are configured in App Store Connect and try again.'
           };
         }
 
+        alert(`[IAP] Product found: ${product.id} - ${product.title}`);
+
         // Get the offer (required for purchase)
         const offer = product.getOffer();
         if (!offer) {
+          alert(`[IAP] No offer available for product: ${productId}`);
           return {
             success: false,
             error: 'No offer available for this product'
           };
         }
 
+        alert(`[IAP] Offer found, initiating order...`);
+
         // Order the product
         await offer.order();
+
+        alert(`[IAP] Order initiated successfully`);
 
         // The transaction will be handled by the store.when().approved() and verified() handlers
         // We return success immediately as the handlers will update localStorage
@@ -346,6 +353,7 @@ class IAPService {
           productId
         };
       } catch (error: any) {
+        alert(`[IAP] Purchase error: ${error.message || error}`);
         return {
           success: false,
           error: error.message || 'Purchase failed'
@@ -394,9 +402,6 @@ class IAPService {
   async restorePurchases(): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store and products to be ready
-        await this.ensureStoreReady();
-
         const { store } = CdvPurchase;
 
         // Restore purchases
