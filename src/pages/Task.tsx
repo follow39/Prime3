@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter } from '@ionic/react';
+import { IonContent, IonHeader, IonButtons, IonBackButton, IonPage, IonToolbar, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonFooter, IonAlert, useIonRouter, IonTitle } from '@ionic/react';
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Task as TaskModel, TaskStatus } from '../models/Task';
@@ -144,7 +144,7 @@ const Task: React.FC = () => {
                     <IonButtons slot='start'>
                         <IonBackButton defaultHref='/home' />
                     </IonButtons>
-                    <HeaderTimeLeft />
+                    <IonTitle><HeaderTimeLeft /></IonTitle>
                     {!isEditing && (
                         <IonButtons slot='end'>
                             <IonButton onClick={handleEdit}>

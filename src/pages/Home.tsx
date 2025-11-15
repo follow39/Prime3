@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { IonContent, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
+import { IonContent, IonTitle, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
 import './Home.css';
 import PreferencesService from '../services/preferencesService';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
@@ -158,7 +158,7 @@ const Home: React.FC = () => {
     <IonPage>
       <IonHeader collapse="fade">
         <IonToolbar>
-          <HeaderTimeLeft refreshTrigger={headerRefreshTrigger} />
+          <IonTitle><HeaderTimeLeft refreshTrigger={headerRefreshTrigger} /></IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => router.push('/debug', 'forward')}>
               <IonIcon icon={bug} />
