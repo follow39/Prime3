@@ -44,7 +44,13 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const fetchedProducts = await IAPService.getProducts();
+
+      // Start product fetch and 3-second minimum delay in parallel
+      const [fetchedProducts] = await Promise.all([
+        IAPService.getProducts(),
+        new Promise(resolve => setTimeout(resolve, 3000))
+      ]);
+
       setProducts(fetchedProducts);
     } catch {
       // Error handled silently
@@ -158,10 +164,17 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
               <p style={{ marginBottom: '20px', color: 'var(--ion-color-medium)' }}>
                 Unable to load pricing information.
               </p>
-              <IonButton expand="block" onClick={loadProducts} style={{ marginBottom: '12px' }}>
-                Retry
+              <IonButton expand="block" onClick={loadProducts} disabled={loading} style={{ marginBottom: '12px' }}>
+                {loading ? (
+                  <>
+                    <IonSpinner name="crescent" style={{ marginRight: '8px', width: '18px', height: '18px' }} />
+                    Loading...
+                  </>
+                ) : (
+                  'Retry'
+                )}
               </IonButton>
-              <IonButton expand="block" fill="clear" onClick={onClose}>
+              <IonButton expand="block" fill="clear" onClick={onClose} disabled={loading}>
                 Maybe Later
               </IonButton>
             </div>
