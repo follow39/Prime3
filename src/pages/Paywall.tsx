@@ -125,7 +125,7 @@ const Paywall: React.FC = () => {
                 position: 'absolute',
                 top: '-1px',
                 right: '12px',
-                background: 'var(--ion-color-success)',
+                background: 'var(--ion-color-danger)',
                 color: 'white',
                 padding: '4px 12px',
                 fontSize: '10px',
@@ -133,7 +133,7 @@ const Paywall: React.FC = () => {
                 borderRadius: '0 0 6px 6px',
                 letterSpacing: '0.5px'
               }}>
-                LIMITED OFFER
+                40% OFF SALE
               </div>
               <IonCardContent style={{ padding: '12px 16px', marginTop: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -144,7 +144,8 @@ const Paywall: React.FC = () => {
                     </p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>$24.99<span style={{ fontSize: '14px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}> once</span></div>
+                    <div style={{ fontSize: '13px', color: 'var(--ion-color-medium)', textDecoration: 'line-through', marginBottom: '2px' }}>$24.99</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--ion-color-danger)' }}>$14.99<span style={{ fontSize: '14px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}> once</span></div>
                   </div>
                 </div>
               </IonCardContent>
