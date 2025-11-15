@@ -331,42 +331,73 @@ const Debug: React.FC = () => {
 
             <IonCard>
               <IonCardHeader>
-                <IonCardTitle>IAP Products Debug</IonCardTitle>
+                <IonCardTitle>IAP Products</IonCardTitle>
               </IonCardHeader>
               <IonCardContent>
-                <p><strong>Expected Product IDs:</strong></p>
-                <p style={{ fontSize: '12px', wordBreak: 'break-all', marginBottom: '10px' }}>
-                  Annual: {SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL}
+                <p style={{ fontSize: '13px', marginBottom: '12px' }}>
+                  <strong>Configuration:</strong>
                 </p>
-                <p style={{ fontSize: '12px', wordBreak: 'break-all', marginBottom: '10px' }}>
-                  Lifetime: {SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME}
-                </p>
+                <div style={{ marginBottom: '12px', padding: '8px', background: 'var(--ion-color-light)', borderRadius: '4px' }}>
+                  <p style={{ fontSize: '11px', margin: '2px 0' }}>
+                    Production IAP: {SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP ? '✅ Enabled' : '❌ Disabled'}
+                  </p>
+                  <p style={{ fontSize: '11px', margin: '6px 0 2px 0', fontWeight: 'bold' }}>
+                    Expected Product IDs:
+                  </p>
+                  <p style={{ fontSize: '10px', margin: '2px 0', wordBreak: 'break-all', paddingLeft: '8px' }}>
+                    • {SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL}
+                  </p>
+                  <p style={{ fontSize: '10px', margin: '2px 0', wordBreak: 'break-all', paddingLeft: '8px' }}>
+                    • {SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME}
+                  </p>
+                </div>
 
                 <IonButton expand="block" onClick={loadIAPProducts} disabled={loadingProducts}>
-                  {loadingProducts ? 'Loading...' : 'Reload Products'}
+                  {loadingProducts ? (
+                    <>
+                      <IonSpinner name="crescent" style={{ marginRight: '8px', width: '16px', height: '16px' }} />
+                      Fetching...
+                    </>
+                  ) : (
+                    'Fetch Products from Store'
+                  )}
                 </IonButton>
 
-                {iapProducts.length > 0 ? (
+                {!loadingProducts && (
                   <>
-                    <p style={{ marginTop: '15px' }}><strong>Loaded Products ({iapProducts.length}):</strong></p>
-                    {iapProducts.map((product, index) => (
-                      <div key={index} style={{ marginBottom: '10px', padding: '10px', background: 'var(--ion-color-light)', borderRadius: '8px' }}>
-                        <p style={{ fontSize: '12px', margin: '2px 0', wordBreak: 'break-all' }}>
-                          <strong>ID:</strong> {product.id}
+                    {iapProducts.length > 0 ? (
+                      <>
+                        <p style={{ marginTop: '15px', fontSize: '13px', fontWeight: 'bold', color: 'var(--ion-color-success)' }}>
+                          ✅ Products Loaded: {iapProducts.length}
                         </p>
-                        <p style={{ fontSize: '12px', margin: '2px 0' }}>
-                          <strong>Title:</strong> {product.title}
+                        {iapProducts.map((product, index) => (
+                          <div key={index} style={{ marginTop: '10px', padding: '10px', background: 'var(--ion-color-light)', borderRadius: '8px', border: '1px solid var(--ion-color-success)' }}>
+                            <p style={{ fontSize: '12px', margin: '2px 0', fontWeight: 'bold' }}>
+                              {product.title}
+                            </p>
+                            <p style={{ fontSize: '10px', margin: '4px 0 2px 0', wordBreak: 'break-all', opacity: 0.7 }}>
+                              ID: {product.id}
+                            </p>
+                            <p style={{ fontSize: '11px', margin: '4px 0 2px 0' }}>
+                              Price: {product.price}
+                            </p>
+                            <p style={{ fontSize: '10px', margin: '2px 0', opacity: 0.7 }}>
+                              {product.description}
+                            </p>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div style={{ marginTop: '15px', padding: '12px', background: 'var(--ion-color-light)', borderRadius: '8px', border: '1px solid var(--ion-color-warning)' }}>
+                        <p style={{ fontSize: '12px', margin: '0', color: 'var(--ion-color-warning)' }}>
+                          ⚠️ No products loaded
                         </p>
-                        <p style={{ fontSize: '12px', margin: '2px 0' }}>
-                          <strong>Price:</strong> {product.price}
+                        <p style={{ fontSize: '11px', margin: '6px 0 0 0', opacity: 0.8 }}>
+                          Products may not be configured in App Store Connect or haven't synced yet (2-6 hours after creation).
                         </p>
                       </div>
-                    ))}
+                    )}
                   </>
-                ) : (
-                  <p style={{ marginTop: '15px', color: 'var(--ion-color-danger)' }}>
-                    No products loaded. Products may not be configured or store not initialized.
-                  </p>
                 )}
               </IonCardContent>
             </IonCard>

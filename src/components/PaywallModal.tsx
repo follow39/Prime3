@@ -158,8 +158,11 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
               <p style={{ marginBottom: '20px', color: 'var(--ion-color-medium)' }}>
                 Unable to load pricing information.
               </p>
-              <IonButton expand="block" onClick={loadProducts}>
+              <IonButton expand="block" onClick={loadProducts} style={{ marginBottom: '12px' }}>
                 Retry
+              </IonButton>
+              <IonButton expand="block" fill="clear" onClick={onClose}>
+                Maybe Later
               </IonButton>
             </div>
           ) : (
