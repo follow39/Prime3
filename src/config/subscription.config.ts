@@ -29,7 +29,7 @@ export const SUBSCRIPTION_CONFIG = {
      * - Set to true only after implementing StoreKit in iapService.ts
      * - Requires actual StoreKit integration code before enabling
      */
-    ENABLE_PRODUCTION_IAP: false,
+    ENABLE_PRODUCTION_IAP: true,
 
     /**
      * Product Identifiers (must match App Store Connect exactly)
