@@ -25,6 +25,8 @@ import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import PreferencesService from '../services/preferencesService';
+import IAPService, { Product } from '../services/iapService';
+import { SUBSCRIPTION_CONFIG } from '../config/subscription.config';
 
 const Debug: React.FC = () => {
   const sqliteServ = useContext(SqliteServiceContext);
@@ -35,10 +37,13 @@ const Debug: React.FC = () => {
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [groupedByDate, setGroupedByDate] = useState<{ [key: string]: Task[] }>({});
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [iapProducts, setIapProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
     loadAllTasks();
     loadPremiumStatus();
+    loadIAPProducts();
   }, []);
 
   const loadPremiumStatus = async () => {
@@ -53,6 +58,21 @@ const Debug: React.FC = () => {
       text: `Premium ${checked ? 'enabled' : 'disabled'}`,
       duration: 'short'
     });
+  };
+
+  const loadIAPProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      const products = await IAPService.getProducts();
+      setIapProducts(products);
+    } catch {
+      Toast.show({
+        text: 'Error loading IAP products',
+        duration: 'short'
+      });
+    } finally {
+      setLoadingProducts(false);
+    }
   };
 
   const loadAllTasks = async () => {
@@ -306,6 +326,48 @@ const Debug: React.FC = () => {
                     onIonChange={(e) => handlePremiumToggle(e.detail.checked)}
                   />
                 </IonItem>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>IAP Products Debug</IonCardTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <p><strong>Expected Product IDs:</strong></p>
+                <p style={{ fontSize: '12px', wordBreak: 'break-all', marginBottom: '10px' }}>
+                  Annual: {SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL}
+                </p>
+                <p style={{ fontSize: '12px', wordBreak: 'break-all', marginBottom: '10px' }}>
+                  Lifetime: {SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME}
+                </p>
+
+                <IonButton expand="block" onClick={loadIAPProducts} disabled={loadingProducts}>
+                  {loadingProducts ? 'Loading...' : 'Reload Products'}
+                </IonButton>
+
+                {iapProducts.length > 0 ? (
+                  <>
+                    <p style={{ marginTop: '15px' }}><strong>Loaded Products ({iapProducts.length}):</strong></p>
+                    {iapProducts.map((product, index) => (
+                      <div key={index} style={{ marginBottom: '10px', padding: '10px', background: 'var(--ion-color-light)', borderRadius: '8px' }}>
+                        <p style={{ fontSize: '12px', margin: '2px 0', wordBreak: 'break-all' }}>
+                          <strong>ID:</strong> {product.id}
+                        </p>
+                        <p style={{ fontSize: '12px', margin: '2px 0' }}>
+                          <strong>Title:</strong> {product.title}
+                        </p>
+                        <p style={{ fontSize: '12px', margin: '2px 0' }}>
+                          <strong>Price:</strong> {product.price}
+                        </p>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <p style={{ marginTop: '15px', color: 'var(--ion-color-danger)' }}>
+                    No products loaded. Products may not be configured or store not initialized.
+                  </p>
+                )}
               </IonCardContent>
             </IonCard>
 

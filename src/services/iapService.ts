@@ -39,6 +39,7 @@ export interface Product {
 class IAPService {
   private storeInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private productsReadyResolvers: Map<string, ((value: boolean) => void)[]> = new Map();
 
   constructor() {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
@@ -65,6 +66,39 @@ class IAPService {
   }
 
   /**
+   * Wait for a specific product to be loaded
+   */
+  private async waitForProduct(productId: string, maxWaitMs: number = 5000): Promise<boolean> {
+    const { store } = CdvPurchase;
+
+    // Check if product is already available
+    const product = store.get(productId);
+    if (product) return true;
+
+    // Wait for product to load
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), maxWaitMs);
+
+      // Listen for product updates
+      const checkProduct = () => {
+        const p = store.get(productId);
+        if (p) {
+          clearTimeout(timeout);
+          resolve(true);
+        }
+      };
+
+      // Check every 100ms
+      const interval = setInterval(checkProduct, 100);
+
+      // Clean up on timeout
+      setTimeout(() => {
+        clearInterval(interval);
+      }, maxWaitMs);
+    });
+  }
+
+  /**
    * Initialize the in-app purchase store
    */
   private async initializeStore(): Promise<void> {
@@ -73,7 +107,7 @@ class IAPService {
     try {
       const { store, ProductType, Platform } = CdvPurchase;
 
-      // Register products
+      // Register products with exact IDs
       store.register([
         {
           id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL,
@@ -86,6 +120,9 @@ class IAPService {
           platform: Platform.APPLE_APPSTORE
         }
       ]);
+
+      // Set verbosity for debugging (can be removed in production)
+      store.verbosity = store.DEBUG;
 
       // Handle approved transactions
       store.when().approved((transaction: any) => {
@@ -298,6 +335,15 @@ class IAPService {
       try {
         // Wait for store to be initialized
         await this.ensureStoreInitialized();
+
+        // Wait for the specific product to be loaded
+        const productReady = await this.waitForProduct(productId);
+        if (!productReady) {
+          return {
+            success: false,
+            error: 'Product not available. Please check your internet connection and try again.'
+          };
+        }
 
         const { store } = CdvPurchase;
 

@@ -16,6 +16,7 @@ import {
 import { checkmarkCircle } from 'ionicons/icons';
 import { Toast } from '@capacitor/toast';
 import IAPService, { Product } from '../services/iapService';
+import { SUBSCRIPTION_CONFIG } from '../config/subscription.config';
 import './PaywallModal.css';
 
 type PricingTier = 'annual' | 'lifetime';
@@ -55,8 +56,8 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
   // Get product by tier
   const getProduct = (tier: PricingTier): Product | undefined => {
     const productId = tier === 'annual'
-      ? 'com.prime3.app.premium.annual'
-      : 'com.prime3.app.premium.lifetime';
+      ? SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL
+      : SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME;
     return products.find(p => p.id === productId);
   };
 
@@ -64,8 +65,8 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
     try {
       // Get the product ID based on selected tier
       const productId = selectedTier === 'annual'
-        ? 'com.prime3.app.premium.annual'
-        : 'com.prime3.app.premium.lifetime';
+        ? SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL
+        : SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME;
 
       // Attempt purchase via IAP service
       const result = await IAPService.purchaseProduct(productId);
