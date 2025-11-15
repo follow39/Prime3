@@ -61,8 +61,6 @@ const AppContent: React.FC = () => {
     // Set up notification click listener
     const setupNotificationListeners = async () => {
       await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-        console.log('Notification clicked:', notification);
-
         // Check if this is the review notification (ID 100)
         if (notification.notification.id === 100) {
           // Navigate to review page

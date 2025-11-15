@@ -40,8 +40,7 @@ const TimeLeft = (value: string): string => {
         };
 
         return `${formatNumber(diffHours)}:${formatNumber(diffMinutes)}:${formatNumber(diffSeconds)}`;
-    } catch (error) {
-        console.error('Error calculating time left:', error);
+    } catch {
         return "";
     }
 };

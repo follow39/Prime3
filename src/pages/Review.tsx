@@ -119,8 +119,8 @@ const Review: React.FC = () => {
 
       const tasks = await storageServ.getTasksByDate(selectedDate);
       setTasksForSelectedDate(tasks);
-    } catch (error) {
-      console.error('Error reloading tasks for date:', error);
+    } catch {
+      // Error handled silently
     }
   };
 
@@ -235,8 +235,8 @@ const Review: React.FC = () => {
       const todayTasks = await storageServ.getTasksByDate(todayDate);
       setTasksForSelectedDate(todayTasks);
 
-    } catch (error) {
-      console.error('Error loading statistics:', error);
+    } catch {
+      // Error handled silently
     } finally {
       setLoading(false);
     }
@@ -336,8 +336,8 @@ const Review: React.FC = () => {
 
       const tasks = await storageServ.getTasksByDate(dateStr);
       setTasksForSelectedDate(tasks);
-    } catch (error) {
-      console.error('Error loading tasks for date:', error);
+    } catch {
+      // Error handled silently
     }
   };
 
@@ -535,7 +535,6 @@ const Review: React.FC = () => {
         duration: 'short'
       });
     } catch (error) {
-      console.error('Error sharing stats:', error);
       Toast.show({
         text: `Error sharing stats: ${error}`,
         duration: 'long'

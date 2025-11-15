@@ -81,7 +81,6 @@ const Debug: React.FC = () => {
 
       setGroupedByDate(grouped);
     } catch (error) {
-      console.error('Error loading tasks:', error);
       Toast.show({
         text: `Error: ${error}`,
         duration: 'long'
@@ -131,7 +130,6 @@ const Debug: React.FC = () => {
       // Reload the list
       await loadAllTasks();
     } catch (error) {
-      console.error('Error deleting task:', error);
       Toast.show({
         text: `Error deleting: ${error}`,
         duration: 'long'
@@ -184,7 +182,6 @@ const Debug: React.FC = () => {
       // Reload the list
       await loadAllTasks();
     } catch (error) {
-      console.error('Error updating status:', error);
       Toast.show({
         text: `Error updating status: ${error}`,
         duration: 'long'
@@ -258,7 +255,6 @@ const Debug: React.FC = () => {
         duration: 'short'
       });
     } catch (error) {
-      console.error('Error sending notification:', error);
       Toast.show({
         text: `Error: ${error}`,
         duration: 'long'

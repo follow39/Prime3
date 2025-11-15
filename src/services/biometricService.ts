@@ -16,8 +16,7 @@ class BiometricService implements IBiometricService {
         try {
             const result = await BiometricAuth.checkBiometry();
             return result.isAvailable;
-        } catch (error: any) {
-            console.error('Error checking biometric availability:', error);
+        } catch {
             return false;
         }
     }
@@ -26,8 +25,7 @@ class BiometricService implements IBiometricService {
         try {
             const result = await BiometricAuth.checkBiometry();
             return result.biometryType;
-        } catch (error: any) {
-            console.error('Error getting biometry type:', error);
+        } catch {
             return BiometryType.none;
         }
     }
@@ -57,9 +55,8 @@ class BiometricService implements IBiometricService {
             });
 
             return true;
-        } catch (error: any) {
+        } catch {
             // User cancelled or authentication failed
-            console.log('Biometric authentication failed or cancelled:', error);
             return false;
         }
     }
@@ -68,8 +65,7 @@ class BiometricService implements IBiometricService {
         try {
             const value = localStorage.getItem(this.BIOMETRIC_ENABLED_KEY);
             return value === 'true';
-        } catch (error) {
-            console.error('Error reading biometric enabled status:', error);
+        } catch {
             return false;
         }
     }
@@ -94,7 +90,6 @@ class BiometricService implements IBiometricService {
 
             localStorage.setItem(this.BIOMETRIC_ENABLED_KEY, enabled.toString());
         } catch (error: any) {
-            console.error('Error setting biometric enabled status:', error);
             throw error;
         }
     }

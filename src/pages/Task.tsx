@@ -63,9 +63,7 @@ const Task: React.FC = () => {
             setTitle(titleResult.sanitized);
             setDescription(descResult.sanitized);
             setIsEditing(false);
-        } catch (error) {
-            const msg = `Error updating task: ${error}`;
-            console.error(msg);
+        } catch {
             await Toast.show({
                 text: 'Failed to save task',
                 duration: 'long'
@@ -101,9 +99,8 @@ const Task: React.FC = () => {
 
             // Navigate back to home page
             router.push('/home', 'back');
-        } catch (error) {
-            const msg = `Error updating task status: ${error}`;
-            console.error(msg);
+        } catch {
+            // Error handled silently
         }
     };
 

@@ -134,7 +134,6 @@ class StorageService implements IStorageService {
 
             return null;
         } catch (error) {
-            console.error('Error getting most recent date with tasks:', error);
             throw error;
         }
     }
@@ -168,7 +167,6 @@ class StorageService implements IStorageService {
 
             return copiedCount;
         } catch (error) {
-            console.error('Error copying undone tasks:', error);
             throw error;
         }
     }
@@ -199,7 +197,6 @@ class StorageService implements IStorageService {
 
             return copiedCount;
         } catch (error) {
-            console.error('Error copying all tasks:', error);
             throw error;
         }
     }
@@ -214,7 +211,6 @@ class StorageService implements IStorageService {
             // Return the number of rows updated
             return result.changes?.changes || 0;
         } catch (error) {
-            console.error('Error marking previous tasks as overdue:', error);
             throw error;
         }
     }
@@ -229,7 +225,6 @@ class StorageService implements IStorageService {
             // Return the number of rows updated
             return result.changes?.changes || 0;
         } catch (error) {
-            console.error('Error marking tasks as overdue for date:', error);
             throw error;
         }
     }

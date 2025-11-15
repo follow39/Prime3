@@ -50,8 +50,8 @@ const HeaderTimeLeft: React.FC<HeaderTimeLeftProps> = ({ size = 'small', refresh
         const todayTasks = await storageServ.getTasksByDate(todayDate);
         setTodayHasTasks(todayTasks.length > 0);
         setAllTasksDone(todayTasks.length > 0 && todayTasks.every(obj => obj.status === TaskStatus.Done));
-      } catch (error) {
-        console.error('Error checking today tasks:', error);
+      } catch {
+        // Error handled silently
       }
     };
 
@@ -64,8 +64,8 @@ const HeaderTimeLeft: React.FC<HeaderTimeLeftProps> = ({ size = 'small', refresh
         if (isInit) {
           try {
             await checkTodayTasks();
-          } catch (error) {
-            console.error('Error checking today tasks after initialization:', error);
+          } catch {
+            // Error handled silently
           }
         }
       });

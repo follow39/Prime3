@@ -45,8 +45,8 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
       setLoading(true);
       const fetchedProducts = await IAPService.getProducts();
       setProducts(fetchedProducts);
-    } catch (error) {
-      console.error('Error loading products:', error);
+    } catch {
+      // Error handled silently
     } finally {
       setLoading(false);
     }

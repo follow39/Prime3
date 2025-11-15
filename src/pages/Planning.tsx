@@ -102,8 +102,8 @@ const Planning: React.FC = () => {
             setTask3Description(openTasks[2].description || '');
           }
         }
-      } catch (error) {
-        console.error('Error loading open tasks:', error);
+      } catch {
+        // Error handled silently
       }
     };
 
@@ -124,8 +124,8 @@ const Planning: React.FC = () => {
       // Mark all incomplete tasks from previous dates as overdue
       try {
         await storageServ.markPreviousIncompleteTasksAsOverdue(todayDate);
-      } catch (error) {
-        console.error('Error marking previous incomplete tasks as overdue:', error);
+      } catch {
+        // Error handled silently
       }
 
       // Validate and sanitize all tasks
@@ -210,7 +210,6 @@ const Planning: React.FC = () => {
       router.push('/home', 'back');
     } catch (error) {
       const msg = `Error creating tasks: ${error}`;
-      console.error(msg);
       Toast.show({
         text: msg,
         duration: 'long'

@@ -47,8 +47,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.EARLIEST_END_TIME_KEY);
             return value || this.DEFAULT_END_TIME;
-        } catch (error) {
-            console.error('Error reading earliest end time from preferences:', error);
+        } catch {
             return this.DEFAULT_END_TIME;
         }
     }
@@ -57,7 +56,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.EARLIEST_END_TIME_KEY, time);
         } catch (error) {
-            console.error('Error saving earliest end time to preferences:', error);
             throw error;
         }
     }
@@ -66,8 +64,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.LAST_PLANNING_DATE_KEY);
             return value;
-        } catch (error) {
-            console.error('Error reading last planning date from preferences:', error);
+        } catch {
             return null;
         }
     }
@@ -76,7 +73,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.LAST_PLANNING_DATE_KEY, date);
         } catch (error) {
-            console.error('Error saving last planning date to preferences:', error);
             throw error;
         }
     }
@@ -85,8 +81,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.LAST_OVERDUE_MARKED_DATE_KEY);
             return value;
-        } catch (error) {
-            console.error('Error reading last overdue marked date from preferences:', error);
+        } catch {
             return null;
         }
     }
@@ -95,7 +90,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.LAST_OVERDUE_MARKED_DATE_KEY, date);
         } catch (error) {
-            console.error('Error saving last overdue marked date to preferences:', error);
             throw error;
         }
     }
@@ -104,8 +98,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.THEME_PREFERENCE_KEY) as ThemePreference;
             return value || 'system';
-        } catch (error) {
-            console.error('Error reading theme preference from preferences:', error);
+        } catch {
             return 'system';
         }
     }
@@ -114,7 +107,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.THEME_PREFERENCE_KEY, theme);
         } catch (error) {
-            console.error('Error saving theme preference to preferences:', error);
             throw error;
         }
     }
@@ -123,8 +115,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.PUSH_NOTIFICATIONS_ENABLED_KEY);
             return value === 'true';
-        } catch (error) {
-            console.error('Error reading push notifications setting from preferences:', error);
+        } catch {
             return false;
         }
     }
@@ -133,7 +124,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.PUSH_NOTIFICATIONS_ENABLED_KEY, enabled.toString());
         } catch (error) {
-            console.error('Error saving push notifications setting to preferences:', error);
             throw error;
         }
     }
@@ -142,8 +132,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.INTRO_SHOWN_KEY);
             return value === 'true';
-        } catch (error) {
-            console.error('Error reading intro shown flag from preferences:', error);
+        } catch {
             return false;
         }
     }
@@ -152,7 +141,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.INTRO_SHOWN_KEY, shown.toString());
         } catch (error) {
-            console.error('Error saving intro shown flag to preferences:', error);
             throw error;
         }
     }
@@ -161,8 +149,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.DAY_START_TIME_KEY);
             return value || this.DEFAULT_START_TIME;
-        } catch (error) {
-            console.error('Error reading day start time from preferences:', error);
+        } catch {
             return this.DEFAULT_START_TIME;
         }
     }
@@ -171,7 +158,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.DAY_START_TIME_KEY, time);
         } catch (error) {
-            console.error('Error saving day start time to preferences:', error);
             throw error;
         }
     }
@@ -180,8 +166,7 @@ class PreferencesService implements IPreferencesService {
         try {
             const value = localStorage.getItem(this.DAY_SCHEDULE_CONFIGURED_KEY);
             return value === 'true';
-        } catch (error) {
-            console.error('Error reading day schedule configured from preferences:', error);
+        } catch {
             return false;
         }
     }
@@ -190,7 +175,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.DAY_SCHEDULE_CONFIGURED_KEY, configured.toString());
         } catch (error) {
-            console.error('Error saving day schedule configured to preferences:', error);
             throw error;
         }
     }
@@ -200,8 +184,7 @@ class PreferencesService implements IPreferencesService {
             const value = localStorage.getItem(this.AUTO_COPY_INCOMPLETE_TASKS_KEY);
             // Default to true (enabled) for backwards compatibility
             return value === null ? true : value === 'true';
-        } catch (error) {
-            console.error('Error reading auto copy incomplete tasks from preferences:', error);
+        } catch {
             return true;
         }
     }
@@ -210,7 +193,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.AUTO_COPY_INCOMPLETE_TASKS_KEY, enabled.toString());
         } catch (error) {
-            console.error('Error saving auto copy incomplete tasks to preferences:', error);
             throw error;
         }
     }
@@ -219,8 +201,7 @@ class PreferencesService implements IPreferencesService {
         try {
             // Use IAP service (checks production mode internally)
             return await IAPService.isPremium();
-        } catch (error) {
-            console.error('Error reading premium status:', error);
+        } catch {
             return false;
         }
     }
@@ -229,7 +210,6 @@ class PreferencesService implements IPreferencesService {
         try {
             localStorage.setItem(this.IS_PREMIUM_KEY, isPremium.toString());
         } catch (error) {
-            console.error('Error saving premium status to preferences:', error);
             throw error;
         }
     }
@@ -242,8 +222,7 @@ class PreferencesService implements IPreferencesService {
                 return tier;
             }
             return null;
-        } catch (error) {
-            console.error('Error reading premium tier:', error);
+        } catch {
             return null;
         }
     }
@@ -256,7 +235,6 @@ class PreferencesService implements IPreferencesService {
                 localStorage.setItem(this.PREMIUM_TIER_KEY, tier);
             }
         } catch (error) {
-            console.error('Error saving premium tier to preferences:', error);
             throw error;
         }
     }

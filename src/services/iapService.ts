@@ -38,10 +38,29 @@ export interface Product {
 
 class IAPService {
   private storeInitialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   constructor() {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
-      this.initializeStore();
+      this.initializationPromise = this.initializeStore();
+    }
+  }
+
+  /**
+   * Wait for store to be initialized with timeout
+   */
+  private async ensureStoreInitialized(): Promise<void> {
+    if (!this.initializationPromise) return;
+
+    // Add a 10 second timeout to prevent indefinite waiting
+    const timeout = new Promise<void>((_, reject) => {
+      setTimeout(() => reject(new Error('Store initialization timeout')), 10000);
+    });
+
+    try {
+      await Promise.race([this.initializationPromise, timeout]);
+    } catch {
+      // Continue anyway - methods will use fallbacks
     }
   }
 
@@ -102,17 +121,15 @@ class IAPService {
       });
 
       // Handle errors
-      store.when().error((error: any) => {
-        console.error('IAP Error:', error);
+      store.when().error(() => {
+        // Error handled silently
       });
 
       // Initialize the store
       await store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
-
-      console.log('IAP Store initialized');
-    } catch (error) {
-      console.error('Failed to initialize IAP store:', error);
+    } catch {
+      // Store initialization failed
     }
   }
 
@@ -137,7 +154,6 @@ class IAPService {
 
       if (now > expiration) {
         // Expired! Clear localStorage
-        console.log('Subscription expired, clearing localStorage');
         localStorage.removeItem('isPremium');
         localStorage.removeItem('premiumTier');
         localStorage.removeItem('premiumExpiration');
@@ -158,6 +174,9 @@ class IAPService {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       // Production: Check store receipts
       try {
+        // Wait for store to be initialized
+        await this.ensureStoreInitialized();
+
         const { store } = CdvPurchase;
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
@@ -167,8 +186,7 @@ class IAPService {
         const hasLifetime = lifetimeProduct?.owned;
 
         return hasAnnual || hasLifetime || false;
-      } catch (error) {
-        console.error('Error checking premium status:', error);
+      } catch {
         // Fall back to localStorage with expiration check
         return this.isLocalStoragePremiumValid();
       }
@@ -184,6 +202,9 @@ class IAPService {
   async getPremiumTier(): Promise<string | null> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
+        // Wait for store to be initialized
+        await this.ensureStoreInitialized();
+
         const { store } = CdvPurchase;
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
@@ -193,8 +214,7 @@ class IAPService {
         if (annualProduct?.owned) return 'annual';
 
         return null;
-      } catch (error) {
-        console.error('Error getting premium tier:', error);
+      } catch {
         return localStorage.getItem('premiumTier');
       }
     }
@@ -208,6 +228,9 @@ class IAPService {
   async getProducts(): Promise<Product[]> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
+        // Wait for store to be initialized
+        await this.ensureStoreInitialized();
+
         const { store } = CdvPurchase;
 
         const products: Product[] = [];
@@ -235,8 +258,7 @@ class IAPService {
         }
 
         return products.length > 0 ? products : this.getMockProducts();
-      } catch (error) {
-        console.error('Error fetching products:', error);
+      } catch {
         return this.getMockProducts();
       }
     }
@@ -274,13 +296,16 @@ class IAPService {
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
+        // Wait for store to be initialized
+        await this.ensureStoreInitialized();
+
         const { store } = CdvPurchase;
 
         const product = store.get(productId);
         if (!product) {
           return {
             success: false,
-            error: 'Product not found'
+            error: 'Product not found. Please ensure products are configured in App Store Connect and try again.'
           };
         }
 
@@ -304,7 +329,6 @@ class IAPService {
           productId
         };
       } catch (error: any) {
-        console.error('Purchase error:', error);
         return {
           success: false,
           error: error.message || 'Purchase failed'
@@ -353,6 +377,9 @@ class IAPService {
   async restorePurchases(): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
+        // Wait for store to be initialized
+        await this.ensureStoreInitialized();
+
         const { store } = CdvPurchase;
 
         // Restore purchases
@@ -396,7 +423,6 @@ class IAPService {
           error: 'No purchases to restore'
         };
       } catch (error: any) {
-        console.error('Restore error:', error);
         return {
           success: false,
           error: error.message || 'Restore failed'

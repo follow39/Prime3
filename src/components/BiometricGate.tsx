@@ -42,8 +42,7 @@ const BiometricGate: FC<BiometricGateProps> = ({ children }) => {
                 }
 
                 setIsLoading(false);
-            } catch (error) {
-                console.error('Biometric check error:', error);
+            } catch {
                 // On error, grant access (fail open)
                 setIsAuthenticated(true);
                 setIsLoading(false);

@@ -256,8 +256,7 @@ class NotificationService {
       const key = this.getUsedMessagesKey(category);
       const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Error reading used messages:', error);
+    } catch {
       return [];
     }
   }
@@ -270,8 +269,8 @@ class NotificationService {
         used.push(index);
         localStorage.setItem(key, JSON.stringify(used));
       }
-    } catch (error) {
-      console.error('Error marking message as used:', error);
+    } catch {
+      // Error handled silently
     }
   }
 
@@ -299,8 +298,7 @@ class NotificationService {
     try {
       const result = await LocalNotifications.requestPermissions();
       return result.display === 'granted';
-    } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+    } catch {
       return false;
     }
   }
@@ -309,8 +307,7 @@ class NotificationService {
     try {
       const result = await LocalNotifications.checkPermissions();
       return result.display === 'granted';
-    } catch (error) {
-      console.error('Error checking notification permissions:', error);
+    } catch {
       return false;
     }
   }
@@ -434,10 +431,8 @@ class NotificationService {
 
       // Schedule all notifications
       await LocalNotifications.schedule({ notifications });
-
-      console.log(`Scheduled ${notifications.length} notifications`);
-    } catch (error) {
-      console.error('Error scheduling notifications:', error);
+    } catch {
+      // Error handled silently
     }
   }
 
@@ -447,8 +442,8 @@ class NotificationService {
       if (pending.notifications.length > 0) {
         await LocalNotifications.cancel({ notifications: pending.notifications });
       }
-    } catch (error) {
-      console.error('Error canceling notifications:', error);
+    } catch {
+      // Error handled silently
     }
   }
 
@@ -508,10 +503,8 @@ class NotificationService {
           }
         }]
       });
-
-      console.log('Switched to review mode - celebrating completed goals!');
-    } catch (error) {
-      console.error('Error switching to review mode:', error);
+    } catch {
+      // Error handled silently
     }
   }
 

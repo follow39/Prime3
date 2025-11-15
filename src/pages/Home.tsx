@@ -78,7 +78,6 @@ const Home: React.FC = () => {
       // Verify connection exists
       const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
       if (!isConn) {
-        console.warn('Database connection not available');
         return;
       }
 
@@ -100,7 +99,6 @@ const Home: React.FC = () => {
       }
     } catch (error) {
       const msg = `Error reading tasks: ${error}`;
-      console.error(msg);
       Toast.show({
         text: `${msg}`,
         duration: 'long'
@@ -114,8 +112,8 @@ const Home: React.FC = () => {
 
     // Check if initialization is already complete
     if (storageServ.isInitCompleted.value) {
-      readTasks().catch((error) => {
-        console.error('Error reading tasks:', error);
+      readTasks().catch(() => {
+        // Error handled silently
       });
     } else {
       // Wait for app initialization to complete
@@ -126,8 +124,8 @@ const Home: React.FC = () => {
             // StorageService already has the database connection opened
             // Just read the tasks directly
             await readTasks();
-          } catch (error) {
-            console.error('Error reading tasks after initialization:', error);
+          } catch {
+            // Error handled silently
           }
         }
       });
@@ -142,8 +140,8 @@ const Home: React.FC = () => {
   // Reload tasks and header every time the page becomes visible
   useIonViewDidEnter(() => {
     if (storageServ.isInitCompleted.value) {
-      readTasks().catch((error) => {
-        console.error('Error reading tasks on view enter:', error);
+      readTasks().catch(() => {
+        // Error handled silently
       });
       // Trigger header refresh
       setHeaderRefreshTrigger(prev => prev + 1);

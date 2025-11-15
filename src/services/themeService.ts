@@ -75,8 +75,8 @@ class ThemeService {
       } else {
         await StatusBar.setStyle({ style: Style.Light });
       }
-    } catch (error) {
-      console.error('Error updating status bar:', error);
+    } catch {
+      // Error handled silently
     }
   }
 

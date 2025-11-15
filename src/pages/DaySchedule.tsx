@@ -53,8 +53,8 @@ const DaySchedule: React.FC = () => {
         await PreferencesService.setPushNotificationsEnabled(true);
         await NotificationService.scheduleAllNotifications();
       }
-    } catch (error) {
-      console.error('Error setting up notifications:', error);
+    } catch {
+      // Error handled silently
     }
 
     // Show paywall modal

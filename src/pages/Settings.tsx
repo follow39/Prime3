@@ -149,8 +149,8 @@ const Settings: React.FC = () => {
 
       // Redirect to intro page
       history.replace('/intro');
-    } catch (error) {
-      console.error('Error clearing all data:', error);
+    } catch {
+      // Error handled silently
     }
   };
 
@@ -197,7 +197,6 @@ const Settings: React.FC = () => {
         window.location.reload();
       }, 1500);
     } catch (error) {
-      console.error('Error importing data:', error);
       setToastMessage('Error importing data: ' + (error as Error).message);
       setShowToast(true);
     }
