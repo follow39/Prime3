@@ -31,7 +31,7 @@ interface PaywallModalProps {
 const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchaseComplete, routeAfterPurchase }) => {
   const [selectedTier, setSelectedTier] = useState<PricingTier>('lifetime');
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const history = useHistory();
 
   // Fetch products from Apple when modal opens

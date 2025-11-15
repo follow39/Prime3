@@ -20,7 +20,7 @@ const DaySchedule: React.FC = () => {
   const history = useHistory();
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('22:00');
-  const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
 
   const handleContinue = async () => {
     // Validate times
@@ -58,11 +58,11 @@ const DaySchedule: React.FC = () => {
     }
 
     // Show paywall modal
-    setShowPaywall(true);
+    setIsPaywallOpen(true);
   };
 
   const handlePaywallClose = () => {
-    setShowPaywall(false);
+    setIsPaywallOpen(false);
     // Navigate to home after closing paywall (whether purchased or not)
     history.replace('/home');
   };
@@ -131,11 +131,13 @@ const DaySchedule: React.FC = () => {
         </div>
       </IonContent>
 
-      <PaywallModal
-        isOpen={showPaywall}
-        onClose={handlePaywallClose}
-        routeAfterPurchase="/home"
-      />
+      {isPaywallOpen && (
+        <PaywallModal
+          isOpen={isPaywallOpen}
+          onClose={handlePaywallClose}
+          routeAfterPurchase="/home"
+        />
+      )}
     </IonPage>
   );
 };

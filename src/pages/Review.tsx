@@ -105,7 +105,7 @@ const Review: React.FC = () => {
   const [completedCountByDate, setCompletedCountByDate] = useState<{ [key: string]: number }>({});
 
   // Paywall states
-  const [showPaywall, setShowPaywall] = useState(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
 
   const reloadTasksForSelectedDate = async () => {
@@ -139,7 +139,7 @@ const Review: React.FC = () => {
 
     if (!premium) {
       // Show paywall if not premium
-      setShowPaywall(true);
+      setIsPaywallOpen(true);
       setLoading(false); // Stop loading since we're not loading statistics
     } else {
       // Load statistics if premium
@@ -149,7 +149,7 @@ const Review: React.FC = () => {
 
   const handlePaywallClose = () => {
     // Go back to home if user closes paywall without purchasing
-    setShowPaywall(false);
+    setIsPaywallOpen(false);
     history.push('/home');
   };
 
@@ -157,7 +157,7 @@ const Review: React.FC = () => {
     // Reload premium status and load statistics
     const premium = await PreferencesService.getIsPremium();
     setIsPremium(premium);
-    setShowPaywall(false);
+    setIsPaywallOpen(false);
     loadStatistics();
   };
 
@@ -771,9 +771,9 @@ const Review: React.FC = () => {
         )}
 
         {/* Paywall Modal - rendered outside content conditionally */}
-        {!isPremium && (
+        {isPaywallOpen && (
           <PaywallModal
-            isOpen={showPaywall}
+            isOpen={isPaywallOpen}
             onClose={handlePaywallClose}
             onPurchaseComplete={handlePurchaseComplete}
           />

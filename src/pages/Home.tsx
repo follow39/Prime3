@@ -27,10 +27,10 @@ const Home: React.FC = () => {
 
   const dbNameRef = useRef('');
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [todayHasTasks, setTodayHasTasks] = useState<boolean>(false);
+  const [todayHasTasks, setTodayHasTasks] = useState<boolean>(true);
   const [headerRefreshTrigger, setHeaderRefreshTrigger] = useState<number>(0);
   const [isPremium, setIsPremium] = useState<boolean>(false);
-  const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
 
@@ -259,7 +259,7 @@ const Home: React.FC = () => {
                       if (isPremium) {
                         router.push('/review', 'forward');
                       } else {
-                        setShowPaywall(true);
+                        setIsPaywallOpen(true);
                       }
                     }}
                   >
@@ -274,12 +274,17 @@ const Home: React.FC = () => {
         return null;
       })()}
 
-      <PaywallModal
-        isOpen={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        onPurchaseComplete={() => setIsPremium(true)}
-        routeAfterPurchase="/review"
-      />
+      {isPaywallOpen && (
+        <PaywallModal
+          isOpen={isPaywallOpen}
+          onClose={() => setIsPaywallOpen(false)}
+          onPurchaseComplete={() => {
+            setIsPremium(true);
+            setIsPaywallOpen(false);
+          }}
+          routeAfterPurchase="/review"
+        />
+      )}
     </IonPage>
   );
 };

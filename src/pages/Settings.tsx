@@ -28,7 +28,6 @@ import { trashOutline, downloadOutline, cloudUploadOutline, starOutline } from '
 import PreferencesService, { ThemePreference } from '../services/preferencesService';
 import ThemeService from '../services/themeService';
 import NotificationService from '../services/notificationService';
-import BiometricService from '../services/biometricService';
 import { StorageServiceContext } from '../App';
 import ExportService from '../services/exportService';
 import PaywallModal from '../components/PaywallModal';
@@ -40,14 +39,12 @@ const Settings: React.FC = () => {
   const [dayEndTime, setDayEndTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(false);
-  const [biometricEnabled, setBiometricEnabled] = useState<boolean>(false);
-  const [biometricAvailable, setBiometricAvailable] = useState<boolean>(false);
   const [autoCopyIncompleteTasks, setAutoCopyIncompleteTasks] = useState<boolean>(true);
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [showClearDataAlert, setShowClearDataAlert] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [showToast, setShowToast] = useState<boolean>(false);
-  const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,16 +53,12 @@ const Settings: React.FC = () => {
       const endTime = await PreferencesService.getEarliestEndTime();
       const theme = await PreferencesService.getThemePreference();
       const pushEnabled = await PreferencesService.getPushNotificationsEnabled();
-      const bioEnabled = await BiometricService.isEnabled();
-      const bioAvailable = await BiometricService.isAvailable();
       const autoCopy = await PreferencesService.getAutoCopyIncompleteTasks();
       const premium = await PreferencesService.getIsPremium();
       setDayStartTime(startTime);
       setDayEndTime(endTime);
       setThemePreference(theme);
       setPushNotificationsEnabled(pushEnabled);
-      setBiometricEnabled(bioEnabled);
-      setBiometricAvailable(bioAvailable);
       setAutoCopyIncompleteTasks(autoCopy);
       setIsPremium(premium);
     };
@@ -117,21 +110,6 @@ const Settings: React.FC = () => {
   const handleAutoCopyIncompleteTasksChange = async (checked: boolean) => {
     setAutoCopyIncompleteTasks(checked);
     await PreferencesService.setAutoCopyIncompleteTasks(checked);
-  };
-
-  const handleBiometricChange = async (checked: boolean) => {
-    try {
-      await BiometricService.setEnabled(checked);
-      setBiometricEnabled(checked);
-      setToastMessage(checked ? 'Biometric lock enabled' : 'Biometric lock disabled');
-      setShowToast(true);
-    } catch (error: any) {
-      // Revert toggle if enabling failed
-      setBiometricEnabled(false);
-      const msg = error.message || 'Failed to enable biometric lock';
-      setToastMessage(msg);
-      setShowToast(true);
-    }
   };
 
   const handleClearAllData = async () => {
@@ -211,7 +189,7 @@ const Settings: React.FC = () => {
     // Reload premium status
     const premium = await PreferencesService.getIsPremium();
     setIsPremium(premium);
-    setShowPaywallModal(false);
+    setIsPaywallOpen(false);
   };
 
   return (
@@ -304,7 +282,7 @@ const Settings: React.FC = () => {
                 expand="block"
                 color="primary"
                 style={{ marginTop: '15px' }}
-                onClick={() => setShowPaywallModal(true)}
+                onClick={() => setIsPaywallOpen(true)}
               >
                 <IonIcon slot="start" icon={starOutline} />
                 Obtain Premium
@@ -339,16 +317,6 @@ const Settings: React.FC = () => {
                   onIonChange={(e) => handlePushNotificationsChange(e.detail.checked)}
                 />
               </IonItem>
-              {biometricAvailable && (
-                <IonItem>
-                  <IonLabel>Biometric lock</IonLabel>
-                  <IonToggle
-                    slot="end"
-                    checked={biometricEnabled}
-                    onIonChange={(e) => handleBiometricChange(e.detail.checked)}
-                  />
-                </IonItem>
-              )}
             </IonList>
           </IonCardContent>
         </IonCard>
@@ -513,11 +481,13 @@ const Settings: React.FC = () => {
         position="bottom"
       />
 
-      <PaywallModal
-        isOpen={showPaywallModal}
-        onClose={() => setShowPaywallModal(false)}
-        onPurchaseComplete={handlePurchaseComplete}
-      />
+      {isPaywallOpen && (
+        <PaywallModal
+          isOpen={isPaywallOpen}
+          onClose={() => setIsPaywallOpen(false)}
+          onPurchaseComplete={handlePurchaseComplete}
+        />
+      )}
     </IonPage>
   );
 };

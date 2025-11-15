@@ -15,7 +15,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@aparajita/capacitor-biometric-auth": "^9.1.2",
     "@awesome-cordova-plugins/in-app-purchase-2": "^8.1.0",
     "@capacitor-community/sqlite": "^7.0.2",
     "@capacitor/app": "7.1.0",
