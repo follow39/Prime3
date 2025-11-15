@@ -1,24 +1,26 @@
 /**
  * In-App Purchase Service
  *
- * Simple wrapper for iOS StoreKit In-App Purchases
+ * Uses cordova-plugin-purchase for native StoreKit integration
  *
- * DEVELOPMENT MODE:
- * Currently uses localStorage for testing. Premium status can be toggled
- * via the paywall for development/testing purposes.
+ * DEVELOPMENT MODE (ENABLE_PRODUCTION_IAP = false):
+ * Uses localStorage for testing - purchases always succeed
  *
- * PRODUCTION MODE:
- * To enable real in-app purchases:
- * 1. Add Capacitor StoreKit plugin or use native StoreKit 2 Swift code
- * 2. Implement purchaseProduct() to call Apple's StoreKit
- * 3. Implement restorePurchases() to restore previous purchases
- * 4. Implement receipt validation (local or server-side)
- * 5. Update ENABLE_PRODUCTION_IAP to true in subscription.config.ts
+ * PRODUCTION MODE (ENABLE_PRODUCTION_IAP = true):
+ * Uses Apple StoreKit for real purchases via cordova-plugin-purchase
+ *
+ * Testing:
+ * 1. Set ENABLE_PRODUCTION_IAP = true in subscription.config.ts
+ * 2. Open Xcode and configure StoreKit testing (Product > Scheme > Edit Scheme > Run > Options > StoreKit Configuration)
+ * 3. Or test with Sandbox account on device
  *
  * No third-party services required - direct Apple StoreKit integration
  */
 
 import { SUBSCRIPTION_CONFIG } from '../config/subscription.config';
+import { Capacitor } from '@capacitor/core';
+
+declare const CdvPurchase: any;
 
 export interface PurchaseResult {
   success: boolean;
@@ -35,44 +37,169 @@ export interface Product {
 }
 
 class IAPService {
+  private storeInitialized = false;
+
+  constructor() {
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      this.initializeStore();
+    }
+  }
+
+  /**
+   * Initialize the in-app purchase store
+   */
+  private async initializeStore(): Promise<void> {
+    if (this.storeInitialized) return;
+
+    try {
+      const { store, ProductType, Platform } = CdvPurchase;
+
+      // Register products
+      store.register([
+        {
+          id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL,
+          type: ProductType.PAID_SUBSCRIPTION,
+          platform: Platform.APPLE_APPSTORE
+        },
+        {
+          id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME,
+          type: ProductType.NON_CONSUMABLE,
+          platform: Platform.APPLE_APPSTORE
+        }
+      ]);
+
+      // Handle approved transactions
+      store.when().approved((transaction: any) => {
+        transaction.verify();
+      });
+
+      // Handle verified transactions
+      store.when().verified((receipt: any) => {
+        receipt.finish();
+
+        // Grant premium access
+        const productId = receipt.products[0]?.id;
+        if (productId) {
+          const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
+          localStorage.setItem('isPremium', 'true');
+          localStorage.setItem('premiumTier', tier);
+          localStorage.setItem('purchaseDate', new Date().toISOString());
+          localStorage.setItem('productId', productId);
+        }
+      });
+
+      // Handle errors
+      store.when().error((error: any) => {
+        console.error('IAP Error:', error);
+      });
+
+      // Initialize the store
+      await store.initialize([Platform.APPLE_APPSTORE]);
+      this.storeInitialized = true;
+
+      console.log('IAP Store initialized');
+    } catch (error) {
+      console.error('Failed to initialize IAP store:', error);
+    }
+  }
+
   /**
    * Check if user has premium access
-   *
-   * In production, this would verify the purchase receipt with Apple
    */
   async isPremium(): Promise<boolean> {
-    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP) {
-      // TODO: Implement StoreKit receipt validation
-      // For now, fall back to localStorage
-      console.warn('Production IAP not yet implemented, using localStorage');
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      // Production: Check store receipts
+      try {
+        const { store } = CdvPurchase;
+
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+
+        const hasAnnual = annualProduct?.owned;
+        const hasLifetime = lifetimeProduct?.owned;
+
+        return hasAnnual || hasLifetime || false;
+      } catch (error) {
+        console.error('Error checking premium status:', error);
+        // Fall back to localStorage
+        return localStorage.getItem('isPremium') === 'true';
+      }
     }
 
     // Development: Use localStorage
-    const premiumStatus = localStorage.getItem('isPremium');
-    return premiumStatus === 'true';
+    return localStorage.getItem('isPremium') === 'true';
   }
 
   /**
    * Get the user's premium tier (annual or lifetime)
    */
   async getPremiumTier(): Promise<string | null> {
-    const tier = localStorage.getItem('premiumTier');
-    return tier || null;
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      try {
+        const { store } = CdvPurchase;
+
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+
+        if (lifetimeProduct?.owned) return 'lifetime';
+        if (annualProduct?.owned) return 'annual';
+
+        return null;
+      } catch (error) {
+        console.error('Error getting premium tier:', error);
+        return localStorage.getItem('premiumTier');
+      }
+    }
+
+    return localStorage.getItem('premiumTier');
   }
 
   /**
    * Get available products from App Store
-   *
-   * In production, this fetches from StoreKit
    */
   async getProducts(): Promise<Product[]> {
-    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP) {
-      // TODO: Fetch from StoreKit
-      // return await fetchProductsFromStoreKit();
-      console.warn('Production IAP not yet implemented');
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      try {
+        const { store } = CdvPurchase;
+
+        const products: Product[] = [];
+
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+        if (annualProduct) {
+          products.push({
+            id: annualProduct.id,
+            title: annualProduct.title || 'Premium Annual',
+            description: annualProduct.description || 'Billed annually',
+            price: annualProduct.pricing?.price || '$1.29/mo',
+            priceAmount: annualProduct.pricing?.priceMicros ? annualProduct.pricing.priceMicros / 1000000 : 15.48
+          });
+        }
+
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+        if (lifetimeProduct) {
+          products.push({
+            id: lifetimeProduct.id,
+            title: lifetimeProduct.title || 'Premium Lifetime',
+            description: lifetimeProduct.description || 'One-time purchase',
+            price: lifetimeProduct.pricing?.price || '$14.99',
+            priceAmount: lifetimeProduct.pricing?.priceMicros ? lifetimeProduct.pricing.priceMicros / 1000000 : 14.99
+          });
+        }
+
+        return products.length > 0 ? products : this.getMockProducts();
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        return this.getMockProducts();
+      }
     }
 
-    // Development: Return mock products
+    return this.getMockProducts();
+  }
+
+  /**
+   * Get mock products for development
+   */
+  private getMockProducts(): Product[] {
     return [
       {
         id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL,
@@ -97,17 +224,44 @@ class IAPService {
    * @param productId - The product identifier from App Store Connect
    */
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
-    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP) {
-      // TODO: Implement StoreKit purchase flow
-      // 1. Call StoreKit to initiate purchase
-      // 2. Wait for transaction completion
-      // 3. Validate receipt
-      // 4. Grant access
-      console.warn('Production IAP not yet implemented');
-      return {
-        success: false,
-        error: 'Production IAP not configured'
-      };
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      try {
+        const { store } = CdvPurchase;
+
+        const product = store.get(productId);
+        if (!product) {
+          return {
+            success: false,
+            error: 'Product not found'
+          };
+        }
+
+        // Get the offer (required for purchase)
+        const offer = product.getOffer();
+        if (!offer) {
+          return {
+            success: false,
+            error: 'No offer available for this product'
+          };
+        }
+
+        // Order the product
+        await offer.order();
+
+        // The transaction will be handled by the store.when().approved() and verified() handlers
+        // We return success immediately as the handlers will update localStorage
+
+        return {
+          success: true,
+          productId
+        };
+      } catch (error: any) {
+        console.error('Purchase error:', error);
+        return {
+          success: false,
+          error: error.message || 'Purchase failed'
+        };
+      }
     }
 
     // Development: Mock purchase (always succeeds)
@@ -137,17 +291,45 @@ class IAPService {
    * Required by Apple - allows users to restore purchases on new devices
    */
   async restorePurchases(): Promise<PurchaseResult> {
-    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP) {
-      // TODO: Implement StoreKit restore
-      // 1. Call StoreKit restoreCompletedTransactions()
-      // 2. Process restored transactions
-      // 3. Validate receipts
-      // 4. Grant access
-      console.warn('Production IAP not yet implemented');
-      return {
-        success: false,
-        error: 'Production IAP not configured'
-      };
+    if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
+      try {
+        const { store } = CdvPurchase;
+
+        // Restore purchases
+        await store.restorePurchases();
+
+        // Check if any products are now owned
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+
+        const hasAnnual = annualProduct?.owned;
+        const hasLifetime = lifetimeProduct?.owned;
+
+        if (hasAnnual || hasLifetime) {
+          const productId = hasLifetime ? SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME : SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL;
+          const tier = hasLifetime ? 'lifetime' : 'annual';
+
+          localStorage.setItem('isPremium', 'true');
+          localStorage.setItem('premiumTier', tier);
+          localStorage.setItem('productId', productId);
+
+          return {
+            success: true,
+            productId
+          };
+        }
+
+        return {
+          success: false,
+          error: 'No purchases to restore'
+        };
+      } catch (error: any) {
+        console.error('Restore error:', error);
+        return {
+          success: false,
+          error: error.message || 'Restore failed'
+        };
+      }
     }
 
     // Development: Check if there's a saved purchase

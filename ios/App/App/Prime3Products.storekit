@@ -1,0 +1,68 @@
+{
+  "identifier" : "Prime3Products",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "6670829414",
+      "localizations" : [
+        {
+          "description" : "Unlock all premium features forever with a one-time purchase",
+          "displayName" : "Premium Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.prime3.app.premium.lifetime",
+      "referenceName" : "Premium Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6670829413",
+    "_developerTeamID" : "YOUR_TEAM_ID",
+    "_lastSynchronizedDate" : 748728000.0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21497131",
+      "localizations" : [
+
+      ],
+      "name" : "Premium Subscription",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "15.48",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6670829415",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "All premium features, billed annually at $15.48/year ($1.29/month)",
+              "displayName" : "Premium Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.prime3.app.premium.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Annual",
+          "subscriptionGroupID" : "21497131",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

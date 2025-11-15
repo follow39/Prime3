@@ -27,6 +27,8 @@ PODS:
     - Capacitor
   - CapacitorToast (7.0.2):
     - Capacitor
+  - CordovaPlugins (7.4.4):
+    - CapacitorCordova
   - IONFilesystemLib (1.0.1)
   - SQLCipher (4.10.0):
     - SQLCipher/standard (= 4.10.0)
@@ -49,6 +51,7 @@ DEPENDENCIES:
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - "CapacitorToast (from `../../node_modules/@capacitor/toast`)"
+  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
 
 SPEC REPOS:
   trunk:
@@ -83,6 +86,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/status-bar"
   CapacitorToast:
     :path: "../../node_modules/@capacitor/toast"
+  CordovaPlugins:
+    :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
   AparajitaCapacitorBiometricAuth: c7edb43d80486150b81224d3ff7e950b37a3c2f1
@@ -98,10 +103,11 @@ SPEC CHECKSUMS:
   CapacitorShare: be166411fa995ead2d39b104aa0aae56d8615c66
   CapacitorStatusBar: 0659ddc7b1713764a05831463d215b177a15d054
   CapacitorToast: 166611aea815418fc08894b77a915773e3d059d5
+  CordovaPlugins: 46e6f7272fc84c91b63b894a9ad321e82c463564
   IONFilesystemLib: 89258b8e3e85465da93127d25d7ce37f977e8a6f
   SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 496ea30c5c60704873c0edb7dd03a828ce1fbb16
+PODFILE CHECKSUM: 23a762f84f52c327a22c7caeb2df9bb7620fe5ab
 
 COCOAPODS: 1.16.2
