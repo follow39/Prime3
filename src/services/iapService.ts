@@ -38,8 +38,9 @@ export interface Product {
 
 class IAPService {
   private storeInitialized = false;
+  private productsReady = false;
   private initializationPromise: Promise<void> | null = null;
-  private productsReadyResolvers: Map<string, ((value: boolean) => void)[]> = new Map();
+  private readyPromise: Promise<void> | null = null;
 
   constructor() {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
@@ -48,54 +49,25 @@ class IAPService {
   }
 
   /**
-   * Wait for store to be initialized with timeout
+   * Wait for store and products to be ready with timeout
    */
-  private async ensureStoreInitialized(): Promise<void> {
-    if (!this.initializationPromise) return;
+  private async ensureStoreReady(): Promise<void> {
+    if (!this.initializationPromise || !this.readyPromise) return;
 
-    // Add a 10 second timeout to prevent indefinite waiting
+    // Add a 15 second timeout to prevent indefinite waiting
     const timeout = new Promise<void>((_, reject) => {
-      setTimeout(() => reject(new Error('Store initialization timeout')), 10000);
+      setTimeout(() => reject(new Error('Store ready timeout')), 15000);
     });
 
     try {
+      // Wait for initialization first
       await Promise.race([this.initializationPromise, timeout]);
+
+      // Then wait for products to be ready
+      await Promise.race([this.readyPromise, timeout]);
     } catch {
       // Continue anyway - methods will use fallbacks
     }
-  }
-
-  /**
-   * Wait for a specific product to be loaded
-   */
-  private async waitForProduct(productId: string, maxWaitMs: number = 5000): Promise<boolean> {
-    const { store } = CdvPurchase;
-
-    // Check if product is already available
-    const product = store.get(productId);
-    if (product) return true;
-
-    // Wait for product to load
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(false), maxWaitMs);
-
-      // Listen for product updates
-      const checkProduct = () => {
-        const p = store.get(productId);
-        if (p) {
-          clearTimeout(timeout);
-          resolve(true);
-        }
-      };
-
-      // Check every 100ms
-      const interval = setInterval(checkProduct, 100);
-
-      // Clean up on timeout
-      setTimeout(() => {
-        clearInterval(interval);
-      }, maxWaitMs);
-    });
   }
 
   /**
@@ -106,6 +78,14 @@ class IAPService {
 
     try {
       const { store, ProductType, Platform } = CdvPurchase;
+
+      // Create promise that resolves when products are ready
+      this.readyPromise = new Promise<void>((resolve) => {
+        store.ready(() => {
+          this.productsReady = true;
+          resolve();
+        });
+      });
 
       // Register products with exact IDs
       store.register([
@@ -211,8 +191,8 @@ class IAPService {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       // Production: Check store receipts
       try {
-        // Wait for store to be initialized
-        await this.ensureStoreInitialized();
+        // Wait for store and products to be ready
+        await this.ensureStoreReady();
 
         const { store } = CdvPurchase;
 
@@ -239,8 +219,8 @@ class IAPService {
   async getPremiumTier(): Promise<string | null> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store to be initialized
-        await this.ensureStoreInitialized();
+        // Wait for store and products to be ready
+        await this.ensureStoreReady();
 
         const { store } = CdvPurchase;
 
@@ -265,8 +245,8 @@ class IAPService {
   async getProducts(): Promise<Product[]> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store to be initialized
-        await this.ensureStoreInitialized();
+        // Wait for store and products to be ready
+        await this.ensureStoreReady();
 
         const { store } = CdvPurchase;
 
@@ -333,17 +313,8 @@ class IAPService {
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store to be initialized
-        await this.ensureStoreInitialized();
-
-        // Wait for the specific product to be loaded
-        const productReady = await this.waitForProduct(productId);
-        if (!productReady) {
-          return {
-            success: false,
-            error: 'Product not available. Please check your internet connection and try again.'
-          };
-        }
+        // Wait for store and products to be ready
+        await this.ensureStoreReady();
 
         const { store } = CdvPurchase;
 
@@ -423,8 +394,8 @@ class IAPService {
   async restorePurchases(): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        // Wait for store to be initialized
-        await this.ensureStoreInitialized();
+        // Wait for store and products to be ready
+        await this.ensureStoreReady();
 
         const { store } = CdvPurchase;
 
