@@ -262,42 +262,21 @@ class IAPService {
         }
 
         if (products.length === 0) {
-          alert(`[IAP] No products loaded, returning mock products`);
-          return this.getMockProducts();
+          alert(`[IAP] No products loaded yet, returning empty array`);
+        } else {
+          alert(`[IAP] Returning ${products.length} real products`);
         }
 
-        alert(`[IAP] Returning ${products.length} real products`);
         return products;
       } catch (error: any) {
-        alert(`[IAP] Error getting products: ${error.message || error}`);
-        return this.getMockProducts();
+        alert(`[IAP] Error getting products: ${error.message || error}, returning empty array`);
+        return [];
       }
     }
 
-    alert(`[IAP] Production IAP disabled, returning mock products`);
-    return this.getMockProducts();
-  }
-
-  /**
-   * Get mock products for development
-   */
-  private getMockProducts(): Product[] {
-    return [
-      {
-        id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL,
-        title: 'Premium Annual',
-        description: 'Billed annually',
-        price: '$1.29/mo',
-        priceAmount: 15.48
-      },
-      {
-        id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME,
-        title: 'Premium Lifetime',
-        description: 'One-time purchase',
-        price: '$14.99',
-        priceAmount: 14.99
-      }
-    ];
+    // Production IAP disabled - return empty
+    alert(`[IAP] Production IAP disabled, returning empty array`);
+    return [];
   }
 
   /**
@@ -361,37 +340,11 @@ class IAPService {
       }
     }
 
-    // Development: Mock purchase (always succeeds)
-    try {
-      const tier = productId === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ? 'annual' : 'lifetime';
-
-      // For annual subscription, calculate expiration (1 year from now)
-      // For lifetime, no expiration
-      const expirationDate = tier === 'annual'
-        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        : null;
-
-      localStorage.setItem('isPremium', 'true');
-      localStorage.setItem('premiumTier', tier);
-      localStorage.setItem('purchaseDate', new Date().toISOString());
-      localStorage.setItem('productId', productId);
-
-      if (expirationDate) {
-        localStorage.setItem('premiumExpiration', expirationDate);
-      } else {
-        localStorage.removeItem('premiumExpiration');
-      }
-
-      return {
-        success: true,
-        productId
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Purchase failed'
-      };
-    }
+    // Production IAP required
+    return {
+      success: false,
+      error: 'In-app purchases are only available on iOS devices'
+    };
   }
 
   /**
@@ -452,35 +405,13 @@ class IAPService {
       }
     }
 
-    // Development: Check if there's a saved purchase
-    const isPremium = localStorage.getItem('isPremium') === 'true';
-    const productId = localStorage.getItem('productId');
-
-    if (isPremium && productId) {
-      return {
-        success: true,
-        productId
-      };
-    }
-
+    // Production IAP required
     return {
       success: false,
-      error: 'No purchases to restore'
+      error: 'Purchase restoration is only available on iOS devices'
     };
   }
 
-  /**
-   * Clear premium status (for testing)
-   * Only available in development mode
-   */
-  async clearPremiumStatus(): Promise<void> {
-    if (!SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP) {
-      localStorage.removeItem('isPremium');
-      localStorage.removeItem('premiumTier');
-      localStorage.removeItem('purchaseDate');
-      localStorage.removeItem('productId');
-    }
-  }
 }
 
 export default new IAPService();

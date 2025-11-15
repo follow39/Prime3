@@ -153,6 +153,15 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
               <IonSpinner name="crescent" />
               <p style={{ marginTop: '12px', color: 'var(--ion-color-medium)' }}>Loading pricing...</p>
             </div>
+          ) : products.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <p style={{ marginBottom: '20px', color: 'var(--ion-color-medium)' }}>
+                Unable to load pricing information.
+              </p>
+              <IonButton expand="block" onClick={loadProducts}>
+                Retry
+              </IonButton>
+            </div>
           ) : (
             <>
               <div className="paywall-pricing-options" style={{ marginTop: '10px' }}>
