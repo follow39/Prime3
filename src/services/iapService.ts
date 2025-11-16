@@ -50,7 +50,7 @@ class IAPService {
   /**
    * Initialize the in-app purchase store
    */
-  private initializeStore(): void {
+  private async initializeStore(): Promise<void> {
     if (this.storeInitialized) return;
 
     try {
@@ -88,12 +88,15 @@ class IAPService {
         this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
       });
 
-      store.when().updated(() => {
+      store.ready(() => {
         this.storeReady = true;
       });
 
-      store.initialize([Platform.APPLE_APPSTORE]);
+      await store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
+
+      // Force refresh to get latest prices
+      store.refresh();
     } catch {
       // Store initialization failed
     }
@@ -214,6 +217,11 @@ class IAPService {
       try {
         const { store } = CdvPurchase;
 
+        // Ensure store is initialized
+        if (!this.storeInitialized) {
+          await this.initializeStore();
+        }
+
         // Wait for store to be ready
         if (!this.storeReady) {
           await new Promise<void>((resolve) => {
@@ -231,9 +239,9 @@ class IAPService {
         const products: Product[] = [];
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        if (annualProduct) {
-          const offer = annualProduct.getOffer();
-          if (offer && offer.pricingPhases && offer.pricingPhases.length > 0) {
+        if (annualProduct && annualProduct.offers && annualProduct.offers.length > 0) {
+          const offer = annualProduct.offers[0];
+          if (offer.pricingPhases && offer.pricingPhases.length > 0) {
             const pricing = offer.pricingPhases[0];
             products.push({
               id: annualProduct.id,
@@ -248,16 +256,29 @@ class IAPService {
 
         const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
         if (lifetimeProduct) {
-          const offer = lifetimeProduct.getOffer();
-          if (offer && offer.pricingPhases && offer.pricingPhases.length > 0) {
-            const pricing = offer.pricingPhases[0];
+          // Non-consumable products may have a simpler structure
+          if (lifetimeProduct.offers && lifetimeProduct.offers.length > 0) {
+            const offer = lifetimeProduct.offers[0];
+            if (offer.pricingPhases && offer.pricingPhases.length > 0) {
+              const pricing = offer.pricingPhases[0];
+              products.push({
+                id: lifetimeProduct.id,
+                title: lifetimeProduct.title || 'Premium Lifetime',
+                description: lifetimeProduct.description || 'One-time purchase',
+                price: pricing.price,
+                priceAmount: pricing.priceMicros / 1000000,
+                currency: pricing.currency
+              });
+            }
+          } else if (lifetimeProduct.pricing) {
+            // Fallback for non-consumable with direct pricing
             products.push({
               id: lifetimeProduct.id,
               title: lifetimeProduct.title || 'Premium Lifetime',
               description: lifetimeProduct.description || 'One-time purchase',
-              price: pricing.price,
-              priceAmount: pricing.priceMicros / 1000000,
-              currency: pricing.currency
+              price: lifetimeProduct.pricing.price,
+              priceAmount: lifetimeProduct.pricing.priceMicros / 1000000,
+              currency: lifetimeProduct.pricing.currency
             });
           }
         }
