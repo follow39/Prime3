@@ -41,16 +41,25 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
     }
   }, [isOpen]);
 
+  // Set default selected tier based on available products
+  useEffect(() => {
+    if (products.length > 0) {
+      const hasLifetime = getProduct('lifetime');
+      const hasAnnual = getProduct('annual');
+
+      // Default to lifetime if available, otherwise annual
+      if (hasLifetime) {
+        setSelectedTier('lifetime');
+      } else if (hasAnnual) {
+        setSelectedTier('annual');
+      }
+    }
+  }, [products]);
+
   const loadProducts = async () => {
     try {
       setLoading(true);
-
-      // Start product fetch and 3-second minimum delay in parallel
-      const [fetchedProducts] = await Promise.all([
-        IAPService.getProducts(),
-        new Promise(resolve => setTimeout(resolve, 3000))
-      ]);
-
+      const fetchedProducts = await IAPService.getProducts();
       setProducts(fetchedProducts);
     } catch {
       // Error handled silently
@@ -186,108 +195,115 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                 </IonText>
 
                 {/* Annual Plan */}
-                <IonCard
-                  button
-                  onClick={() => setSelectedTier('annual')}
-                  className={`pricing-tier-card ${selectedTier === 'annual' ? 'selected' : ''}`}
-                  style={{
-                    border: selectedTier === 'annual' ? '2px solid var(--ion-color-primary)' : '1px solid var(--ion-color-medium)',
-                    marginBottom: '10px'
-                  }}
-                >
-                  <IonCardContent style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Monthly</h3>
-                        <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)', fontWeight: '600' }}>
-                          Try it first
-                        </p>
+                {getProduct('annual') && (
+                  <IonCard
+                    button
+                    onClick={() => setSelectedTier('annual')}
+                    className={`pricing-tier-card ${selectedTier === 'annual' ? 'selected' : ''}`}
+                    style={{
+                      border: selectedTier === 'annual' ? '2px solid var(--ion-color-primary)' : '1px solid var(--ion-color-medium)',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    <IonCardContent style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Monthly</h3>
+                          <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)', fontWeight: '600' }}>
+                            Try it first
+                          </p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          {(() => {
+                            const product = getProduct('annual');
+                            if (!product) return null;
+                            const monthlyPrice = (product.priceAmount / 12).toFixed(2);
+                            return (
+                              <>
+                                <div style={{ fontSize: '19px', fontWeight: 'bold' }}>
+                                  ${monthlyPrice}
+                                  <span style={{ fontSize: '13px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}>/mo</span>
+                                </div>
+                                <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)' }}>billed annually</p>
+                              </>
+                            );
+                          })()}
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        {(() => {
-                          const product = getProduct('annual');
-                          const monthlyPrice = product ? (product.priceAmount / 12).toFixed(2) : '1.29';
-                          return (
-                            <>
-                              <div style={{ fontSize: '19px', fontWeight: 'bold' }}>
-                                ${monthlyPrice}
-                                <span style={{ fontSize: '13px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}>/mo</span>
-                              </div>
-                              <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)' }}>billed annually</p>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </IonCardContent>
-                </IonCard>
+                    </IonCardContent>
+                  </IonCard>
+                )}
 
                 {/* Lifetime Plan */}
-                <IonCard
-                  button
-                  onClick={() => setSelectedTier('lifetime')}
-                  className={`pricing-tier-card ${selectedTier === 'lifetime' ? 'selected' : ''}`}
-                  style={{
-                    border: '2px solid var(--ion-color-success)',
-                    position: 'relative',
-                    marginBottom: '10px',
-                    background: 'rgba(var(--ion-color-success-rgb), 0.05)'
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute',
-                    top: '-1px',
-                    right: '12px',
-                    background: 'var(--ion-color-danger)',
-                    color: 'white',
-                    padding: '4px 10px',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    borderRadius: '0 0 6px 6px',
-                    letterSpacing: '0.5px'
-                  }}>
-                    40% OFF SALE
-                  </div>
-                  <IonCardContent style={{ padding: '12px 16px', marginTop: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Lifetime</h3>
-                        <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-success)', fontWeight: '600' }}>
-                          Unlimited access forever
-                        </p>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        {(() => {
-                          const product = getProduct('lifetime');
-                          const price = product?.price || '$14.99';
-                          const regularPrice = product ? (product.priceAmount * 1.67).toFixed(2) : '24.99';
-                          return (
-                            <>
-                              <div style={{ fontSize: '12px', color: 'var(--ion-color-medium)', textDecoration: 'line-through', marginBottom: '2px' }}>
-                                ${regularPrice}
-                              </div>
-                              <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--ion-color-danger)' }}>
-                                {price}
-                                <span style={{ fontSize: '13px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}> once</span>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
+                {getProduct('lifetime') && (
+                  <IonCard
+                    button
+                    onClick={() => setSelectedTier('lifetime')}
+                    className={`pricing-tier-card ${selectedTier === 'lifetime' ? 'selected' : ''}`}
+                    style={{
+                      border: '2px solid var(--ion-color-success)',
+                      position: 'relative',
+                      marginBottom: '10px',
+                      background: 'rgba(var(--ion-color-success-rgb), 0.05)'
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '-1px',
+                      right: '12px',
+                      background: 'var(--ion-color-danger)',
+                      color: 'white',
+                      padding: '4px 10px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      borderRadius: '0 0 6px 6px',
+                      letterSpacing: '0.5px'
+                    }}>
+                      40% OFF SALE
                     </div>
-                  </IonCardContent>
-                </IonCard>
+                    <IonCardContent style={{ padding: '12px 16px', marginTop: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Lifetime</h3>
+                          <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-success)', fontWeight: '600' }}>
+                            Unlimited access forever
+                          </p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          {(() => {
+                            const product = getProduct('lifetime');
+                            if (!product) return null;
+                            const regularPrice = (product.priceAmount * 1.67).toFixed(2);
+                            return (
+                              <>
+                                <div style={{ fontSize: '12px', color: 'var(--ion-color-medium)', textDecoration: 'line-through', marginBottom: '2px' }}>
+                                  ${regularPrice}
+                                </div>
+                                <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--ion-color-danger)' }}>
+                                  {product.price}
+                                  <span style={{ fontSize: '13px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}> once</span>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </IonCardContent>
+                  </IonCard>
+                )}
               </div>
 
-              <IonButton
-                expand="block"
-                size="large"
-                className="purchase-button"
-                onClick={handlePurchase}
-                style={{ marginTop: '16px', fontWeight: 'bold' }}
-              >
-                {selectedTier === 'annual' ? 'Start My Transformation' : 'Unlock My Full Potential Forever'}
-              </IonButton>
+              {(getProduct('annual') || getProduct('lifetime')) ? (
+                <>
+                  <IonButton
+                    expand="block"
+                    size="large"
+                    className="purchase-button"
+                    onClick={handlePurchase}
+                    style={{ marginTop: '16px', fontWeight: 'bold' }}
+                  >
+                    {selectedTier === 'annual' ? 'Start My Transformation' : 'Unlock My Full Potential Forever'}
+                  </IonButton>
 
               <div style={{ textAlign: 'center', margin: '12px 0', fontSize: '12px', color: 'var(--ion-color-medium)' }}>
                 <p style={{ margin: '0', lineHeight: '1.6' }}>
@@ -343,9 +359,30 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                 I'll Stay Limited For Now
               </IonButton>
 
-              <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '11px', color: 'var(--ion-color-medium)' }}>
-                <p style={{ margin: '0' }}>Questions? Contact prime3.app@mailbox.org</p>
-              </div>
+                  <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '11px', color: 'var(--ion-color-medium)' }}>
+                    <p style={{ margin: '0' }}>Questions? Contact prime3.app@mailbox.org</p>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <p style={{ marginBottom: '20px', color: 'var(--ion-color-medium)' }}>
+                    Products are not available at this time.
+                  </p>
+                  <IonButton expand="block" onClick={loadProducts} disabled={loading} style={{ marginBottom: '12px' }}>
+                    {loading ? (
+                      <>
+                        <IonSpinner name="crescent" style={{ marginRight: '8px', width: '18px', height: '18px' }} />
+                        Loading...
+                      </>
+                    ) : (
+                      'Retry'
+                    )}
+                  </IonButton>
+                  <IonButton expand="block" fill="clear" onClick={onClose} disabled={loading}>
+                    Maybe Later
+                  </IonButton>
+                </div>
+              )}
             </>
           )}
         </div>

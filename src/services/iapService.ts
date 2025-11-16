@@ -271,16 +271,76 @@ class IAPService {
           };
         }
 
-        // Order the product
-        await offer.order();
+        // Create a promise that waits for the purchase to complete or fail
+        return new Promise<PurchaseResult>((resolve) => {
+          let resolved = false;
 
-        // The transaction will be handled by the store.when().approved() and verified() handlers
-        // We return success immediately as the handlers will update localStorage
+          // Set up a timeout in case the purchase flow hangs
+          const timeout = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              resolve({
+                success: false,
+                error: 'Purchase timeout - please try again'
+              });
+            }
+          }, 60000); // 60 second timeout
 
-        return {
-          success: true,
-          productId
-        };
+          // Listen for verification (successful purchase)
+          const verifiedHandler = (receipt: any) => {
+            if (receipt.productId === productId && !resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              store.off(verifiedHandler);
+              store.off(errorHandler);
+              resolve({
+                success: true,
+                productId
+              });
+            }
+          };
+
+          // Listen for errors or cancellation
+          const errorHandler = (error: any) => {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              store.off(verifiedHandler);
+              store.off(errorHandler);
+
+              // Check if user cancelled
+              if (error?.code === 'PAYMENT_CANCELLED' || error?.message?.includes('cancel')) {
+                resolve({
+                  success: false,
+                  error: 'Purchase cancelled'
+                });
+              } else {
+                resolve({
+                  success: false,
+                  error: error?.message || 'Purchase failed'
+                });
+              }
+            }
+          };
+
+          // Attach listeners
+          store.when(productId).verified(verifiedHandler);
+          store.error(errorHandler);
+
+          // Order the product (triggers Apple payment sheet)
+          offer.order().catch((error: any) => {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              store.off(verifiedHandler);
+              store.off(errorHandler);
+              resolve({
+                success: false,
+                error: error.message || 'Purchase failed to initiate'
+              });
+            }
+          });
+        });
       } catch (error: any) {
         return {
           success: false,

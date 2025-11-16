@@ -281,8 +281,10 @@ const Home: React.FC = () => {
         <PaywallModal
           isOpen={isPaywallOpen}
           onClose={() => setIsPaywallOpen(false)}
-          onPurchaseComplete={() => {
-            setIsPremium(true);
+          onPurchaseComplete={async () => {
+            // Reload premium status from preferences service (set by IAP service)
+            const premium = await PreferencesService.getIsPremium();
+            setIsPremium(premium);
             setIsPaywallOpen(false);
           }}
           routeAfterPurchase="/review"
