@@ -6,7 +6,7 @@
  * Setup Instructions:
  * ====================
  * 1. Create products in App Store Connect:
- *    - com.prime3.app.premium.annual (Auto-Renewable Subscription, Tier 16: $15.48/year)
+ *    - com.prime3.app.premium.annual (Auto-Renewable Subscription - Annual)
  *    - com.prime3.app.premium.lifetime (Non-Consumable, Tier 15: $14.99)
  * 2. Wait 2-4 hours for products to sync to sandbox
  * 3. Create sandbox tester account in App Store Connect
@@ -35,31 +35,10 @@ export const SUBSCRIPTION_CONFIG = {
      * Product Identifiers (must match App Store Connect exactly)
      *
      * These IDs are configured in App Store Connect → In-App Purchases
+     * All pricing, titles, and descriptions come directly from App Store Connect
      */
     PRODUCT_IDS: {
-        ANNUAL: 'com.prime3.app.premium.annual',      // Auto-Renewable Subscription
+        ANNUAL: 'com.prime3.app.premium.annual',      // Auto-Renewable Subscription (Annual)
         LIFETIME: 'com.prime3.app.premium.lifetime'   // Non-Consumable
-    },
-
-    /**
-     * Product Display Information
-     *
-     * Used for development mode and as reference
-     */
-    PRODUCT_INFO: {
-        ANNUAL: {
-            title: 'Premium Annual',
-            description: 'Billed annually',
-            price: '$1.29/mo',
-            priceAmount: 15.48,
-            billingPeriod: 'year'
-        },
-        LIFETIME: {
-            title: 'Premium Lifetime',
-            description: 'One-time purchase',
-            price: '$14.99',
-            priceAmount: 14.99,
-            billingPeriod: 'once'
-        }
     }
 };
