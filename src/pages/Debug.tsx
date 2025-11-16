@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonContent,
   IonHeader,
@@ -29,6 +30,7 @@ import IAPService, { Product } from '../services/iapService';
 import { SUBSCRIPTION_CONFIG } from '../config/subscription.config';
 
 const Debug: React.FC = () => {
+  const history = useHistory();
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
   const [present] = useIonPicker();
@@ -445,6 +447,24 @@ const Debug: React.FC = () => {
                   style={{ marginBottom: '8px' }}
                 >
                   🌙 End of Day
+                </IonButton>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>Debug Navigation</IonCardTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <p style={{ marginBottom: '12px', fontSize: '14px', opacity: 0.7 }}>
+                  Quick access to premium features for testing
+                </p>
+                <IonButton
+                  expand="block"
+                  color="primary"
+                  onClick={() => history.push('/review')}
+                >
+                  Open Statistics Page
                 </IonButton>
               </IonCardContent>
             </IonCard>

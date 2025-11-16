@@ -34,8 +34,6 @@ import html2canvas from 'html2canvas';
 import { Toast } from '@capacitor/toast';
 import { SqliteServiceContext, StorageServiceContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
-import PreferencesService from '../services/preferencesService';
-import PaywallModal from '../components/PaywallModal';
 import './Statistics.css';
 import {
   Chart as ChartJS,
@@ -104,10 +102,6 @@ const Review: React.FC = () => {
   const [tasksForSelectedDate, setTasksForSelectedDate] = useState<Task[]>([]);
   const [completedCountByDate, setCompletedCountByDate] = useState<{ [key: string]: number }>({});
 
-  // Paywall states
-  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
-
   const reloadTasksForSelectedDate = async () => {
     try {
       const dbName = storageServ.getDatabaseName();
@@ -125,39 +119,16 @@ const Review: React.FC = () => {
   };
 
   useEffect(() => {
-    checkPremiumStatus();
+    loadData();
   }, []);
 
   useIonViewDidEnter(() => {
-    checkPremiumStatus();
+    loadData();
     reloadTasksForSelectedDate();
   });
 
-  const checkPremiumStatus = async () => {
-    const premium = await PreferencesService.getIsPremium();
-    setIsPremium(premium);
-
-    if (!premium) {
-      // Show paywall if not premium
-      setIsPaywallOpen(true);
-      setLoading(false); // Stop loading since we're not loading statistics
-    } else {
-      // Load statistics if premium
-      loadStatistics();
-    }
-  };
-
-  const handlePaywallClose = () => {
-    // Go back to home if user closes paywall without purchasing
-    setIsPaywallOpen(false);
-    history.push('/home');
-  };
-
-  const handlePurchaseComplete = async () => {
-    // Reload premium status and load statistics
-    const premium = await PreferencesService.getIsPremium();
-    setIsPremium(premium);
-    setIsPaywallOpen(false);
+  const loadData = async () => {
+    // Load statistics
     loadStatistics();
   };
 
@@ -546,31 +517,22 @@ const Review: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          {isPremium && (
-            <IonButtons slot="start">
-              <IonBackButton defaultHref="/home" />
-            </IonButtons>
-          )}
-          {isPremium && (
-            <IonSegment value={selectedView} onIonChange={(e) => setSelectedView(e.detail.value as string)}>
-              <IonSegmentButton value="charts">
-                <IonLabel>Charts</IonLabel>
-              </IonSegmentButton>
-              <IonSegmentButton value="calendar">
-                <IonLabel>Calendar</IonLabel>
-              </IonSegmentButton>
-            </IonSegment>
-          )}
-          {isPremium && (
-            <IonButtons slot="end">
-              <IonButton onClick={handleShare} disabled={loading}>
-                <IonIcon icon={shareOutline} />
-              </IonButton>
-            </IonButtons>
-          )}
-          {!isPremium && (
-            <IonTitle>Review</IonTitle>
-          )}
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/home" />
+          </IonButtons>
+          <IonSegment value={selectedView} onIonChange={(e) => setSelectedView(e.detail.value as string)}>
+            <IonSegmentButton value="charts">
+              <IonLabel>Charts</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="calendar">
+              <IonLabel>Calendar</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
+          <IonButtons slot="end">
+            <IonButton onClick={handleShare} disabled={loading}>
+              <IonIcon icon={shareOutline} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
@@ -578,7 +540,7 @@ const Review: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <IonSpinner />
           </div>
-        ) : isPremium ? (
+        ) : (
           <div ref={statsContainerRef}>
             {/* Summary stats - always visible */}
             {/* Charts View - Plot and Heatmap */}
@@ -763,21 +725,8 @@ const Review: React.FC = () => {
               </IonCard>
             )}
           </div>
-        ) : (
-          // Non-premium users see nothing in content, modal will overlay
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', opacity: 0.5 }}>
-            <p>Premium feature</p>
-          </div>
         )}
 
-        {/* Paywall Modal - rendered outside content conditionally */}
-        {isPaywallOpen && (
-          <PaywallModal
-            isOpen={isPaywallOpen}
-            onClose={handlePaywallClose}
-            onPurchaseComplete={handlePurchaseComplete}
-          />
-        )}
       </IonContent>
     </IonPage>
   );
