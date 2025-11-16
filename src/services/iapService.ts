@@ -56,10 +56,7 @@ class IAPService {
     try {
       const { store, ProductType, Platform } = CdvPurchase;
 
-      // Initialize the store first
-      await store.initialize([Platform.APPLE_APPSTORE]);
-
-      // Register products with exact IDs
+      // Register products BEFORE initializing
       store.register([
         {
           id: SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL,
@@ -93,15 +90,16 @@ class IAPService {
         this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
       });
 
-      // Listen for when products are loaded
-      store.when().productUpdated(() => {
+      // Listen for when store is ready
+      store.ready(() => {
         this.storeReady = true;
+        // Refresh products when store is ready
+        store.refresh();
       });
 
+      // Initialize the store
+      await store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
-
-      // Refresh to load product information from Apple
-      await store.refresh();
     } catch {
       // Store initialization failed
     }
@@ -227,10 +225,10 @@ class IAPService {
           await this.initializeStore();
         }
 
-        // Wait for products to be loaded
+        // Wait for products to be loaded with longer timeout
         if (!this.storeReady) {
           await new Promise<void>((resolve) => {
-            const timeout = setTimeout(() => resolve(), 5000);
+            const timeout = setTimeout(() => resolve(), 10000); // 10 seconds
             const checkReady = setInterval(() => {
               if (this.storeReady) {
                 clearInterval(checkReady);
@@ -243,37 +241,45 @@ class IAPService {
 
         const products: Product[] = [];
 
-        // Get annual product
-        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        if (annualProduct && annualProduct.valid) {
-          // Use product.pricing shortcut (same as product.offers[0].pricingPhases[0])
-          if (annualProduct.pricing) {
-            products.push({
-              id: annualProduct.id,
-              title: annualProduct.title || 'Premium Annual',
-              description: annualProduct.description || 'Billed annually',
-              price: annualProduct.pricing.price,
-              priceAmount: annualProduct.pricing.priceMicros ? annualProduct.pricing.priceMicros / 1000000 : 0,
-              currency: annualProduct.pricing.currency || annualProduct.pricing.currencyCode
-            });
-          }
-        }
+        // Get products from store
+        store.products.forEach((product: any) => {
+          if (product.id === SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL ||
+              product.id === SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME) {
 
-        // Get lifetime product
-        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
-        if (lifetimeProduct && lifetimeProduct.valid) {
-          // Use product.pricing shortcut
-          if (lifetimeProduct.pricing) {
-            products.push({
-              id: lifetimeProduct.id,
-              title: lifetimeProduct.title || 'Premium Lifetime',
-              description: lifetimeProduct.description || 'One-time purchase',
-              price: lifetimeProduct.pricing.price,
-              priceAmount: lifetimeProduct.pricing.priceMicros ? lifetimeProduct.pricing.priceMicros / 1000000 : 0,
-              currency: lifetimeProduct.pricing.currency || lifetimeProduct.pricing.currencyCode
-            });
+            // Get pricing based on v13 API
+            let price = null;
+            let priceAmount = 0;
+            let currency = 'EUR';
+
+            // First try the pricing shortcut
+            if (product.pricing) {
+              price = product.pricing.price;
+              priceAmount = product.pricing.priceMicros ? product.pricing.priceMicros / 1000000 : 0;
+              currency = product.pricing.currency || 'EUR';
+            }
+            // Then try offers array
+            else if (product.offers && product.offers.length > 0) {
+              const offer = product.offers[0];
+              if (offer.pricingPhases && offer.pricingPhases.length > 0) {
+                const pricing = offer.pricingPhases[0];
+                price = pricing.price;
+                priceAmount = pricing.priceMicros ? pricing.priceMicros / 1000000 : 0;
+                currency = pricing.currency || 'EUR';
+              }
+            }
+
+            if (price) {
+              products.push({
+                id: product.id,
+                title: product.title || (product.id.includes('annual') ? 'Premium Annual' : 'Premium Lifetime'),
+                description: product.description || (product.id.includes('annual') ? 'Billed annually' : 'One-time purchase'),
+                price: price,
+                priceAmount: priceAmount,
+                currency: currency
+              });
+            }
           }
-        }
+        });
 
         return products;
       } catch {
