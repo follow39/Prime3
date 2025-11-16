@@ -56,6 +56,9 @@ class IAPService {
     try {
       const { store, ProductType, Platform } = CdvPurchase;
 
+      // Initialize the store first
+      await store.initialize([Platform.APPLE_APPSTORE]);
+
       // Register products with exact IDs
       store.register([
         {
@@ -70,6 +73,7 @@ class IAPService {
         }
       ]);
 
+      // Set up approval handlers
       store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL).approved((transaction: any) => {
         transaction.verify();
       });
@@ -78,6 +82,7 @@ class IAPService {
         transaction.verify();
       });
 
+      // Set up verification handlers
       store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL).verified((receipt: any) => {
         receipt.finish();
         this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
@@ -88,15 +93,15 @@ class IAPService {
         this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
       });
 
-      store.ready(() => {
+      // Listen for when products are loaded
+      store.when().productUpdated(() => {
         this.storeReady = true;
       });
 
-      await store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
 
-      // Force refresh to get latest prices
-      store.refresh();
+      // Refresh to load product information from Apple
+      await store.refresh();
     } catch {
       // Store initialization failed
     }
@@ -222,7 +227,7 @@ class IAPService {
           await this.initializeStore();
         }
 
-        // Wait for store to be ready
+        // Wait for products to be loaded
         if (!this.storeReady) {
           await new Promise<void>((resolve) => {
             const timeout = setTimeout(() => resolve(), 5000);
@@ -238,47 +243,34 @@ class IAPService {
 
         const products: Product[] = [];
 
+        // Get annual product
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        if (annualProduct && annualProduct.offers && annualProduct.offers.length > 0) {
-          const offer = annualProduct.offers[0];
-          if (offer.pricingPhases && offer.pricingPhases.length > 0) {
-            const pricing = offer.pricingPhases[0];
+        if (annualProduct && annualProduct.valid) {
+          // Use product.pricing shortcut (same as product.offers[0].pricingPhases[0])
+          if (annualProduct.pricing) {
             products.push({
               id: annualProduct.id,
               title: annualProduct.title || 'Premium Annual',
               description: annualProduct.description || 'Billed annually',
-              price: pricing.price,
-              priceAmount: pricing.priceMicros / 1000000,
-              currency: pricing.currency
+              price: annualProduct.pricing.price,
+              priceAmount: annualProduct.pricing.priceMicros ? annualProduct.pricing.priceMicros / 1000000 : 0,
+              currency: annualProduct.pricing.currency || annualProduct.pricing.currencyCode
             });
           }
         }
 
+        // Get lifetime product
         const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
-        if (lifetimeProduct) {
-          // Non-consumable products may have a simpler structure
-          if (lifetimeProduct.offers && lifetimeProduct.offers.length > 0) {
-            const offer = lifetimeProduct.offers[0];
-            if (offer.pricingPhases && offer.pricingPhases.length > 0) {
-              const pricing = offer.pricingPhases[0];
-              products.push({
-                id: lifetimeProduct.id,
-                title: lifetimeProduct.title || 'Premium Lifetime',
-                description: lifetimeProduct.description || 'One-time purchase',
-                price: pricing.price,
-                priceAmount: pricing.priceMicros / 1000000,
-                currency: pricing.currency
-              });
-            }
-          } else if (lifetimeProduct.pricing) {
-            // Fallback for non-consumable with direct pricing
+        if (lifetimeProduct && lifetimeProduct.valid) {
+          // Use product.pricing shortcut
+          if (lifetimeProduct.pricing) {
             products.push({
               id: lifetimeProduct.id,
               title: lifetimeProduct.title || 'Premium Lifetime',
               description: lifetimeProduct.description || 'One-time purchase',
               price: lifetimeProduct.pricing.price,
-              priceAmount: lifetimeProduct.pricing.priceMicros / 1000000,
-              currency: lifetimeProduct.pricing.currency
+              priceAmount: lifetimeProduct.pricing.priceMicros ? lifetimeProduct.pricing.priceMicros / 1000000 : 0,
+              currency: lifetimeProduct.pricing.currency || lifetimeProduct.pricing.currencyCode
             });
           }
         }
@@ -303,14 +295,14 @@ class IAPService {
         const { store } = CdvPurchase;
 
         const product = store.get(productId);
-        if (!product) {
+        if (!product || !product.valid) {
           return {
             success: false,
             error: 'Product not found. Please ensure products are configured in App Store Connect and try again.'
           };
         }
 
-        // Get the offer (required for purchase)
+        // Get the offer for the product
         const offer = product.getOffer();
         if (!offer) {
           return {
@@ -319,11 +311,10 @@ class IAPService {
           };
         }
 
-        // Create a promise that waits for the purchase to complete or fail
+        // Create a promise that waits for the purchase to complete
         return new Promise<PurchaseResult>((resolve) => {
           let resolved = false;
 
-          // Set up a timeout in case the purchase flow hangs
           const timeout = setTimeout(() => {
             if (!resolved) {
               resolved = true;
@@ -332,31 +323,28 @@ class IAPService {
                 error: 'Purchase timeout - please try again'
               });
             }
-          }, 60000); // 60 second timeout
+          }, 60000);
 
-          // Listen for verification (successful purchase)
+          // Listen for successful verification
           const verifiedHandler = (receipt: any) => {
-            if (receipt.productId === productId && !resolved) {
-              resolved = true;
-              clearTimeout(timeout);
-              store.off(verifiedHandler);
-              store.off(errorHandler);
-              resolve({
-                success: true,
-                productId
-              });
+            if (receipt.products && receipt.products.find((p: any) => p.id === productId)) {
+              if (!resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                resolve({
+                  success: true,
+                  productId
+                });
+              }
             }
           };
 
-          // Listen for errors or cancellation
+          // Listen for errors
           const errorHandler = (error: any) => {
             if (!resolved) {
               resolved = true;
               clearTimeout(timeout);
-              store.off(verifiedHandler);
-              store.off(errorHandler);
 
-              // Check if user cancelled
               if (error?.code === 'PAYMENT_CANCELLED' || error?.message?.includes('cancel')) {
                 resolve({
                   success: false,
@@ -371,20 +359,18 @@ class IAPService {
             }
           };
 
-          // Attach listeners
+          // Set up one-time listeners
           store.when(productId).verified(verifiedHandler);
-          store.error(errorHandler);
+          store.when().error(errorHandler);
 
-          // Order the product (triggers Apple payment sheet)
-          offer.order().catch((error: any) => {
-            if (!resolved) {
+          // Place the order
+          store.order(offer).then((result: any) => {
+            if (result?.error && !resolved) {
               resolved = true;
               clearTimeout(timeout);
-              store.off(verifiedHandler);
-              store.off(errorHandler);
               resolve({
                 success: false,
-                error: error.message || 'Purchase failed to initiate'
+                error: result.error.message || 'Purchase failed'
               });
             }
           });
@@ -397,7 +383,6 @@ class IAPService {
       }
     }
 
-    // Production IAP required
     return {
       success: false,
       error: 'In-app purchases are only available on iOS devices'
