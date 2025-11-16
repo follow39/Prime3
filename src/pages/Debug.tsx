@@ -20,7 +20,8 @@ import {
   IonButton,
   IonToggle,
   IonIcon,
-  useIonPicker
+  useIonPicker,
+  useIonViewDidEnter
 } from '@ionic/react';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -50,6 +51,11 @@ const Debug: React.FC = () => {
     loadPremiumStatus();
     loadIAPProducts();
   }, []);
+
+  // Reload data when page is viewed
+  useIonViewDidEnter(() => {
+    loadAllTasks();
+  });
 
   const loadPremiumStatus = async () => {
     const premium = await PreferencesService.getIsPremium();
@@ -84,14 +90,37 @@ const Debug: React.FC = () => {
     try {
       setLoading(true);
       const dbName = storageServ.getDatabaseName();
-      const isConn = await sqliteServ.isConnection(dbName, false);
 
+      // Check if database service is available
+      if (!storageServ || !sqliteServ) {
+        console.error('Storage or SQLite service not available');
+        Toast.show({
+          text: 'Database services not initialized',
+          duration: 'long'
+        });
+        return;
+      }
+
+      const isConn = await sqliteServ.isConnection(dbName, false);
+      console.log('Debug page - database connection check:', isConn);
+
+      // If no connection, initialize the database
       if (!isConn) {
-        throw new Error('Database connection not available');
+        console.log('Debug page - initializing database...');
+        await storageServ.initializeDatabase();
+        console.log('Debug page - database initialized');
       }
 
       // Get all tasks
       const tasks = await storageServ.getTasks();
+      console.log('Debug page - loaded tasks:', tasks ? tasks.length : 'null/undefined');
+
+      if (!tasks) {
+        console.warn('Tasks returned null or undefined');
+        setAllTasks([]);
+        return;
+      }
+
       setAllTasks(tasks);
 
       // Group by date
@@ -106,8 +135,10 @@ const Debug: React.FC = () => {
 
       setGroupedByDate(grouped);
     } catch (error) {
+      console.error('Debug page error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       Toast.show({
-        text: `Error: ${error}`,
+        text: `Error loading tasks: ${errorMessage}`,
         duration: 'long'
       });
     } finally {
@@ -216,6 +247,14 @@ const Debug: React.FC = () => {
 
   const generateSampleData = async () => {
     try {
+      // Ensure database is initialized
+      const dbName = storageServ.getDatabaseName();
+      const isConn = await sqliteServ.isConnection(dbName, false);
+      if (!isConn) {
+        console.log('Generate sample data - initializing database...');
+        await storageServ.initializeDatabase();
+      }
+
       // Clear existing data
       await storageServ.deleteAllTasks();
 

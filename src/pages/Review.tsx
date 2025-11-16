@@ -107,8 +107,9 @@ const Review: React.FC = () => {
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
 
+      // If no connection, initialize the database
       if (!isConn) {
-        return;
+        await storageServ.initializeDatabase();
       }
 
       const tasks = await storageServ.getTasksByDate(selectedDate);
@@ -138,8 +139,9 @@ const Review: React.FC = () => {
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
 
+      // If no connection, initialize the database
       if (!isConn) {
-        throw new Error('Database connection not available');
+        await storageServ.initializeDatabase();
       }
 
       // Get all objectives
@@ -301,8 +303,9 @@ const Review: React.FC = () => {
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
 
+      // If no connection, initialize the database
       if (!isConn) {
-        return;
+        await storageServ.initializeDatabase();
       }
 
       const tasks = await storageServ.getTasksByDate(dateStr);

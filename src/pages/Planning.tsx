@@ -70,8 +70,9 @@ const Planning: React.FC = () => {
         const dbName = storageServ.getDatabaseName();
         const isConn = await sqliteServ.isConnection(dbName, false);
 
+        // If no connection, initialize the database
         if (!isConn) {
-          return;
+          await storageServ.initializeDatabase();
         }
 
         // Get the most recent date with tasks
@@ -115,8 +116,9 @@ const Planning: React.FC = () => {
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
 
+      // If no connection, initialize the database
       if (!isConn) {
-        throw new Error('Database connection not available');
+        await storageServ.initializeDatabase();
       }
 
       const todayDate = getTodayDate();

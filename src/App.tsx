@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Redirect, Route, useHistory } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -122,11 +122,17 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   const [isDeveloperMode, setDeveloperMode] = useState(false);
 
+  // Create StorageService instance only once
+  const storageServiceInstance = useMemo(
+    () => new StorageService(SqliteService, DbVersionService),
+    []
+  );
+
   return (
     <DeveloperModeContext.Provider value={{ isDeveloperMode, setDeveloperMode }}>
       <SqliteServiceContext.Provider value={SqliteService}>
         <DbVersionServiceContext.Provider value={DbVersionService}>
-          <StorageServiceContext.Provider value={new StorageService(SqliteService, DbVersionService)}>
+          <StorageServiceContext.Provider value={storageServiceInstance}>
             <AppInitializer>
               <IonApp>
                 <IonReactRouter>

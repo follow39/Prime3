@@ -76,10 +76,10 @@ const Home: React.FC = () => {
         dbNameRef.current = storageServ.getDatabaseName();
       }
 
-      // Verify connection exists
+      // Verify connection exists, initialize if needed
       const isConn = await sqliteServ.isConnection(dbNameRef.current, false);
       if (!isConn) {
-        return;
+        await storageServ.initializeDatabase();
       }
 
       const todayDate = getTodayDate();
