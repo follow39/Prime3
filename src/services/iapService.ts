@@ -39,6 +39,7 @@ export interface Product {
 
 class IAPService {
   private storeInitialized = false;
+  private storeReady = false;
 
   constructor() {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
@@ -69,7 +70,6 @@ class IAPService {
         }
       ]);
 
-      // Use when() for specific products instead of general error handler
       store.when(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL).approved((transaction: any) => {
         transaction.verify();
       });
@@ -88,7 +88,10 @@ class IAPService {
         this.grantPremium(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
       });
 
-      // Initialize the store
+      store.when().updated(() => {
+        this.storeReady = true;
+      });
+
       store.initialize([Platform.APPLE_APPSTORE]);
       this.storeInitialized = true;
     } catch {
@@ -211,30 +214,52 @@ class IAPService {
       try {
         const { store } = CdvPurchase;
 
-        const products: Product[] = [];
-
-        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        if (annualProduct && annualProduct.pricing) {
-          products.push({
-            id: annualProduct.id,
-            title: annualProduct.title || 'Premium Annual',
-            description: annualProduct.description || 'Billed annually',
-            price: annualProduct.pricing.price, // Apple's localized price string
-            priceAmount: annualProduct.pricing.priceMicros / 1000000,
-            currency: annualProduct.pricing.currency
+        // Wait for store to be ready
+        if (!this.storeReady) {
+          await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => resolve(), 5000);
+            const checkReady = setInterval(() => {
+              if (this.storeReady) {
+                clearInterval(checkReady);
+                clearTimeout(timeout);
+                resolve();
+              }
+            }, 100);
           });
         }
 
+        const products: Product[] = [];
+
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
+        if (annualProduct) {
+          const offer = annualProduct.getOffer();
+          if (offer && offer.pricingPhases && offer.pricingPhases.length > 0) {
+            const pricing = offer.pricingPhases[0];
+            products.push({
+              id: annualProduct.id,
+              title: annualProduct.title || 'Premium Annual',
+              description: annualProduct.description || 'Billed annually',
+              price: pricing.price,
+              priceAmount: pricing.priceMicros / 1000000,
+              currency: pricing.currency
+            });
+          }
+        }
+
         const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
-        if (lifetimeProduct && lifetimeProduct.pricing) {
-          products.push({
-            id: lifetimeProduct.id,
-            title: lifetimeProduct.title || 'Premium Lifetime',
-            description: lifetimeProduct.description || 'One-time purchase',
-            price: lifetimeProduct.pricing.price, // Apple's localized price string
-            priceAmount: lifetimeProduct.pricing.priceMicros / 1000000,
-            currency: lifetimeProduct.pricing.currency
-          });
+        if (lifetimeProduct) {
+          const offer = lifetimeProduct.getOffer();
+          if (offer && offer.pricingPhases && offer.pricingPhases.length > 0) {
+            const pricing = offer.pricingPhases[0];
+            products.push({
+              id: lifetimeProduct.id,
+              title: lifetimeProduct.title || 'Premium Lifetime',
+              description: lifetimeProduct.description || 'One-time purchase',
+              price: pricing.price,
+              priceAmount: pricing.priceMicros / 1000000,
+              currency: pricing.currency
+            });
+          }
         }
 
         return products;
@@ -243,7 +268,6 @@ class IAPService {
       }
     }
 
-    // Production IAP disabled - return empty
     return [];
   }
 
