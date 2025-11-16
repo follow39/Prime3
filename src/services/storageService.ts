@@ -72,7 +72,6 @@ class StorageService implements IStorageService {
     }
     async getTasks(): Promise<Task[]> {
         if (!this.db) {
-            console.error('StorageService.getTasks: Database connection not initialized');
             throw new Error('Database connection not initialized');
         }
         const result = await this.db.query('SELECT * FROM tasks;');
@@ -80,7 +79,6 @@ class StorageService implements IStorageService {
     }
     async getTasksByDate(date: string): Promise<Task[]> {
         if (!this.db) {
-            console.error('StorageService.getTasksByDate: Database connection not initialized');
             throw new Error('Database connection not initialized');
         }
         const sql = `SELECT * FROM tasks WHERE creation_date = ?;`;

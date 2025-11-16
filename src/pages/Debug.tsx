@@ -93,7 +93,6 @@ const Debug: React.FC = () => {
 
       // Check if database service is available
       if (!storageServ || !sqliteServ) {
-        console.error('Storage or SQLite service not available');
         Toast.show({
           text: 'Database services not initialized',
           duration: 'long'
@@ -102,21 +101,16 @@ const Debug: React.FC = () => {
       }
 
       const isConn = await sqliteServ.isConnection(dbName, false);
-      console.log('Debug page - database connection check:', isConn);
 
       // If no connection, initialize the database
       if (!isConn) {
-        console.log('Debug page - initializing database...');
         await storageServ.initializeDatabase();
-        console.log('Debug page - database initialized');
       }
 
       // Get all tasks
       const tasks = await storageServ.getTasks();
-      console.log('Debug page - loaded tasks:', tasks ? tasks.length : 'null/undefined');
 
       if (!tasks) {
-        console.warn('Tasks returned null or undefined');
         setAllTasks([]);
         return;
       }
@@ -135,7 +129,6 @@ const Debug: React.FC = () => {
 
       setGroupedByDate(grouped);
     } catch (error) {
-      console.error('Debug page error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       Toast.show({
         text: `Error loading tasks: ${errorMessage}`,
@@ -251,7 +244,6 @@ const Debug: React.FC = () => {
       const dbName = storageServ.getDatabaseName();
       const isConn = await sqliteServ.isConnection(dbName, false);
       if (!isConn) {
-        console.log('Generate sample data - initializing database...');
         await storageServ.initializeDatabase();
       }
 
