@@ -78,6 +78,16 @@ const Task: React.FC = () => {
     const handleConfirmDone = async () => {
         if (!task) return;
 
+        // Prevent marking Overdue tasks as Done
+        if (task.status !== TaskStatus.Open) {
+            await Toast.show({
+                text: 'Cannot mark overdue tasks as done',
+                duration: 'long'
+            });
+            setShowConfirmDialog(false);
+            return;
+        }
+
         try {
             const updatedTask: TaskModel = {
                 ...task,
@@ -199,7 +209,7 @@ const Task: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            {task.status !== TaskStatus.Done && (
+                            {task.status === TaskStatus.Open && (
                                 <IonButton
                                     expand="block"
                                     onClick={handleDoneClick}
