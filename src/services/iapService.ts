@@ -32,8 +32,9 @@ export interface Product {
   id: string;
   title: string;
   description: string;
-  price: string;
-  priceAmount: number;
+  price: string; // Localized price string with currency symbol (e.g., "$14.99", "€14,99", "¥1,800")
+  priceAmount: number; // Numeric price value
+  currency?: string; // Currency code (e.g., "USD", "EUR", "JPY")
 }
 
 class IAPService {
@@ -213,24 +214,26 @@ class IAPService {
         const products: Product[] = [];
 
         const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        if (annualProduct) {
+        if (annualProduct && annualProduct.pricing) {
           products.push({
             id: annualProduct.id,
             title: annualProduct.title || 'Premium Annual',
             description: annualProduct.description || 'Billed annually',
-            price: annualProduct.pricing?.price || '$1.29/mo',
-            priceAmount: annualProduct.pricing?.priceMicros ? annualProduct.pricing.priceMicros / 1000000 : 15.48
+            price: annualProduct.pricing.price, // Apple's localized price string
+            priceAmount: annualProduct.pricing.priceMicros / 1000000,
+            currency: annualProduct.pricing.currency
           });
         }
 
         const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
-        if (lifetimeProduct) {
+        if (lifetimeProduct && lifetimeProduct.pricing) {
           products.push({
             id: lifetimeProduct.id,
             title: lifetimeProduct.title || 'Premium Lifetime',
             description: lifetimeProduct.description || 'One-time purchase',
-            price: lifetimeProduct.pricing?.price || '$14.99',
-            priceAmount: lifetimeProduct.pricing?.priceMicros ? lifetimeProduct.pricing.priceMicros / 1000000 : 14.99
+            price: lifetimeProduct.pricing.price, // Apple's localized price string
+            priceAmount: lifetimeProduct.pricing.priceMicros / 1000000,
+            currency: lifetimeProduct.pricing.currency
           });
         }
 

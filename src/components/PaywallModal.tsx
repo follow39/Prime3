@@ -217,11 +217,25 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                           {(() => {
                             const product = getProduct('annual');
                             if (!product) return null;
-                            const monthlyPrice = (product.priceAmount / 12).toFixed(2);
+
+                            // Calculate monthly equivalent
+                            const monthlyAmount = product.priceAmount / 12;
+
+                            // Format price using the product's currency
+                            const formattedMonthly = product.currency
+                              ? new Intl.NumberFormat(undefined, {
+                                  style: 'currency',
+                                  currency: product.currency,
+                                  currencyDisplay: 'narrowSymbol',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(monthlyAmount)
+                              : monthlyAmount.toFixed(2);
+
                             return (
                               <>
                                 <div style={{ fontSize: '19px', fontWeight: 'bold' }}>
-                                  ${monthlyPrice}
+                                  {formattedMonthly}
                                   <span style={{ fontSize: '13px', color: 'var(--ion-color-medium)', fontWeight: 'normal' }}>/mo</span>
                                 </div>
                                 <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)' }}>billed annually</p>
@@ -273,11 +287,25 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                           {(() => {
                             const product = getProduct('lifetime');
                             if (!product) return null;
-                            const regularPrice = (product.priceAmount * 1.67).toFixed(2);
+
+                            // Calculate "regular price" (pre-discount)
+                            const regularAmount = product.priceAmount * 1.67;
+
+                            // Format regular price using the product's currency
+                            const formattedRegular = product.currency
+                              ? new Intl.NumberFormat(undefined, {
+                                  style: 'currency',
+                                  currency: product.currency,
+                                  currencyDisplay: 'narrowSymbol',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(regularAmount)
+                              : regularAmount.toFixed(2);
+
                             return (
                               <>
                                 <div style={{ fontSize: '12px', color: 'var(--ion-color-medium)', textDecoration: 'line-through', marginBottom: '2px' }}>
-                                  ${regularPrice}
+                                  {formattedRegular}
                                 </div>
                                 <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--ion-color-danger)' }}>
                                   {product.price}
