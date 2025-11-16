@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route, useHistory } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -50,6 +50,16 @@ import Debug from './pages/Debug';
 export const SqliteServiceContext = React.createContext(SqliteService);
 export const DbVersionServiceContext = React.createContext(DbVersionService);
 export const StorageServiceContext = React.createContext(new StorageService(SqliteService, DbVersionService));
+
+// Developer Mode Context (session-based, not persisted)
+interface DeveloperModeContextType {
+  isDeveloperMode: boolean;
+  setDeveloperMode: (enabled: boolean) => void;
+}
+export const DeveloperModeContext = React.createContext<DeveloperModeContextType>({
+  isDeveloperMode: false,
+  setDeveloperMode: () => {}
+});
 
 setupIonicReact();
 
@@ -109,20 +119,26 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
-    <SqliteServiceContext.Provider value={SqliteService}>
-      <DbVersionServiceContext.Provider value={DbVersionService}>
-        <StorageServiceContext.Provider value={new StorageService(SqliteService, DbVersionService)}>
-          <AppInitializer>
-            <IonApp>
-              <IonReactRouter>
-                <AppContent />
-              </IonReactRouter>
-            </IonApp>
-          </AppInitializer>
-        </StorageServiceContext.Provider>
-      </DbVersionServiceContext.Provider>
-    </SqliteServiceContext.Provider>
-);
+const App: React.FC = () => {
+  const [isDeveloperMode, setDeveloperMode] = useState(false);
+
+  return (
+    <DeveloperModeContext.Provider value={{ isDeveloperMode, setDeveloperMode }}>
+      <SqliteServiceContext.Provider value={SqliteService}>
+        <DbVersionServiceContext.Provider value={DbVersionService}>
+          <StorageServiceContext.Provider value={new StorageService(SqliteService, DbVersionService)}>
+            <AppInitializer>
+              <IonApp>
+                <IonReactRouter>
+                  <AppContent />
+                </IonReactRouter>
+              </IonApp>
+            </AppInitializer>
+          </StorageServiceContext.Provider>
+        </DbVersionServiceContext.Provider>
+      </SqliteServiceContext.Provider>
+    </DeveloperModeContext.Provider>
+  );
+};
 
 export default App;

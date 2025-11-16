@@ -28,13 +28,14 @@ import { trashOutline, downloadOutline, cloudUploadOutline, starOutline } from '
 import PreferencesService, { ThemePreference } from '../services/preferencesService';
 import ThemeService from '../services/themeService';
 import NotificationService from '../services/notificationService';
-import { StorageServiceContext } from '../App';
+import { StorageServiceContext, DeveloperModeContext } from '../App';
 import ExportService from '../services/exportService';
 import PaywallModal from '../components/PaywallModal';
 
 const Settings: React.FC = () => {
   const history = useHistory();
   const storageService = useContext(StorageServiceContext);
+  const { setDeveloperMode } = useContext(DeveloperModeContext);
   const [dayStartTime, setDayStartTime] = useState<string>('09:00');
   const [dayEndTime, setDayEndTime] = useState<string>('22:00');
   const [themePreference, setThemePreference] = useState<ThemePreference>('system');
@@ -46,6 +47,7 @@ const Settings: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [versionTapCount, setVersionTapCount] = useState<number>(0);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -190,6 +192,18 @@ const Settings: React.FC = () => {
     const premium = await PreferencesService.getIsPremium();
     setIsPremium(premium);
     setIsPaywallOpen(false);
+  };
+
+  const handleVersionTap = () => {
+    const newCount = versionTapCount + 1;
+    setVersionTapCount(newCount);
+
+    if (newCount >= 10) {
+      setDeveloperMode(true);
+      setToastMessage('Developer mode enabled for this session');
+      setShowToast(true);
+      setVersionTapCount(0);
+    }
   };
 
   return (
@@ -449,7 +463,10 @@ const Settings: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
-        <div style={{ textAlign: 'center', marginTop: '30px', color: 'var(--ion-color-medium)' }}>
+        <div
+          style={{ textAlign: 'center', marginTop: '30px', color: 'var(--ion-color-medium)', cursor: 'pointer' }}
+          onClick={handleVersionTap}
+        >
           <p>Version 1.0.0</p>
         </div>
       </IonContent>

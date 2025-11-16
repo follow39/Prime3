@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { IonContent, IonTitle, useIonRouter, useIonViewDidEnter, IonIcon, IonButton, IonHeader, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonPage, IonToolbar, IonList, IonFooter, IonButtons } from '@ionic/react';
 import './Home.css';
 import PreferencesService from '../services/preferencesService';
-import { SqliteServiceContext, StorageServiceContext } from '../App';
+import { SqliteServiceContext, StorageServiceContext, DeveloperModeContext } from '../App';
 import { Task, TaskStatus } from '../models/Task';
 import { Toast } from '@capacitor/toast';
 import { bug, cogOutline } from 'ionicons/icons';
@@ -33,6 +33,7 @@ const Home: React.FC = () => {
   const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
   const sqliteServ = useContext(SqliteServiceContext);
   const storageServ = useContext(StorageServiceContext);
+  const { isDeveloperMode } = useContext(DeveloperModeContext);
 
   // Check if intro has been shown and day schedule configured on first mount
   useEffect(() => {
@@ -158,9 +159,11 @@ const Home: React.FC = () => {
         <IonToolbar>
           <IonTitle><HeaderTimeLeft refreshTrigger={headerRefreshTrigger} /></IonTitle>
           <IonButtons slot="end">
-            <IonButton onClick={() => router.push('/debug', 'forward')}>
-              <IonIcon icon={bug} />
-            </IonButton>
+            {isDeveloperMode && (
+              <IonButton onClick={() => router.push('/debug', 'forward')}>
+                <IonIcon icon={bug} />
+              </IonButton>
+            )}
             <IonButton onClick={() => router.push('/settings', 'forward')}>
               <IonIcon icon={cogOutline} />
             </IonButton>
