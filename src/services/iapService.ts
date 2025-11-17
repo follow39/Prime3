@@ -170,10 +170,10 @@ class IAPService {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       // Production: Check store receipts
       try {
-        const { store } = CdvPurchase;
+        const { store, Platform } = CdvPurchase;
 
-        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL, Platform.APPLE_APPSTORE);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME, Platform.APPLE_APPSTORE);
 
         const hasAnnual = annualProduct?.owned;
         const hasLifetime = lifetimeProduct?.owned;
@@ -195,10 +195,10 @@ class IAPService {
   async getPremiumTier(): Promise<string | null> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        const { store } = CdvPurchase;
+        const { store, Platform } = CdvPurchase;
 
-        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL, Platform.APPLE_APPSTORE);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME, Platform.APPLE_APPSTORE);
 
         if (lifetimeProduct?.owned) return 'lifetime';
         if (annualProduct?.owned) return 'annual';
@@ -298,10 +298,11 @@ class IAPService {
   async purchaseProduct(productId: string): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        const { store } = CdvPurchase;
+        const { store, Platform } = CdvPurchase;
 
-        const product = store.get(productId);
-        if (!product || !product.valid) {
+        const product = store.get(productId, Platform.APPLE_APPSTORE);
+
+        if (!product) {
           return {
             success: false,
             error: 'Product not found. Please ensure products are configured in App Store Connect and try again.'
@@ -345,29 +346,8 @@ class IAPService {
             }
           };
 
-          // Listen for errors
-          const errorHandler = (error: any) => {
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(timeout);
-
-              if (error?.code === 'PAYMENT_CANCELLED' || error?.message?.includes('cancel')) {
-                resolve({
-                  success: false,
-                  error: 'Purchase cancelled'
-                });
-              } else {
-                resolve({
-                  success: false,
-                  error: error?.message || 'Purchase failed'
-                });
-              }
-            }
-          };
-
-          // Set up one-time listeners
+          // Set up listener for successful verification
           store.when(productId).verified(verifiedHandler);
-          store.when().error(errorHandler);
 
           // Place the order
           store.order(offer).then((result: any) => {
@@ -403,14 +383,13 @@ class IAPService {
   async restorePurchases(): Promise<PurchaseResult> {
     if (SUBSCRIPTION_CONFIG.ENABLE_PRODUCTION_IAP && Capacitor.isNativePlatform()) {
       try {
-        const { store } = CdvPurchase;
+        const { store, Platform } = CdvPurchase;
 
         // Restore purchases
         await store.restorePurchases();
 
-        // Check if any products are now owned
-        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL);
-        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME);
+        const annualProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.ANNUAL, Platform.APPLE_APPSTORE);
+        const lifetimeProduct = store.get(SUBSCRIPTION_CONFIG.PRODUCT_IDS.LIFETIME, Platform.APPLE_APPSTORE);
 
         const hasAnnual = annualProduct?.owned;
         const hasLifetime = lifetimeProduct?.owned;

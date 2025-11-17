@@ -87,16 +87,20 @@ The app uses a service-based architecture with React Context for dependency inje
    - Responds to system preferences and user overrides
 
 7. **IAPService** (`iapService.ts`): In-App Purchase handling
+   - Uses cordova-plugin-purchase for native StoreKit integration
    - Annual subscription: `com.prime3.app.premium.annual`
    - Lifetime purchase: `com.prime3.app.premium.lifetime`
-   - Development mode uses localStorage (ENABLE_PRODUCTION_IAP = false)
+   - Toggle via `ENABLE_PRODUCTION_IAP` in `config/subscription.config.ts`:
+     - `true`: Production mode - real StoreKit purchases
+     - `false`: Development mode - localStorage simulation (purchases always succeed)
 
 ### Dependency Injection Pattern
 
-Services are provided via React Context (see `App.tsx:49-51`):
+Services are provided via React Context (see `App.tsx:50-52`):
 - `SqliteServiceContext`: Singleton SQLite service
 - `DbVersionServiceContext`: Singleton version service
 - `StorageServiceContext`: New instance wrapping the above two
+- `DeveloperModeContext`: Session-based developer mode flag (not persisted)
 
 Pages and components access services via `useContext(StorageServiceContext)`.
 
@@ -126,6 +130,8 @@ Schema migrations are defined in `src/upgrades/task.upgrade.statements.ts`. When
    - Runs database migrations via StorageService
    - Schedules notifications if enabled
 4. After initialization, the router renders the appropriate page based on route
+5. `App.tsx` also sets up notification click listeners:
+   - Notification ID 100 (review notification) navigates to `/review`
 
 ### Routing
 
@@ -185,6 +191,7 @@ This prevents the entire dependency tree from being bundled into a single chunk.
 
 ### Important Rules
 - **NO CONSOLE.LOG STATEMENTS**: This repository does not use console.log for debugging. Use the Debug page or other debugging methods instead.
+- **GIT IS ALLOWED**: You can use git commands to check history, view diffs, and manage commits.
 
 ### Adding New Features with Database Changes
 
@@ -220,4 +227,22 @@ App configuration in `capacitor.config.ts`:
 - **App ID**: `com.prime3.app`
 - **App Name**: Prime3
 - **Web Dir**: `dist`
-- **SQLite Plugin**: Configured for iOS with encryption disabled and biometric options
+- **SQLite Plugin**:
+  - Database location: `Library/CapacitorDatabase`
+  - iOS encryption: disabled (`iosIsEncryption: false`)
+
+## In-App Purchase Configuration
+
+IAP settings in `src/config/subscription.config.ts`:
+- Toggle `ENABLE_PRODUCTION_IAP` to switch between development/production modes
+- Development mode (`false`): Uses localStorage, all purchases succeed automatically
+- Production mode (`true`): Uses native StoreKit via cordova-plugin-purchase
+- Product IDs must match App Store Connect exactly
+- For testing with StoreKit: Configure in Xcode → Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
+
+### IAP Implementation Details
+
+Product registration and retrieval uses platform-specific configuration:
+- Products registered with `platform: Platform.APPLE_APPSTORE` in `store.register()`
+- Product retrieval uses `store.get(productId, Platform.APPLE_APPSTORE)` with platform parameter
+- All IAP operations are platform-aware for proper StoreKit integration
