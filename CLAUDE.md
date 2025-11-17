@@ -14,6 +14,7 @@ Prime3 is an Ionic React mobile application for iOS that helps users manage dail
 - **Database**: @capacitor-community/sqlite with versioned schema migrations
 - **Testing**: Vitest for unit tests, Cypress for e2e tests
 - **Charts**: Chart.js with react-chartjs-2
+- **In-App Purchases**: cordova-plugin-purchase for premium features
 
 ## Common Commands
 
@@ -27,7 +28,7 @@ npm run preview          # Preview production build
 ### Testing
 ```bash
 npm run test.unit        # Run Vitest unit tests
-npm run test.e2e         # Run Cypress e2e tests
+npm run test.e2e         # Run Cypress e2e tests (requires dev server running)
 npm run lint             # Run ESLint
 ```
 
@@ -78,10 +79,17 @@ The app uses a service-based architecture with React Context for dependency inje
 
 5. **NotificationService** (`notificationService.ts`): Local push notifications
    - Schedules daily reminders at start and end of day
+   - Smart intermediate notifications throughout the day
+   - Review mode when all tasks completed
    - Uses Capacitor Local Notifications plugin
 
 6. **ThemeService** (`themeService.ts`): Dark/light mode management
    - Responds to system preferences and user overrides
+
+7. **IAPService** (`iapService.ts`): In-App Purchase handling
+   - Annual subscription: `com.prime3.app.premium.annual`
+   - Lifetime purchase: `com.prime3.app.premium.lifetime`
+   - Development mode uses localStorage (ENABLE_PRODUCTION_IAP = false)
 
 ### Dependency Injection Pattern
 
@@ -125,7 +133,7 @@ Uses `react-router-dom` v5 with Ionic's `IonReactRouter`:
 - `/intro` - Onboarding flow
 - `/home` - Main task list for today
 - `/day-schedule` - Configure day start/end times
-- `/review` - Review completed/overdue tasks
+- `/review` - Review completed/overdue tasks (premium feature)
 - `/task` - Individual task detail view
 - `/planning` - Planning page
 - `/settings` - App settings
@@ -152,6 +160,17 @@ The app can automatically mark incomplete tasks as overdue and copy them to new 
 4. Incomplete tasks from previous days can be automatically marked as overdue
 5. End-of-day review shows completion statistics
 
+### Notification System
+
+The app schedules multiple notification types:
+- **Start of Day**: Motivational message at configured start time
+- **End of Day**: Reflection message at configured end time
+- **One Hour Before**: Urgency reminder (replaced by Review if all tasks done)
+- **Intermediate**: 1-3 momentum messages during the day based on day length
+- **Review**: Celebration message when all 3 tasks completed
+
+Messages are randomized from pools of 40-60 variants per category, with non-repeat logic to avoid showing the same message twice in one day.
+
 ### Vite Build Configuration
 
 The `vite.config.ts` includes custom chunk splitting to optimize bundle size:
@@ -163,6 +182,9 @@ The `vite.config.ts` includes custom chunk splitting to optimize bundle size:
 This prevents the entire dependency tree from being bundled into a single chunk.
 
 ## Development Guidelines
+
+### Important Rules
+- **NO CONSOLE.LOG STATEMENTS**: This repository does not use console.log for debugging. Use the Debug page or other debugging methods instead.
 
 ### Adding New Features with Database Changes
 
@@ -198,4 +220,4 @@ App configuration in `capacitor.config.ts`:
 - **App ID**: `com.prime3.app`
 - **App Name**: Prime3
 - **Web Dir**: `dist`
-- **SQLite Plugin**: Configured for iOS with encryption enabled and biometric options
+- **SQLite Plugin**: Configured for iOS with encryption disabled and biometric options
