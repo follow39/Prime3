@@ -334,8 +334,27 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                   </IonButton>
 
               <div style={{ textAlign: 'center', margin: '12px 0', fontSize: '12px', color: 'var(--ion-color-medium)' }}>
-                <p style={{ margin: '0', lineHeight: '1.6' }}>
+                <p style={{ margin: '0 0 8px 0', lineHeight: '1.6' }}>
                   Secure payment · Private data · Cancel anytime
+                </p>
+                <p style={{ margin: '0', lineHeight: '1.8' }}>
+                  <a
+                    href="https://follow39.github.io/Prime3/privacy-policy.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--ion-color-primary)', textDecoration: 'none' }}
+                  >
+                    Privacy Policy
+                  </a>
+                  {' · '}
+                  <a
+                    href="https://follow39.github.io/Prime3/terms-of-service.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--ion-color-primary)', textDecoration: 'none' }}
+                  >
+                    Terms of Use
+                  </a>
                 </p>
               </div>
 
