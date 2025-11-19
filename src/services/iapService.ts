@@ -228,7 +228,7 @@ class IAPService {
         // Wait for products to be loaded with longer timeout
         if (!this.storeReady) {
           await new Promise<void>((resolve) => {
-            const timeout = setTimeout(() => resolve(), 10000); // 10 seconds
+            const timeout = setTimeout(() => resolve(), 15000); // 15 seconds - increased for sandbox environment
             const checkReady = setInterval(() => {
               if (this.storeReady) {
                 clearInterval(checkReady);
@@ -330,7 +330,7 @@ class IAPService {
                 error: 'Purchase timeout - please try again'
               });
             }
-          }, 60000);
+          }, 180000); // 180 seconds (3 minutes) - increased for sandbox environment reliability
 
           // Listen for successful verification
           const verifiedHandler = (receipt: any) => {

@@ -208,9 +208,9 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onPurchase
                     <IonCardContent style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Monthly</h3>
+                          <h3 style={{ margin: '0', fontWeight: 'bold', fontSize: '15px' }}>Annual</h3>
                           <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: 'var(--ion-color-medium)', fontWeight: '600' }}>
-                            Try it first
+                            1 Year Subscription
                           </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
